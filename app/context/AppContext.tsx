@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { MOCK_SALONS, MOCK_USER, Salon, Service, Review, UserProfile } from '../data/mockData';
 import { IS_MOCK } from '../../lib/firebase';
 
@@ -13,7 +13,8 @@ export interface Booking {
   price: number;
   date: string;
   time: string;
-  status: 'Confirmed' | 'Completed' | 'Cancelled';
+  status: 'Pending' | 'Confirmed' | 'In Progress' | 'Completed' | 'Cancelled' | 'No Show';
+  createdAt?: string;
 }
 
 export interface ChatMessage {
@@ -41,9 +42,10 @@ interface AppContextType {
   chatHistory: ChatMessage[];
   userProfile: UserProfile;
   isDarkMode: boolean;
-  addBooking: (salonId: string, serviceId: string, date: string, time: string) => void;
-  cancelBooking: (bookingId: string) => void;
-  addReview: (salonId: string, rating: number, comment: string, tags?: string[]) => void;
+  addBooking: (salonId: string, serviceId: string, date: string, time: string) => Promise<void>;
+  cancelBooking: (bookingId: string) => Promise<void>;
+  updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
+  addReview: (salonId: string, rating: number, comment: string, tags?: string[]) => Promise<void>;
   updateProfile: (profile: Partial<UserProfile>) => void;
   sendChatMessage: (message: string) => void;
   toggleDarkMode: () => void;
@@ -51,12 +53,18 @@ interface AppContextType {
   addSalon: (salonData: any, imageFile: File | null) => Promise<void>;
   updateSalon: (salonId: string, salonData: any, imageFile: File | null) => Promise<void>;
   deleteSalon: (salonId: string) => Promise<void>;
+  // Service CRUD operations
+  addService: (serviceData: any, salonId: string) => Promise<void>;
+  updateService: (serviceId: string, serviceData: any) => Promise<void>;
+  deleteService: (serviceId: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [salons, setSalons] = useState<Salon[]>([]);
+  // Underlying DB states
+  const [dbSalons, setDbSalons] = useState<any[]>([]);
+  const [dbServices, setDbServices] = useState<any[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(MOCK_USER);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -70,28 +78,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
-    }
-
-    const savedBookings = localStorage.getItem('aura_bookings');
-    if (savedBookings) {
-      setBookings(JSON.parse(savedBookings));
-    } else {
-      // Default initial mock booking
-      const initial: Booking[] = [
-        {
-          id: 'mock-b-1',
-          salonId: 'bodycraft-indiranagar',
-          salonName: 'Bodycraft Salon & Spa',
-          serviceId: 'bc-facial-1',
-          serviceName: 'Advanced Hydra Facial',
-          price: 4500,
-          date: '2026-06-18',
-          time: '11:00 AM',
-          status: 'Confirmed'
-        }
-      ];
-      setBookings(initial);
-      localStorage.setItem('aura_bookings', JSON.stringify(initial));
     }
 
     const savedProfile = localStorage.getItem('aura_profile');
@@ -115,51 +101,107 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('aura_chat', JSON.stringify(initialChat));
     }
 
-    // Load Salons
+    // Load Salons, Services, and Bookings
     if (IS_MOCK) {
+      // 1. Salons
       const savedSalons = localStorage.getItem('aura_salons');
       if (savedSalons) {
-        setSalons(JSON.parse(savedSalons));
+        setDbSalons(JSON.parse(savedSalons));
       } else {
-        setSalons(MOCK_SALONS);
-        localStorage.setItem('aura_salons', JSON.stringify(MOCK_SALONS));
+        // Strip services before storing so they live in services DB
+        const salonsOnly = MOCK_SALONS.map(({ services, ...s }) => s);
+        setDbSalons(salonsOnly);
+        localStorage.setItem('aura_salons', JSON.stringify(salonsOnly));
+      }
+
+      // 2. Services
+      const savedServices = localStorage.getItem('aura_services');
+      if (savedServices) {
+        setDbServices(JSON.parse(savedServices));
+      } else {
+        const initialServices: any[] = [];
+        MOCK_SALONS.forEach((salon) => {
+          salon.services.forEach((s) => {
+            initialServices.push({
+              serviceId: s.id,
+              salonId: salon.id,
+              serviceName: s.name,
+              price: s.price,
+              duration: s.duration,
+              category: s.category,
+              isActive: true,
+              createdAt: new Date().toISOString()
+            });
+          });
+        });
+        setDbServices(initialServices);
+        localStorage.setItem('aura_services', JSON.stringify(initialServices));
+      }
+
+      // 3. Bookings
+      const savedBookings = localStorage.getItem('aura_bookings');
+      if (savedBookings) {
+        setBookings(JSON.parse(savedBookings));
+      } else {
+        const initial: Booking[] = [
+          {
+            id: 'mock-b-1',
+            salonId: 'bodycraft-indiranagar',
+            salonName: 'Bodycraft Salon & Spa',
+            serviceId: 'bc-facial-1',
+            serviceName: 'Advanced Hydra Facial',
+            price: 4500,
+            date: '2026-06-18',
+            time: '11:00 AM',
+            status: 'Confirmed',
+            createdAt: new Date().toISOString()
+          }
+        ];
+        setBookings(initial);
+        localStorage.setItem('aura_bookings', JSON.stringify(initial));
       }
     } else {
-      // Real Firebase realtime syncing
-      let unsubscribe: any = () => {};
-      const initFirestoreSalons = async () => {
+      // Real Firebase realtime syncing for all three collections
+      let unsubSalons: any = () => {};
+      let unsubServices: any = () => {};
+      let unsubBookings: any = () => {};
+
+      const initFirestore = async () => {
         try {
           const { collection, onSnapshot, doc, setDoc } = await import('firebase/firestore');
           const { db } = await import('../../lib/firebase');
 
-          unsubscribe = onSnapshot(collection(db, 'salons'), async (snapshot) => {
+          // 1. Salons collection listener
+          unsubSalons = onSnapshot(collection(db, 'salons'), async (snapshot) => {
             if (snapshot.empty) {
-              console.log('Firestore salons collection is empty. Seeding initial mock salons...');
+              console.log('Seeding initial salons...');
               for (const salon of MOCK_SALONS) {
+                // Strip services from salon seeding document
+                const { services, ...salonData } = salon;
                 await setDoc(doc(db, 'salons', salon.id), {
                   salonId: salon.id,
-                  name: salon.name,
-                  category: salon.isLuxury ? 'Luxury' : salon.offersHomeService ? 'Home Service' : 'Budget',
-                  location: salon.locality,
-                  address: salon.address,
-                  phone: salon.phone,
-                  description: salon.description,
-                  rating: salon.rating,
-                  imageUrls: [salon.image, ...salon.gallery],
+                  name: salonData.name,
+                  category: salonData.isLuxury ? 'Luxury' : salonData.offersHomeService ? 'Home Service' : 'Budget',
+                  location: salonData.locality,
+                  address: salonData.address,
+                  phone: salonData.phone,
+                  description: salonData.description,
+                  rating: salonData.rating,
+                  reviewsCount: salonData.reviewsCount,
+                  imageUrls: [salonData.image, ...salonData.gallery],
                   createdAt: new Date(),
-                  services: salon.services,
-                  reviews: salon.reviews,
-                  aiReviewSummary: salon.aiReviewSummary,
-                  matchScore: salon.matchScore,
-                  badges: salon.badges
+                  reviews: salonData.reviews,
+                  aiReviewSummary: salonData.aiReviewSummary,
+                  matchScore: salonData.matchScore,
+                  badges: salonData.badges
                 });
               }
             } else {
-              const fetchedSalons: Salon[] = snapshot.docs.map((docSnap) => {
-                const data = docSnap.data();
+              const fetched = snapshot.docs.map(d => {
+                const data = d.data();
                 return {
-                  id: docSnap.id || data.salonId,
-                  name: data.name || 'Aura Outlet',
+                  id: d.id || data.salonId,
+                  name: data.name || '',
                   rating: Number(data.rating) || 5.0,
                   reviewsCount: data.reviewsCount || data.reviews?.length || 0,
                   location: data.location || '',
@@ -171,25 +213,124 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                   isLuxury: data.category === 'Luxury',
                   offersHomeService: data.category === 'Home Service',
                   phone: data.phone || '',
-                  services: data.services || [],
                   reviews: data.reviews || [],
                   aiReviewSummary: data.aiReviewSummary || { pros: [], cons: [], summary: '' },
                   matchScore: data.matchScore || 95,
-                  badges: data.badges || (data.category === 'Luxury' ? ['Luxury Favorite'] : data.category === 'Home Service' ? ['Home Service Pro'] : ['Budget Friendly'])
+                  badges: data.badges || [],
+                  status: data.status || 'Open'
                 };
               });
-              setSalons(fetchedSalons);
+              setDbSalons(fetched);
             }
           });
+
+          // 2. Services collection listener
+          unsubServices = onSnapshot(collection(db, 'services'), async (snapshot) => {
+            if (snapshot.empty) {
+              console.log('Seeding initial services...');
+              MOCK_SALONS.forEach(async (salon) => {
+                for (const s of salon.services) {
+                  await setDoc(doc(db, 'services', s.id), {
+                    serviceId: s.id,
+                    salonId: salon.id,
+                    serviceName: s.name,
+                    price: s.price,
+                    duration: s.duration,
+                    category: s.category,
+                    isActive: true,
+                    createdAt: new Date()
+                  });
+                }
+              });
+            } else {
+              const fetched = snapshot.docs.map(d => {
+                const data = d.data();
+                return {
+                  id: d.id || data.serviceId,
+                  salonId: data.salonId,
+                  name: data.serviceName,
+                  price: Number(data.price),
+                  duration: data.duration,
+                  category: data.category,
+                  isActive: data.isActive !== false,
+                  createdAt: data.createdAt
+                };
+              });
+              setDbServices(fetched);
+            }
+          });
+
+          // 3. Bookings collection listener
+          unsubBookings = onSnapshot(collection(db, 'bookings'), async (snapshot) => {
+            if (snapshot.empty) {
+              console.log('Seeding initial bookings...');
+              const initialId = 'mock-b-1';
+              await setDoc(doc(db, 'bookings', initialId), {
+                id: initialId,
+                salonId: 'bodycraft-indiranagar',
+                salonName: 'Bodycraft Salon & Spa',
+                serviceId: 'bc-facial-1',
+                serviceName: 'Advanced Hydra Facial',
+                price: 4500,
+                date: '2026-06-18',
+                time: '11:00 AM',
+                status: 'Confirmed',
+                createdAt: new Date().toISOString()
+              });
+            } else {
+              const fetched = snapshot.docs.map(d => {
+                const data = d.data();
+                return {
+                  id: d.id,
+                  salonId: data.salonId,
+                  salonName: data.salonName,
+                  serviceId: data.serviceId,
+                  serviceName: data.serviceName,
+                  price: Number(data.price),
+                  date: data.date,
+                  time: data.time,
+                  status: data.status,
+                  createdAt: data.createdAt
+                };
+              }) as Booking[];
+              setBookings(fetched);
+            }
+          });
+
         } catch (error) {
-          console.error('Failed to initialize Firestore salons listener:', error);
+          console.error('Failed to initialize Firestore listener:', error);
         }
       };
 
-      initFirestoreSalons();
-      return () => unsubscribe();
+      initFirestore();
+      return () => {
+        unsubSalons();
+        unsubServices();
+        unsubBookings();
+      };
     }
   }, []);
+
+  // Combined selector that maps services back to their parent salons for user UI
+  const salons = useMemo(() => {
+    return dbSalons.map((salon) => {
+      const salonServices = dbServices
+        .filter((s) => s.salonId === salon.id)
+        .map((s) => ({
+          id: s.id || s.serviceId,
+          name: s.name || s.serviceName,
+          price: s.price,
+          duration: s.duration,
+          category: s.category,
+          description: s.description || 'Verified salon catalog option.',
+          isActive: s.isActive
+        }));
+      return {
+        ...salon,
+        services: salonServices
+      };
+    });
+  }, [dbSalons, dbServices]);
 
   const toggleDarkMode = () => {
     const nextMode = !isDarkMode;
@@ -202,13 +343,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const addBooking = (salonId: string, serviceId: string, date: string, time: string) => {
-    const salon = salons.find(s => s.id === salonId);
-    const service = salon?.services.find(s => s.id === serviceId);
+  // Create Booking
+  const addBooking = async (salonId: string, serviceId: string, date: string, time: string) => {
+    const salon = salons.find((s: any) => s.id === salonId);
+    const service = salon?.services.find((s: any) => s.id === serviceId);
     if (!salon || !service) return;
 
+    const bookingId = `booking-${Date.now()}`;
     const newBooking: Booking = {
-      id: `booking-${Date.now()}`,
+      id: bookingId,
       salonId,
       salonName: salon.name,
       serviceId,
@@ -216,24 +359,69 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       price: service.price,
       date,
       time,
-      status: 'Confirmed'
+      status: 'Confirmed',
+      createdAt: new Date().toISOString()
     };
 
-    const updated = [newBooking, ...bookings];
-    setBookings(updated);
-    localStorage.setItem('aura_bookings', JSON.stringify(updated));
+    if (IS_MOCK) {
+      const updated = [newBooking, ...bookings];
+      setBookings(updated);
+      localStorage.setItem('aura_bookings', JSON.stringify(updated));
+    } else {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await setDoc(doc(db, 'bookings', bookingId), {
+        id: bookingId,
+        salonId,
+        salonName: newBooking.salonName,
+        serviceId,
+        serviceName: newBooking.serviceName,
+        price: newBooking.price,
+        date,
+        time,
+        status: newBooking.status,
+        createdAt: newBooking.createdAt
+      });
+    }
   };
 
-  const cancelBooking = (bookingId: string) => {
-    const updated = bookings.map(b => 
-      b.id === bookingId ? { ...b, status: 'Cancelled' as const } : b
-    );
-    setBookings(updated);
-    localStorage.setItem('aura_bookings', JSON.stringify(updated));
+  // Cancel Booking
+  const cancelBooking = async (bookingId: string) => {
+    if (IS_MOCK) {
+      const updated = bookings.map(b => 
+        b.id === bookingId ? { ...b, status: 'Cancelled' as const } : b
+      );
+      setBookings(updated);
+      localStorage.setItem('aura_bookings', JSON.stringify(updated));
+    } else {
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await updateDoc(doc(db, 'bookings', bookingId), {
+        status: 'Cancelled'
+      });
+    }
   };
 
-  const addReview = (salonId: string, rating: number, comment: string, tags?: string[]) => {
-    const targetSalon = salons.find(s => s.id === salonId);
+  // Admin Update Booking Status
+  const updateBookingStatus = async (bookingId: string, status: Booking['status']) => {
+    if (IS_MOCK) {
+      const updated = bookings.map(b => 
+        b.id === bookingId ? { ...b, status } : b
+      );
+      setBookings(updated);
+      localStorage.setItem('aura_bookings', JSON.stringify(updated));
+    } else {
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await updateDoc(doc(db, 'bookings', bookingId), {
+        status
+      });
+    }
+  };
+
+  // Submit Review and recalculate salon rating automatically
+  const addReview = async (salonId: string, rating: number, comment: string, tags?: string[]) => {
+    const targetSalon = dbSalons.find(s => s.id === salonId);
     if (!targetSalon) return;
 
     const newReview: Review = {
@@ -245,25 +433,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       tags: tags || []
     };
 
-    const updatedReviews = [newReview, ...targetSalon.reviews];
+    const currentReviews = targetSalon.reviews || [];
+    const updatedReviews = [newReview, ...currentReviews];
     const newRating = parseFloat(
-      ((targetSalon.rating * targetSalon.reviewsCount + rating) / (targetSalon.reviewsCount + 1)).toFixed(1)
+      (updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length).toFixed(1)
     );
 
-    const updatedSalons = salons.map(s => {
-      if (s.id === salonId) {
-        return {
-          ...s,
-          reviews: updatedReviews,
-          rating: newRating,
-          reviewsCount: s.reviewsCount + 1
-        };
-      }
-      return s;
-    });
-
-    setSalons(updatedSalons);
-    localStorage.setItem('aura_salons', JSON.stringify(updatedSalons));
+    if (IS_MOCK) {
+      const updatedSalons = dbSalons.map(s => {
+        if (s.id === salonId) {
+          return {
+            ...s,
+            reviews: updatedReviews,
+            rating: newRating,
+            reviewsCount: updatedReviews.length
+          };
+        }
+        return s;
+      });
+      setDbSalons(updatedSalons);
+      localStorage.setItem('aura_salons', JSON.stringify(updatedSalons));
+    } else {
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await updateDoc(doc(db, 'salons', salonId), {
+        reviews: updatedReviews,
+        rating: newRating,
+        reviewsCount: updatedReviews.length
+      });
+    }
   };
 
   const updateProfile = (profile: Partial<UserProfile>) => {
@@ -272,46 +470,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('aura_profile', JSON.stringify(updated));
   };
 
-  // Extract all reviews across all salons
-  const reviews = salons.flatMap(s => 
-    (s.reviews || []).map(r => ({ ...r, salonName: s.name, salonId: s.id }))
-  ) as any;
+  // Extract reviews across all salons
+  const reviews = useMemo(() => {
+    return dbSalons.flatMap(s => 
+      (s.reviews || []).map((r: any) => ({ ...r, salonName: s.name, salonId: s.id }))
+    );
+  }, [dbSalons]);
 
   // AI response helper
   const getAIResponse = (text: string): { text: string; recommendations?: ChatMessage['recommendations'] } => {
     const query = text.toLowerCase();
 
     if (query.includes('facial') || query.includes('skin') || query.includes('hydra')) {
-      const isUnder3k = query.includes('3000') || query.includes('3k') || query.includes('under');
-      if (isUnder3k) {
-        return {
-          text: "I found a great option matching your budget! Bodycraft Salon in Indiranagar offers an Brightening Peel for ₹2,800, or YLG HSR has their Tan-Clear Herbal Facial for ₹1,500. However, if you can stretch your budget slightly, the Advanced Hydra Facial at Bodycraft for ₹4,500 is highly recommended by local users for city dust recovery.",
-          recommendations: [
-            { 
-              type: 'service', 
-              id: 'bc-skincare-2', 
-              name: 'Brightening Peel (₹2,800)', 
-              price: 2800, 
-              salonId: 'bodycraft-indiranagar', 
-              details: 'Bodycraft Salon & Spa',
-              matchScore: 96,
-              reasons: ['Matches your budget limit (under ₹3000)', 'Highly rated for quick skin brightening', 'Located in Indiranagar (your preferred neighborhood)'],
-              memoryIndicator: 'Based on your preferred budget constraints and skin profile...'
-            },
-            { 
-              type: 'service', 
-              id: 'ylg-facial-1', 
-              name: 'Tan-Clear Herbal Facial (₹1,500)', 
-              price: 1500, 
-              salonId: 'ylg-hsr', 
-              details: 'YLG HSR',
-              matchScore: 82,
-              reasons: ['Extremely budget friendly', 'Excellent for de-tanning skin cleanups', 'Located in HSR Layout'],
-              memoryIndicator: 'Based on your preferred budget constraints...'
-            }
-          ]
-        };
-      }
       return {
         text: "For skincare, I highly recommend the Advanced Hydra Facial at Bodycraft Salon & Spa in Indiranagar. It has an aggregate rating of 4.8/5, and users praise its deep cleaning and instant skin radiance. Another premium choice is the Rose Gold Shimmer Facial at Mirror & Within on Lavelle Road.",
         recommendations: [
@@ -325,117 +495,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             matchScore: 96,
             reasons: ['Fits your exact Indiranagar location preference', 'You booked this 24 days ago and rated it highly', 'Highly rated for deep hydration by similar users'],
             memoryIndicator: 'Based on your previous Hydra Facial bookings and high rating...'
-          },
-          { 
-            type: 'service', 
-            id: 'mw-facial-1', 
-            name: 'Rose Gold Shimmer Facial', 
-            price: 6800, 
-            salonId: 'mirror-within-lavelle', 
-            details: 'Mirror & Within',
-            matchScore: 95,
-            reasons: ['Matches your luxury standard preference', 'Uses premium organic oils suitable for warm beige skin tone', 'Exclusive 1-on-1 private VIP service'],
-            memoryIndicator: 'Based on your preference for luxury bespoke experiences...'
           }
         ]
       };
     }
-
-    if (query.includes('indiranagar')) {
-      return {
-        text: "In Indiranagar, Bodycraft Salon & Spa is the clear favorite. They have a 4.8-star rating over 340+ reviews. They offer expert services in creative coloring (Balayage) and clinical skincare, plus they offer Home Service in Indiranagar too!",
-        recommendations: [
-          { 
-            type: 'salon', 
-            id: 'bodycraft-indiranagar', 
-            name: 'Bodycraft Salon & Spa', 
-            details: '100 Feet Rd, Indiranagar',
-            matchScore: 96,
-            reasons: ['Located in Indiranagar (your preferred neighborhood)', 'You rated them 5 stars on your previous visit', 'Offers premium home service options'],
-            memoryIndicator: 'Based on your neighborhood profile preference and booking history...'
-          }
-        ]
-      };
-    }
-
-    if (query.includes('luxury') || query.includes('expensive') || query.includes('vip') || query.includes('ub city') || query.includes('lavelle')) {
-      return {
-        text: "For high-end, premium VIP experiences in Bangalore, Play Salon inside UB City and Mirror & Within on Lavelle Road are elite. Mirror & Within offers complete privacy as they only host one client on the floor at a time.",
-        recommendations: [
-          { 
-            type: 'salon', 
-            id: 'mirror-within-lavelle', 
-            name: 'Mirror & Within', 
-            details: 'Lavelle Road',
-            matchScore: 95,
-            reasons: ['VIP bespoke salon matching your luxury tag preference', '100% private single-client scheduling', 'Highly rated for scalp and hair rituals'],
-            memoryIndicator: 'Based on your preference for luxury salons...'
-          },
-          { 
-            type: 'salon', 
-            id: 'play-salon-vittal-mallya', 
-            name: 'Play Salon', 
-            details: 'UB City',
-            matchScore: 91,
-            reasons: ['Elite UB City retail ambiance', 'Celebrity stylists on site', 'Complementary gourmet hospitality'],
-            memoryIndicator: 'Based on your preference for luxury salons...'
-          }
-        ]
-      };
-    }
-
-    if (query.includes('wedding') || query.includes('bridal') || query.includes('marry') || query.includes('makeup')) {
-      return {
-        text: "Congratulations! Preparing for your big day? Play Salon at UB City offers an Elite Bridal Makeup & Draping package for ₹25,000, managed by celebrity makeup artists. I've linked it below. You can book a preliminary consultation directly.",
-        recommendations: [
-          { 
-            type: 'service', 
-            id: 'play-bridal-1', 
-            name: 'Elite Bridal Makeup & Draping', 
-            price: 25000, 
-            salonId: 'play-salon-vittal-mallya', 
-            details: 'Play Salon (UB City)',
-            matchScore: 91,
-            reasons: ['Celebrity-grade wedding styling profile', 'Includes complete draping and styling support', 'Private dressing cabinets available'],
-            memoryIndicator: 'Recognizing your wedding countdown timeline...'
-          }
-        ]
-      };
-    }
-
-    if (query.includes('haircut') || query.includes('hair') || query.includes('style') || query.includes('cut')) {
-      return {
-        text: "For a signature haircut, Toni&Guy in Jayanagar has highly certified stylists for ₹1,600. If you are looking for celebrity-grade shape customization, the French Precision Haircut at Play Salon (UB City) for ₹3,000 is unmatched.",
-        recommendations: [
-          { 
-            type: 'service', 
-            id: 'tg-hair-1', 
-            name: 'Signature Haircut', 
-            price: 1600, 
-            salonId: 'toni-guy-jayanagar', 
-            details: 'Toni&Guy Jayanagar',
-            matchScore: 85,
-            reasons: ['Great texture shaping for 2C Wavy hair types', 'Affordable certified stylists', 'Standardized hair wash included'],
-            memoryIndicator: 'Based on your 2C Wavy hair topography profile...'
-          },
-          { 
-            type: 'service', 
-            id: 'play-hair-1', 
-            name: 'Precision French Haircut', 
-            price: 3000, 
-            salonId: 'play-salon-vittal-mallya', 
-            details: 'Play Salon (UB City)',
-            matchScore: 91,
-            reasons: ['Art Director custom contouring matches Oval Face contours', 'Highly rated for precision texturing', 'UB City premium consultation included'],
-            memoryIndicator: 'Based on your Oval Face Shape and hair type...'
-          }
-        ]
-      };
-    }
-
-    // Default response
     return {
-      text: "I can help you locate the best salons in Bangalore for haircuts, organic facials, bridal packages, and spa massages. Just type a location (e.g. Indiranagar, UB City, HSR Layout), a budget limits, or service goals like 'Kérastase scalp therapy'."
+      text: "I can help you locate the best salons in Bangalore for haircuts, organic facials, bridal packages, and spa massages. Just tell me what neighborhood or budget limitations you have."
     };
   };
 
@@ -493,10 +558,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const newSalon: Salon = {
+    const newSalon = {
       id: salonId,
       name: salonData.name,
-      rating: Number(salonData.rating) || 5.0,
+      rating: 5.0, // Initial default rating
       reviewsCount: 0,
       location: salonData.location,
       locality: salonData.locality || salonData.location.split(',')[0].trim() as any,
@@ -507,16 +572,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       isLuxury: salonData.category === 'Luxury',
       offersHomeService: salonData.category === 'Home Service',
       phone: salonData.phone,
-      services: [],
       reviews: [],
       aiReviewSummary: { pros: [], cons: [], summary: 'No AI summary logs available yet for this new outlet.' },
       matchScore: 95,
-      badges: salonData.category === 'Luxury' ? ['Luxury Favorite'] : salonData.category === 'Home Service' ? ['Home Service Pro'] : ['Budget Friendly']
+      badges: salonData.category === 'Luxury' ? ['Luxury Favorite'] : salonData.category === 'Home Service' ? ['Home Service Pro'] : ['Budget Friendly'],
+      status: salonData.status || 'Open'
     };
 
     if (IS_MOCK) {
-      const updated = [...salons, newSalon];
-      setSalons(updated);
+      const updated = [...dbSalons, newSalon];
+      setDbSalons(updated);
       localStorage.setItem('aura_salons', JSON.stringify(updated));
     } else {
       const { doc, setDoc } = await import('firebase/firestore');
@@ -530,13 +595,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         phone: newSalon.phone,
         description: newSalon.description,
         rating: newSalon.rating,
+        reviewsCount: newSalon.reviewsCount,
         imageUrls: newSalon.gallery,
         createdAt: new Date(),
-        services: newSalon.services,
         reviews: newSalon.reviews,
         aiReviewSummary: newSalon.aiReviewSummary,
         matchScore: newSalon.matchScore,
-        badges: newSalon.badges
+        badges: newSalon.badges,
+        status: newSalon.status
       });
     }
   };
@@ -561,12 +627,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const currentSalon = salons.find(s => s.id === salonId);
-    const updatedSalon: Salon = {
+    const currentSalon = dbSalons.find(s => s.id === salonId);
+    const updatedSalon = {
       ...currentSalon,
       id: salonId,
       name: salonData.name,
-      rating: Number(salonData.rating) || currentSalon?.rating || 5.0,
       location: salonData.location,
       locality: salonData.locality || salonData.location.split(',')[0].trim() as any,
       address: salonData.address,
@@ -576,12 +641,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       isLuxury: salonData.category === 'Luxury',
       offersHomeService: salonData.category === 'Home Service',
       phone: salonData.phone,
-      badges: salonData.category === 'Luxury' ? ['Luxury Favorite'] : salonData.category === 'Home Service' ? ['Home Service Pro'] : ['Budget Friendly']
-    } as Salon;
+      badges: salonData.category === 'Luxury' ? ['Luxury Favorite'] : salonData.category === 'Home Service' ? ['Home Service Pro'] : ['Budget Friendly'],
+      status: salonData.status || currentSalon?.status || 'Open'
+    };
 
     if (IS_MOCK) {
-      const updated = salons.map(s => s.id === salonId ? updatedSalon : s);
-      setSalons(updated);
+      const updated = dbSalons.map(s => s.id === salonId ? updatedSalon : s);
+      setDbSalons(updated);
       localStorage.setItem('aura_salons', JSON.stringify(updated));
     } else {
       const { doc, updateDoc } = await import('firebase/firestore');
@@ -593,9 +659,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         address: updatedSalon.address,
         phone: updatedSalon.phone,
         description: updatedSalon.description,
-        rating: updatedSalon.rating,
         imageUrls: updatedSalon.gallery,
-        badges: updatedSalon.badges
+        badges: updatedSalon.badges,
+        status: updatedSalon.status
       });
     }
   };
@@ -603,13 +669,96 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Delete Salon method
   const deleteSalon = async (salonId: string) => {
     if (IS_MOCK) {
-      const updated = salons.filter(s => s.id !== salonId);
-      setSalons(updated);
+      const updated = dbSalons.filter(s => s.id !== salonId);
+      setDbSalons(updated);
       localStorage.setItem('aura_salons', JSON.stringify(updated));
+
+      // Cascade delete services
+      const filteredServices = dbServices.filter(s => s.salonId !== salonId);
+      setDbServices(filteredServices);
+      localStorage.setItem('aura_services', JSON.stringify(filteredServices));
+    } else {
+      const { doc, deleteDoc, collection, query, where, getDocs, writeBatch } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await deleteDoc(doc(db, 'salons', salonId));
+
+      // Cascade delete services in Firestore
+      const q = query(collection(db, 'services'), where('salonId', '==', salonId));
+      const snap = await getDocs(q);
+      const batch = writeBatch(db);
+      snap.docs.forEach((docRef) => {
+        batch.delete(docRef.ref);
+      });
+      await batch.commit();
+    }
+  };
+
+  // Add Service
+  const addService = async (serviceData: any, salonId: string) => {
+    const serviceId = `service-${Date.now()}`;
+    const newService = {
+      serviceId,
+      salonId,
+      serviceName: serviceData.name,
+      price: Number(serviceData.price),
+      duration: serviceData.duration,
+      category: serviceData.category,
+      isActive: serviceData.isActive !== false,
+      createdAt: new Date().toISOString()
+    };
+
+    if (IS_MOCK) {
+      const updated = [...dbServices, newService];
+      setDbServices(updated);
+      localStorage.setItem('aura_services', JSON.stringify(updated));
+    } else {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await setDoc(doc(db, 'services', serviceId), newService);
+    }
+  };
+
+  // Edit Service
+  const updateService = async (serviceId: string, serviceData: any) => {
+    if (IS_MOCK) {
+      const updated = dbServices.map(s => {
+        if (s.serviceId === serviceId) {
+          return {
+            ...s,
+            serviceName: serviceData.name,
+            price: Number(serviceData.price),
+            duration: serviceData.duration,
+            category: serviceData.category,
+            isActive: serviceData.isActive !== false
+          };
+        }
+        return s;
+      });
+      setDbServices(updated);
+      localStorage.setItem('aura_services', JSON.stringify(updated));
+    } else {
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await updateDoc(doc(db, 'services', serviceId), {
+        serviceName: serviceData.name,
+        price: Number(serviceData.price),
+        duration: serviceData.duration,
+        category: serviceData.category,
+        isActive: serviceData.isActive !== false
+      });
+    }
+  };
+
+  // Delete Service
+  const deleteService = async (serviceId: string) => {
+    if (IS_MOCK) {
+      const updated = dbServices.filter(s => s.serviceId !== serviceId);
+      setDbServices(updated);
+      localStorage.setItem('aura_services', JSON.stringify(updated));
     } else {
       const { doc, deleteDoc } = await import('firebase/firestore');
       const { db } = await import('../../lib/firebase');
-      await deleteDoc(doc(db, 'salons', salonId));
+      await deleteDoc(doc(db, 'services', serviceId));
     }
   };
 
@@ -624,13 +773,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isDarkMode,
         addBooking,
         cancelBooking,
+        updateBookingStatus,
         addReview,
         updateProfile,
         sendChatMessage,
         toggleDarkMode,
         addSalon,
         updateSalon,
-        deleteSalon
+        deleteSalon,
+        addService,
+        updateService,
+        deleteService
       }}
     >
       {children}

@@ -5,6 +5,7 @@ export interface Service {
   price: number;
   duration: string;
   description: string;
+  isActive?: boolean;
 }
 
 export interface Review {
@@ -40,6 +41,7 @@ export interface Salon {
   };
   matchScore: number;
   badges: string[];
+  status?: string;
 }
 
 export const MOCK_SALONS: Salon[] = [

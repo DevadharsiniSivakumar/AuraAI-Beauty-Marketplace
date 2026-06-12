@@ -29,8 +29,9 @@ import {
 export default function UserDashboard() {
   const { userProfile, bookings, salons, cancelBooking } = useApp();
 
-  const activeBookings = bookings.filter(b => b.status === 'Confirmed');
-  const pastBookings = bookings.filter(b => b.status === 'Completed' || b.status === 'Cancelled');
+  const upcomingBookings = bookings.filter(b => b.status === 'Pending' || b.status === 'Confirmed' || b.status === 'In Progress');
+  const completedBookings = bookings.filter(b => b.status === 'Completed');
+  const cancelledBookings = bookings.filter(b => b.status === 'Cancelled' || b.status === 'No Show');
 
   // V2 Proactive insights data array
   const proactiveInsights = [
@@ -267,69 +268,178 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          {/* Upcoming Appointments */}
-          <div className="lg:col-span-2 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
-            <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
-              <Calendar className="w-5 h-5 text-rosegold-500 mr-2" />
-              Upcoming Appointments
-            </h3>
+          {/* Booking History & Appointments */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Upcoming Appointments */}
+            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
+              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
+                <Calendar className="w-5 h-5 text-rosegold-500 mr-2" />
+                Upcoming Appointments
+              </h3>
 
-            {activeBookings.length > 0 ? (
-              <div className="space-y-4">
-                {activeBookings.map((b) => (
-                  <div 
-                    key={b.id}
-                    className="p-4 rounded-xl border border-rosegold-100 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-350">
-                          {b.status}
-                        </span>
-                        <span className="text-[10px] text-rosegold-500 font-mono">Matched by DNA Profile</span>
+              {upcomingBookings.length > 0 ? (
+                <div className="space-y-4">
+                  {upcomingBookings.map((b) => (
+                    <div 
+                      key={b.id}
+                      className="p-4 rounded-xl border border-rosegold-100 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                            b.status === 'Confirmed' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-350' :
+                            b.status === 'In Progress' ? 'bg-blue-100 dark:bg-blue-955/50 text-blue-800 dark:text-blue-350' :
+                            'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-350'
+                          }`}>
+                            {b.status}
+                          </span>
+                          <span className="text-[10px] text-rosegold-500 font-mono">Matched by DNA Profile</span>
+                        </div>
+                        <h4 className="font-semibold text-charcoal-900 dark:text-white">{b.serviceName}</h4>
+                        <p className="text-xs text-charcoal-550 dark:text-rosegold-300">{b.salonName}</p>
+                        <div className="flex items-center space-x-4 text-xs text-charcoal-400 pt-1">
+                          <span className="flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {b.date}
+                          </span>
+                          <span className="flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {b.time}
+                          </span>
+                          <span className="font-medium text-charcoal-700 dark:text-rosegold-100">
+                            ₹{b.price}
+                          </span>
+                        </div>
                       </div>
-                      <h4 className="font-semibold text-charcoal-900 dark:text-white">{b.serviceName}</h4>
-                      <p className="text-xs text-charcoal-500 dark:text-rosegold-300">{b.salonName}</p>
-                      <div className="flex items-center space-x-4 text-xs text-charcoal-400 pt-1">
-                        <span className="flex items-center">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {b.date}
-                        </span>
-                        <span className="flex items-center">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {b.time}
-                        </span>
-                        <span className="font-medium text-charcoal-700 dark:text-rosegold-100">
-                          ₹{b.price}
-                        </span>
+                      
+                      {b.status !== 'In Progress' && (
+                        <button
+                          onClick={() => cancelBooking(b.id)}
+                          className="text-xs px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-955/50 text-red-650 dark:text-red-350 hover:bg-red-55 dark:hover:bg-red-955/20 transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          Cancel Booking
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 border border-dashed border-rosegold-200 dark:border-charcoal-800 rounded-xl space-y-2">
+                  <Calendar className="w-8 h-8 text-charcoal-300 mx-auto" />
+                  <p className="text-sm font-medium text-charcoal-700 dark:text-rosegold-200">No upcoming bookings found</p>
+                  <p className="text-xs text-charcoal-405">Discover salons and book via our explore tool</p>
+                  <div className="pt-2">
+                    <Link 
+                      href="/salons"
+                      className="inline-flex items-center px-4 py-1.5 rounded-full bg-rosegold-500 text-white text-xs font-semibold"
+                    >
+                      Browse Salons
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Completed Appointments */}
+            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
+              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
+                <CheckCircle className="w-5 h-5 text-emerald-500 mr-2" />
+                Completed Visits
+              </h3>
+
+              {completedBookings.length > 0 ? (
+                <div className="space-y-4">
+                  {completedBookings.map((b) => (
+                    <div 
+                      key={b.id}
+                      className="p-4 rounded-xl border border-emerald-100 dark:border-emerald-950/20 bg-emerald-50/5 dark:bg-emerald-950/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-emerald-300 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-350">
+                            {b.status}
+                          </span>
+                          <Link
+                            href={`/reviews?salon=${b.salonId}`}
+                            className="text-[10px] text-rosegold-500 font-semibold hover:underline"
+                          >
+                            Write a Review
+                          </Link>
+                        </div>
+                        <h4 className="font-semibold text-charcoal-900 dark:text-white">{b.serviceName}</h4>
+                        <p className="text-xs text-charcoal-550 dark:text-rosegold-300">{b.salonName}</p>
+                        <div className="flex items-center space-x-4 text-xs text-charcoal-450 pt-1">
+                          <span className="flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {b.date}
+                          </span>
+                          <span className="flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {b.time}
+                          </span>
+                          <span className="font-medium text-charcoal-700 dark:text-rosegold-100">
+                            ₹{b.price}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    
-                    <button
-                      onClick={() => cancelBooking(b.id)}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-950/50 text-red-650 dark:text-red-350 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                      <XCircle className="w-3.5 h-3.5" />
-                      Cancel Booking
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10 border border-dashed border-rosegold-200 dark:border-charcoal-800 rounded-xl space-y-2">
-                <Calendar className="w-8 h-8 text-charcoal-300 mx-auto" />
-                <p className="text-sm font-medium text-charcoal-700 dark:text-rosegold-200">No active bookings found</p>
-                <p className="text-xs text-charcoal-400">Discover salons and book via our explore tool</p>
-                <div className="pt-2">
-                  <Link 
-                    href="/salons"
-                    className="inline-flex items-center px-4 py-1.5 rounded-full bg-rosegold-500 text-white text-xs font-semibold"
-                  >
-                    Browse Salons
-                  </Link>
+                  ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-6 text-charcoal-400 dark:text-rosegold-300 text-xs">
+                  No completed visits logged yet.
+                </div>
+              )}
+            </div>
+
+            {/* Cancelled & No Show Appointments */}
+            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
+              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
+                <XCircle className="w-5 h-5 text-charcoal-400 mr-2" />
+                Cancelled / No Show
+              </h3>
+
+              {cancelledBookings.length > 0 ? (
+                <div className="space-y-4">
+                  {cancelledBookings.map((b) => (
+                    <div 
+                      key={b.id}
+                      className="p-4 rounded-xl border border-charcoal-200 dark:border-charcoal-800 bg-charcoal-50/5 dark:bg-charcoal-950/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-charcoal-400 dark:text-charcoal-500"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-charcoal-100 dark:bg-charcoal-800 text-charcoal-600 dark:text-charcoal-450">
+                            {b.status}
+                          </span>
+                        </div>
+                        <h4 className="font-semibold text-sm sm:text-base">{b.serviceName}</h4>
+                        <p className="text-xs">{b.salonName}</p>
+                        <div className="flex items-center space-x-4 text-xs pt-1">
+                          <span className="flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {b.date}
+                          </span>
+                          <span className="flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {b.time}
+                          </span>
+                          <span className="font-medium">
+                            ₹{b.price}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-charcoal-400 dark:text-rosegold-300 text-xs">
+                  No cancelled or no-show bookings.
+                </div>
+              )}
+            </div>
+
           </div>
         </section>
 

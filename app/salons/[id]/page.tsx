@@ -156,10 +156,22 @@ export default function SalonDetails() {
                 <span className="font-bold">{salon.rating}</span>
                 <span className="text-xs text-charcoal-450 ml-1">({salon.reviewsCount || reviewsList.length} verified reviews)</span>
               </div>
-              <span className="text-xs text-emerald-600 font-semibold bg-emerald-100/55 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full flex items-center">
-                <Clock className="w-3.5 h-3.5 mr-1" />
-                Open Today (9:00 AM - 8:30 PM)
-              </span>
+              {salon.status === 'Closed' ? (
+                <span className="text-xs text-red-650 font-semibold bg-red-100/55 dark:bg-red-950/40 px-2.5 py-0.5 rounded-full flex items-center">
+                  <Clock className="w-3.5 h-3.5 mr-1" />
+                  Closed Today
+                </span>
+              ) : salon.status === 'Temporarily Unavailable' ? (
+                <span className="text-xs text-amber-700 font-semibold bg-amber-100/55 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full flex items-center">
+                  <Clock className="w-3.5 h-3.5 mr-1" />
+                  Temporarily Unavailable
+                </span>
+              ) : (
+                <span className="text-xs text-emerald-600 font-semibold bg-emerald-100/55 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full flex items-center">
+                  <Clock className="w-3.5 h-3.5 mr-1" />
+                  Open Today (9:00 AM - 8:30 PM)
+                </span>
+              )}
             </div>
           </div>
 
@@ -234,7 +246,14 @@ export default function SalonDetails() {
                             className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-white dark:bg-charcoal-900/60 flex justify-between items-center gap-4 hover:border-rosegold-300 transition-colors"
                           >
                             <div className="space-y-1">
-                              <h4 className="font-semibold text-charcoal-900 dark:text-white text-sm sm:text-base">{service.name}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-charcoal-900 dark:text-white text-sm sm:text-base">{service.name}</h4>
+                                {service.isActive === false && (
+                                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-charcoal-100 dark:bg-charcoal-800 text-charcoal-400 dark:text-charcoal-500 uppercase tracking-wider">
+                                    Unavailable
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-xs text-charcoal-450 dark:text-rosegold-350 font-light leading-relaxed max-w-lg">
                                 {service.description}
                               </p>
@@ -244,13 +263,19 @@ export default function SalonDetails() {
                             </div>
                             <div className="flex flex-col items-end shrink-0 gap-2">
                               <span className="text-sm font-bold text-charcoal-900 dark:text-white font-mono">₹{service.price}</span>
-                              <Link
-                                href={`/booking?salon=${salon.id}&service=${service.id}`}
-                                className="px-4 py-1.5 rounded-lg bg-rosegold-500 hover:bg-rosegold-600 text-xs font-bold text-white flex items-center gap-1 shadow-2xs cursor-pointer"
-                              >
-                                <Calendar className="w-3.5 h-3.5" />
-                                Book
-                              </Link>
+                              {service.isActive !== false && salon.status !== 'Closed' && salon.status !== 'Temporarily Unavailable' ? (
+                                <Link
+                                  href={`/booking?salon=${salon.id}&service=${service.id}`}
+                                  className="px-4 py-1.5 rounded-lg bg-rosegold-500 hover:bg-rosegold-600 text-xs font-bold text-white flex items-center gap-1 shadow-2xs cursor-pointer"
+                                >
+                                  <Calendar className="w-3.5 h-3.5" />
+                                  Book
+                                </Link>
+                              ) : (
+                                <span className="px-4 py-1.5 rounded-lg bg-charcoal-200 dark:bg-charcoal-800 text-xs font-bold text-charcoal-400 dark:text-charcoal-500 flex items-center gap-1 cursor-not-allowed select-none">
+                                  Unavailable
+                                </span>
+                              )}
                             </div>
                           </div>
                         ))}

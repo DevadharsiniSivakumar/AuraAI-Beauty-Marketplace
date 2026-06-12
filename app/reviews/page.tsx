@@ -15,7 +15,15 @@ import {
 } from 'lucide-react';
 
 export default function ReviewsPage() {
-  const { salons, reviews, addReview } = useApp();
+  const { salons, reviews, bookings, addReview } = useApp();
+
+  const completedSalonIds = useMemo(() => {
+    return new Set(bookings.filter(b => b.status === 'Completed').map(b => b.salonId));
+  }, [bookings]);
+
+  const allowedSalons = useMemo(() => {
+    return salons.filter(s => completedSalonIds.has(s.id));
+  }, [salons, completedSalonIds]);
 
   // Review form states
   const [selectedSalonId, setSelectedSalonId] = useState('');
@@ -128,7 +136,14 @@ export default function ReviewsPage() {
               Write a Review
             </h3>
 
-            {isSubmitted ? (
+            {allowedSalons.length === 0 ? (
+              <div className="p-6 rounded-xl border border-amber-200/50 bg-amber-500/5 text-amber-900 dark:text-amber-300 space-y-2">
+                <p className="font-semibold text-sm">Review Restrictions Active</p>
+                <p className="text-xs font-light leading-relaxed">
+                  To maintain marketplace integrity, you can only write a review for a salon after you have completed at least one appointment there. Visit the dashboard to view your booking history.
+                </p>
+              </div>
+            ) : isSubmitted ? (
               <div className="p-6 rounded-xl border border-emerald-100 dark:border-emerald-950/50 bg-emerald-50/10 dark:bg-emerald-950/20 text-center space-y-2 text-emerald-800 dark:text-emerald-350">
                 <CheckCircle2 className="w-8 h-8 mx-auto" />
                 <p className="font-semibold text-sm">Review Submitted Successfully!</p>
@@ -146,7 +161,7 @@ export default function ReviewsPage() {
                       className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
                     >
                       <option value="">-- Choose Salon --</option>
-                      {salons.map(s => (
+                      {allowedSalons.map(s => (
                         <option key={s.id} value={s.id}>{s.name} ({s.locality})</option>
                       ))}
                     </select>
