@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export default function ExploreSalons() {
-  const { salons, userProfile } = useApp();
+  const { salons } = useApp();
 
   // Filters state
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,7 +56,7 @@ export default function ExploreSalons() {
       const matchesSearch = 
         salon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         salon.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        salon.services.some(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        (salon.services || []).some(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
       if (!matchesSearch) return false;
 
@@ -82,7 +82,10 @@ export default function ExploreSalons() {
 
       // 6. Budget match
       if (budgetFilters.length > 0) {
-        const avgPrice = salon.services.reduce((acc, s) => acc + s.price, 0) / salon.services.length;
+        const servicesList = salon.services || [];
+        const avgPrice = servicesList.length > 0 
+          ? servicesList.reduce((acc, s) => acc + s.price, 0) / servicesList.length 
+          : 0;
         let category = 'mid';
         if (avgPrice < 2000) category = 'low';
         if (avgPrice > 5000) category = 'high';
@@ -110,7 +113,7 @@ export default function ExploreSalons() {
         {/* Top search & title bar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-rosegold-200/40 pb-6">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white">Discover Salons</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white font-playfair font-playfair">Discover Salons</h1>
             <p className="text-sm text-charcoal-550 dark:text-rosegold-200">Personalized beauty planning matched to your active profile in Bangalore.</p>
           </div>
 
@@ -127,24 +130,27 @@ export default function ExploreSalons() {
         </div>
 
         {/* SECTION 1: Recommended For You */}
-        <section className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-linear-to-r from-rosegold-100/30 to-white dark:from-charcoal-900 dark:to-charcoal-950 space-y-4 shadow-sm">
+        <section className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-linear-to-r from-rosegold-100/30 to-white dark:from-charcoal-900 dark:to-charcoal-950 space-y-4 shadow-sm">
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-rosegold-500" />
                 Recommended For You
               </h3>
-              <p className="text-xs text-charcoal-450 dark:text-rosegold-300">Based on your Beauty DNA profile,Indiranagar locality, and skincare search queries.</p>
+              <p className="text-xs text-charcoal-450 dark:text-rosegold-300">Based on your Beauty DNA profile, Indiranagar locality, and skincare search queries.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {recommendedSalonsList.map((salon) => {
-              const startingPrice = Math.min(...salon.services.map(s => s.price));
+              const servicesList = salon.services || [];
+              const startingPrice = servicesList.length > 0 
+                ? Math.min(...servicesList.map(s => s.price)) 
+                : 0;
               return (
                 <div 
                   key={salon.id}
-                  className="rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 p-4 flex flex-col justify-between space-y-4 hover:border-rosegold-350 transition-colors shadow-2xs hover:scale-101 duration-300"
+                  className="rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 p-4 flex flex-col justify-between space-y-4 hover:border-rosegold-350 transition-colors shadow-2xs hover:scale-101 duration-300 animate-fade-in"
                 >
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -164,7 +170,7 @@ export default function ExploreSalons() {
                     </p>
                     
                     <div className="pt-2 border-t border-rosegold-200/40 space-y-1.5 text-[10px] text-charcoal-550 dark:text-rosegold-200">
-                      {salon.badges.map((b, bIdx) => (
+                      {(salon.badges || []).map((b, bIdx) => (
                         <p key={bIdx} className="flex items-center gap-1">
                           <CheckCircle className="w-3 h-3 text-emerald-500" />
                           {b}
@@ -174,7 +180,9 @@ export default function ExploreSalons() {
                   </div>
 
                   <div className="flex justify-between items-center pt-2 border-t border-rosegold-100 dark:border-charcoal-800">
-                    <span className="text-xs text-charcoal-500">From ₹{startingPrice}</span>
+                    <span className="text-xs text-charcoal-500">
+                      {startingPrice > 0 ? `From ₹${startingPrice}` : 'N/A'}
+                    </span>
                     <Link
                       href={`/salons/${salon.id}`}
                       className="text-xs font-semibold text-rosegold-500 hover:text-rosegold-650 flex items-center gap-0.5"
@@ -193,7 +201,7 @@ export default function ExploreSalons() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
           {/* Sidebar Filter Panel */}
-          <aside className="lg:col-span-1 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-6 h-fit">
+          <aside className="lg:col-span-1 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 space-y-6 h-fit">
             <div className="flex items-center justify-between border-b border-rosegold-100 dark:border-charcoal-800 pb-3">
               <h3 className="font-bold text-charcoal-950 dark:text-white flex items-center gap-2 text-sm uppercase tracking-wide">
                 <SlidersHorizontal className="w-4 h-4 text-rosegold-555" />
@@ -209,7 +217,7 @@ export default function ExploreSalons() {
                     setMinRating(0);
                     setSearchTerm('');
                   }}
-                  className="text-[10px] font-semibold text-rosegold-500 hover:text-rosegold-650"
+                  className="text-[10px] font-semibold text-rosegold-500 hover:text-rosegold-655 cursor-pointer"
                 >
                   Clear All
                 </button>
@@ -303,7 +311,7 @@ export default function ExploreSalons() {
                   <button
                     key={ratingVal}
                     onClick={() => setMinRating(ratingVal)}
-                    className={`flex-1 text-center py-1.5 rounded-lg border text-xs transition-colors ${
+                    className={`flex-1 text-center py-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
                       minRating === ratingVal 
                         ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
                         : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-650 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
@@ -322,7 +330,10 @@ export default function ExploreSalons() {
             {filteredSalons.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {filteredSalons.map((salon) => {
-                  const startingPrice = Math.min(...salon.services.map(s => s.price));
+                  const servicesList = salon.services || [];
+                  const startingPrice = servicesList.length > 0 
+                    ? Math.min(...servicesList.map(s => s.price)) 
+                    : 0;
                   
                   return (
                     <div 
@@ -337,7 +348,7 @@ export default function ExploreSalons() {
                           alt={salon.name} 
                           className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500" 
                         />
-                        <div className="absolute top-3 left-3 bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-xs">
+                        <div className="absolute top-3 left-3 bg-linear-to-r from-rosegold-550 to-gold-metallic text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-xs">
                           {salon.matchScore}% Match
                         </div>
                         <div className="absolute top-3 right-3 flex gap-2">
@@ -360,8 +371,8 @@ export default function ExploreSalons() {
                       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-lg text-charcoal-950 dark:text-white line-clamp-1">{salon.name}</h3>
-                            <div className="flex items-center text-rosegold-500 shrink-0 text-sm">
+                            <h3 className="font-bold text-lg text-charcoal-955 dark:text-white line-clamp-1">{salon.name}</h3>
+                            <div className="flex items-center text-rosegold-550 shrink-0 text-sm">
                               <Star className="w-4 h-4 fill-rosegold-500 mr-1" />
                               <span className="font-bold">{salon.rating}</span>
                               <span className="text-[10px] text-charcoal-400 font-light ml-1">({salon.reviewsCount})</span>
@@ -373,9 +384,9 @@ export default function ExploreSalons() {
                             {salon.location}
                           </p>
 
-                          {/* Dynamic V2 recommendation badge previews */}
+                          {/* Dynamic recommendation badge previews */}
                           <div className="flex flex-wrap gap-1.5 pt-1.5">
-                            {salon.badges.map((b, bIdx) => (
+                            {(salon.badges || []).map((b, bIdx) => (
                               <span key={bIdx} className="text-[8px] font-bold text-rosegold-500 uppercase tracking-widest bg-rosegold-100/30 dark:bg-charcoal-950 p-1.5 rounded-md">
                                 {b}
                               </span>
@@ -389,7 +400,7 @@ export default function ExploreSalons() {
 
                         {/* Services preview pill */}
                         <div className="flex flex-wrap gap-1">
-                          {Array.from(new Set(salon.services.map(s => s.category))).map(cat => (
+                          {Array.from(new Set((salon.services || []).map(s => s.category))).map(cat => (
                             <span key={cat} className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-rosegold-100/40 dark:bg-charcoal-800 text-charcoal-600 dark:text-rosegold-200">
                               {cat}
                             </span>
@@ -398,8 +409,10 @@ export default function ExploreSalons() {
 
                         {/* Card footer details */}
                         <div className="pt-3 border-t border-rosegold-100 dark:border-charcoal-800/80 flex justify-between items-center">
-                          <span className="text-xs text-charcoal-500 dark:text-rosegold-350">
-                            Starts from <strong className="text-charcoal-900 dark:text-white">₹{startingPrice}</strong>
+                          <span className="text-xs text-charcoal-550 dark:text-rosegold-350">
+                            Starts from <strong className="text-charcoal-900 dark:text-white">
+                              {startingPrice > 0 ? `₹${startingPrice}` : 'N/A'}
+                            </strong>
                           </span>
                           <Link
                             href={`/salons/${salon.id}`}
@@ -419,7 +432,7 @@ export default function ExploreSalons() {
             ) : (
               <div className="text-center py-20 border border-dashed border-rosegold-200 dark:border-charcoal-800 rounded-3xl space-y-3">
                 <Compass className="w-12 h-12 text-charcoal-300 mx-auto animate-spin" />
-                <h3 className="text-lg font-bold text-charcoal-850 dark:text-white">No matches found</h3>
+                <h3 className="text-lg font-bold text-charcoal-850 dark:text-white font-playfair">No matches found</h3>
                 <p className="text-xs text-charcoal-400 max-w-xs mx-auto font-light">
                   No salons match your selected locations, pricing segment, or tags. Try resetting filters.
                 </p>
@@ -433,7 +446,7 @@ export default function ExploreSalons() {
                       setMinRating(0);
                       setSearchTerm('');
                     }}
-                    className="px-5 py-2 rounded-full bg-rosegold-500 hover:bg-rosegold-600 text-white text-xs font-semibold"
+                    className="px-5 py-2 rounded-full bg-rosegold-500 hover:bg-rosegold-600 text-white text-xs font-semibold cursor-pointer"
                   >
                     Reset All Filters
                   </button>

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MOCK_SALONS, MOCK_USER, Salon, Service, Review, UserProfile } from '../data/mockData';
+import { IS_MOCK } from '../../lib/firebase';
 
 export interface Booking {
   id: string;
@@ -46,18 +47,22 @@ interface AppContextType {
   updateProfile: (profile: Partial<UserProfile>) => void;
   sendChatMessage: (message: string) => void;
   toggleDarkMode: () => void;
+  // Salon CRUD operations
+  addSalon: (salonData: any, imageFile: File | null) => Promise<void>;
+  updateSalon: (salonId: string, salonData: any, imageFile: File | null) => Promise<void>;
+  deleteSalon: (salonId: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [salons, setSalons] = useState<Salon[]>(MOCK_SALONS);
+  const [salons, setSalons] = useState<Salon[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(MOCK_USER);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
-  // Load state from localStorage on mount
+  // Load state from localStorage or Firestore on mount
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('aura_dark_mode') === 'true';
     setIsDarkMode(savedDarkMode);
@@ -94,11 +99,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(JSON.parse(savedProfile));
     }
 
-    const savedSalons = localStorage.getItem('aura_salons');
-    if (savedSalons) {
-      setSalons(JSON.parse(savedSalons));
-    }
-
     const savedChat = localStorage.getItem('aura_chat');
     if (savedChat) {
       setChatHistory(JSON.parse(savedChat));
@@ -113,6 +113,81 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ];
       setChatHistory(initialChat);
       localStorage.setItem('aura_chat', JSON.stringify(initialChat));
+    }
+
+    // Load Salons
+    if (IS_MOCK) {
+      const savedSalons = localStorage.getItem('aura_salons');
+      if (savedSalons) {
+        setSalons(JSON.parse(savedSalons));
+      } else {
+        setSalons(MOCK_SALONS);
+        localStorage.setItem('aura_salons', JSON.stringify(MOCK_SALONS));
+      }
+    } else {
+      // Real Firebase realtime syncing
+      let unsubscribe: any = () => {};
+      const initFirestoreSalons = async () => {
+        try {
+          const { collection, onSnapshot, doc, setDoc } = await import('firebase/firestore');
+          const { db } = await import('../../lib/firebase');
+
+          unsubscribe = onSnapshot(collection(db, 'salons'), async (snapshot) => {
+            if (snapshot.empty) {
+              console.log('Firestore salons collection is empty. Seeding initial mock salons...');
+              for (const salon of MOCK_SALONS) {
+                await setDoc(doc(db, 'salons', salon.id), {
+                  salonId: salon.id,
+                  name: salon.name,
+                  category: salon.isLuxury ? 'Luxury' : salon.offersHomeService ? 'Home Service' : 'Budget',
+                  location: salon.locality,
+                  address: salon.address,
+                  phone: salon.phone,
+                  description: salon.description,
+                  rating: salon.rating,
+                  imageUrls: [salon.image, ...salon.gallery],
+                  createdAt: new Date(),
+                  services: salon.services,
+                  reviews: salon.reviews,
+                  aiReviewSummary: salon.aiReviewSummary,
+                  matchScore: salon.matchScore,
+                  badges: salon.badges
+                });
+              }
+            } else {
+              const fetchedSalons: Salon[] = snapshot.docs.map((docSnap) => {
+                const data = docSnap.data();
+                return {
+                  id: docSnap.id || data.salonId,
+                  name: data.name || 'Aura Outlet',
+                  rating: Number(data.rating) || 5.0,
+                  reviewsCount: data.reviewsCount || data.reviews?.length || 0,
+                  location: data.location || '',
+                  locality: data.locality || data.location?.split(',')[0]?.trim() || 'Indiranagar',
+                  address: data.address || '',
+                  image: data.imageUrls?.[0] || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
+                  gallery: data.imageUrls || [],
+                  description: data.description || '',
+                  isLuxury: data.category === 'Luxury',
+                  offersHomeService: data.category === 'Home Service',
+                  phone: data.phone || '',
+                  services: data.services || [],
+                  reviews: data.reviews || [],
+                  aiReviewSummary: data.aiReviewSummary || { pros: [], cons: [], summary: '' },
+                  matchScore: data.matchScore || 95,
+                  badges: data.badges || (data.category === 'Luxury' ? ['Luxury Favorite'] : data.category === 'Home Service' ? ['Home Service Pro'] : ['Budget Friendly'])
+                };
+              });
+              setSalons(fetchedSalons);
+            }
+          });
+        } catch (error) {
+          console.error('Failed to initialize Firestore salons listener:', error);
+        }
+      };
+
+      initFirestoreSalons();
+      return () => unsubscribe();
     }
   }, []);
 
@@ -199,7 +274,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Extract all reviews across all salons
   const reviews = salons.flatMap(s => 
-    s.reviews.map(r => ({ ...r, salonName: s.name, salonId: s.id }))
+    (s.reviews || []).map(r => ({ ...r, salonName: s.name, salonId: s.id }))
   ) as any;
 
   // AI response helper
@@ -397,6 +472,147 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }, 1200);
   };
 
+  // Add Salon method (Firestore or localStorage fallback)
+  const addSalon = async (salonData: any, imageFile: File | null) => {
+    const salonId = salonData.id || `salon-${Date.now()}`;
+    let imageUrl = salonData.image || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop';
+
+    if (imageFile) {
+      if (IS_MOCK) {
+        imageUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(imageFile);
+        });
+      } else {
+        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const { storage } = await import('../../lib/firebase');
+        const storageRef = ref(storage, `salons/${salonId}/${imageFile.name}`);
+        const uploadResult = await uploadBytes(storageRef, imageFile);
+        imageUrl = await getDownloadURL(uploadResult.ref);
+      }
+    }
+
+    const newSalon: Salon = {
+      id: salonId,
+      name: salonData.name,
+      rating: Number(salonData.rating) || 5.0,
+      reviewsCount: 0,
+      location: salonData.location,
+      locality: salonData.locality || salonData.location.split(',')[0].trim() as any,
+      address: salonData.address,
+      image: imageUrl,
+      gallery: [imageUrl],
+      description: salonData.description,
+      isLuxury: salonData.category === 'Luxury',
+      offersHomeService: salonData.category === 'Home Service',
+      phone: salonData.phone,
+      services: [],
+      reviews: [],
+      aiReviewSummary: { pros: [], cons: [], summary: 'No AI summary logs available yet for this new outlet.' },
+      matchScore: 95,
+      badges: salonData.category === 'Luxury' ? ['Luxury Favorite'] : salonData.category === 'Home Service' ? ['Home Service Pro'] : ['Budget Friendly']
+    };
+
+    if (IS_MOCK) {
+      const updated = [...salons, newSalon];
+      setSalons(updated);
+      localStorage.setItem('aura_salons', JSON.stringify(updated));
+    } else {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await setDoc(doc(db, 'salons', salonId), {
+        salonId,
+        name: newSalon.name,
+        category: salonData.category,
+        location: newSalon.location,
+        address: newSalon.address,
+        phone: newSalon.phone,
+        description: newSalon.description,
+        rating: newSalon.rating,
+        imageUrls: newSalon.gallery,
+        createdAt: new Date(),
+        services: newSalon.services,
+        reviews: newSalon.reviews,
+        aiReviewSummary: newSalon.aiReviewSummary,
+        matchScore: newSalon.matchScore,
+        badges: newSalon.badges
+      });
+    }
+  };
+
+  // Edit Salon method
+  const updateSalon = async (salonId: string, salonData: any, imageFile: File | null) => {
+    let imageUrl = salonData.image;
+
+    if (imageFile) {
+      if (IS_MOCK) {
+        imageUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(imageFile);
+        });
+      } else {
+        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const { storage } = await import('../../lib/firebase');
+        const storageRef = ref(storage, `salons/${salonId}/${imageFile.name}`);
+        const uploadResult = await uploadBytes(storageRef, imageFile);
+        imageUrl = await getDownloadURL(uploadResult.ref);
+      }
+    }
+
+    const currentSalon = salons.find(s => s.id === salonId);
+    const updatedSalon: Salon = {
+      ...currentSalon,
+      id: salonId,
+      name: salonData.name,
+      rating: Number(salonData.rating) || currentSalon?.rating || 5.0,
+      location: salonData.location,
+      locality: salonData.locality || salonData.location.split(',')[0].trim() as any,
+      address: salonData.address,
+      image: imageUrl || currentSalon?.image || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
+      gallery: imageUrl ? [imageUrl, ...(currentSalon?.gallery || [])] : (currentSalon?.gallery || []),
+      description: salonData.description,
+      isLuxury: salonData.category === 'Luxury',
+      offersHomeService: salonData.category === 'Home Service',
+      phone: salonData.phone,
+      badges: salonData.category === 'Luxury' ? ['Luxury Favorite'] : salonData.category === 'Home Service' ? ['Home Service Pro'] : ['Budget Friendly']
+    } as Salon;
+
+    if (IS_MOCK) {
+      const updated = salons.map(s => s.id === salonId ? updatedSalon : s);
+      setSalons(updated);
+      localStorage.setItem('aura_salons', JSON.stringify(updated));
+    } else {
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await updateDoc(doc(db, 'salons', salonId), {
+        name: updatedSalon.name,
+        category: salonData.category,
+        location: updatedSalon.location,
+        address: updatedSalon.address,
+        phone: updatedSalon.phone,
+        description: updatedSalon.description,
+        rating: updatedSalon.rating,
+        imageUrls: updatedSalon.gallery,
+        badges: updatedSalon.badges
+      });
+    }
+  };
+
+  // Delete Salon method
+  const deleteSalon = async (salonId: string) => {
+    if (IS_MOCK) {
+      const updated = salons.filter(s => s.id !== salonId);
+      setSalons(updated);
+      localStorage.setItem('aura_salons', JSON.stringify(updated));
+    } else {
+      const { doc, deleteDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await deleteDoc(doc(db, 'salons', salonId));
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -411,7 +627,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addReview,
         updateProfile,
         sendChatMessage,
-        toggleDarkMode
+        toggleDarkMode,
+        addSalon,
+        updateSalon,
+        deleteSalon
       }}
     >
       {children}

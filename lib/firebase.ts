@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -20,12 +21,14 @@ const isConfigured =
 let app;
 let auth: any = null;
 let db: any = null;
+let storage: any = null;
 
 if (isConfigured) {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app);
     console.log('Firebase initialized successfully.');
   } catch (error) {
     console.error('Firebase initialization error, running in simulated mode:', error);
@@ -35,4 +38,4 @@ if (isConfigured) {
 }
 
 export const IS_MOCK = !isConfigured || !auth || !db;
-export { auth, db };
+export { auth, db, storage };

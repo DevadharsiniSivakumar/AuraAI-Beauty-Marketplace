@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useApp } from '../context/AppContext';
+import { IS_MOCK } from '../../lib/firebase';
 import { 
   ShieldAlert, 
   Users, 
@@ -17,7 +18,11 @@ import {
   Scissors, 
   PlusCircle,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  Trash2,
+  Edit2,
+  UploadCloud,
+  X
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -27,8 +32,73 @@ interface AdminDashboardProps {
 export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { salons, bookings, reviews, cancelBooking } = useApp();
+  const { salons, bookings, reviews, cancelBooking, addSalon, updateSalon, deleteSalon } = useApp();
   const [activeTab, setActiveTab] = useState<'bookings' | 'salons' | 'services' | 'reviews'>(defaultTab);
+
+  // Stats State
+  const [stats, setStats] = useState({
+    users: 1428,
+    salons: 0,
+    services: 0,
+    bookings: 0,
+    reviews: 0
+  });
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSalonId, setEditingSalonId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    category: 'Budget',
+    location: 'Indiranagar',
+    address: '',
+    phone: '',
+    description: '',
+    rating: '4.8',
+    image: ''
+  });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+
+  // Fetch real statistics
+  useEffect(() => {
+    const fetchStats = async () => {
+      let usersCount = 1428;
+      if (IS_MOCK) {
+        const mockUsers = JSON.parse(localStorage.getItem('aura_mock_users') || '[]');
+        if (mockUsers.length > 0) {
+          usersCount = mockUsers.length;
+        }
+      } else {
+        try {
+          const { collection, getDocs } = await import('firebase/firestore');
+          const { db } = await import('../../lib/firebase');
+          const snap = await getDocs(collection(db, 'users'));
+          if (!snap.empty) {
+            usersCount = snap.size;
+          }
+        } catch (e) {
+          console.error('Failed to load real users stats:', e);
+        }
+      }
+
+      const totalSalons = salons.length;
+      const totalServices = salons.reduce((acc, s) => acc + (s.services?.length || 0), 0);
+      const totalReviews = salons.reduce((acc, s) => acc + (s.reviews?.length || 0), 0);
+      const totalBookings = bookings.length;
+
+      setStats({
+        users: usersCount,
+        salons: totalSalons,
+        services: totalServices,
+        bookings: totalBookings + 234, // Historical offset
+        reviews: totalReviews
+      });
+    };
+
+    fetchStats();
+  }, [salons, bookings]);
 
   // Sync tab state with props changes
   useEffect(() => {
@@ -55,16 +125,94 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
     );
   };
 
-  // Compile calculations
-  const totalUsersCount = 1428;
-  const activeSalonsCount = salons.length;
-  const bookingsCount = bookings.length + 234;
-  const reviewsCount = reviews.length;
-  
+  // CRUD handlers
+  const openCreateModal = () => {
+    setEditingSalonId(null);
+    setFormData({
+      name: '',
+      category: 'Budget',
+      location: 'Indiranagar',
+      address: '',
+      phone: '',
+      description: '',
+      rating: '4.8',
+      image: ''
+    });
+    setSelectedFile(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (salon: any) => {
+    setEditingSalonId(salon.id);
+    setFormData({
+      name: salon.name,
+      category: salon.isLuxury ? 'Luxury' : salon.offersHomeService ? 'Home Service' : 'Budget',
+      location: salon.locality || 'Indiranagar',
+      address: salon.address,
+      phone: salon.phone,
+      description: salon.description,
+      rating: String(salon.rating),
+      image: salon.image
+    });
+    setSelectedFile(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (salonId: string) => {
+    if (confirm('Are you sure you want to permanently delete this salon outlet?')) {
+      try {
+        await deleteSalon(salonId);
+      } catch (err: any) {
+        alert('Failed to delete salon: ' + err.message);
+      }
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setUploadStatus('Uploading assets and writing to database...');
+    try {
+      const payload = {
+        name: formData.name,
+        category: formData.category,
+        location: formData.location + ', Bangalore',
+        locality: formData.location,
+        address: formData.address,
+        phone: formData.phone,
+        description: formData.description,
+        rating: Number(formData.rating) || 5.0,
+        image: formData.image
+      };
+
+      if (editingSalonId) {
+        await updateSalon(editingSalonId, payload, selectedFile);
+      } else {
+        await addSalon(payload, selectedFile);
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to save salon: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+      setUploadStatus('');
+    }
+  };
+
   // Calculate average rating
-  const avgRating = parseFloat(
-    (salons.reduce((acc, s) => acc + s.rating, 0) / salons.length).toFixed(1)
-  );
+  const avgRating = salons.length > 0 
+    ? parseFloat((salons.reduce((acc, s) => acc + s.rating, 0) / salons.length).toFixed(1))
+    : 0;
+
+  const localitiesList = [
+    'Indiranagar',
+    'Koramangala',
+    'Vittal Mallya Rd',
+    'Jayanagar',
+    'HSR Layout',
+    'Lavelle Road'
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -73,26 +221,38 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         
         {/* Header */}
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-charcoal-905 dark:bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center border border-rosegold-200 dark:border-charcoal-800 shrink-0">
-            <ShieldAlert className="w-5 h-5" />
+        <div className="flex items-center justify-between border-b border-rosegold-200/40 pb-6 gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-charcoal-905 dark:bg-rosegold-500/10 text-rosegold-550 flex items-center justify-center border border-rosegold-200 dark:border-charcoal-800 shrink-0">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair font-playfair">Admin Console</h1>
+              <p className="text-sm text-charcoal-550 dark:text-rosegold-200">Corporate portal to oversee users, bookings, partner salons, and review moderation logs.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair">Admin Console</h1>
-            <p className="text-sm text-charcoal-550 dark:text-rosegold-200">Corporate portal to oversee users, bookings, partner salons, and review moderation logs.</p>
-          </div>
+
+          {activeTab === 'salons' && (
+            <button
+              onClick={openCreateModal}
+              className="flex items-center space-x-2 px-5 py-2.5 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark text-white text-xs font-bold shadow-md hover:scale-102 transition-all cursor-pointer shrink-0"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Add Salon</span>
+            </button>
+          )}
         </div>
 
         {/* Overview Metric Cards */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           
-          <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-2 shadow-2xs">
+          <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 space-y-2 shadow-2xs">
             <div className="flex justify-between items-center text-charcoal-400">
               <span className="text-xs font-semibold uppercase tracking-wider">Total Active Users</span>
               <Users className="w-5 h-5 text-rosegold-500" />
             </div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-charcoal-950 dark:text-white">{totalUsersCount}</span>
+              <span className="text-3xl font-bold text-charcoal-950 dark:text-white font-mono">{stats.users}</span>
               <span className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full flex items-center">
                 <TrendingUp className="w-3 h-3 mr-0.5" />
                 +12%
@@ -100,46 +260,43 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-2 shadow-2xs">
+          <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 space-y-2 shadow-2xs">
             <div className="flex justify-between items-center text-charcoal-400">
               <span className="text-xs font-semibold uppercase tracking-wider">Partner Salons</span>
               <MapPin className="w-5 h-5 text-rosegold-500" />
             </div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-charcoal-950 dark:text-white">{activeSalonsCount}</span>
+              <span className="text-3xl font-bold text-charcoal-950 dark:text-white font-mono">{stats.salons}</span>
               <span className="text-xs font-light text-charcoal-450">Bangalore</span>
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-2 shadow-2xs">
+          <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 space-y-2 shadow-2xs">
             <div className="flex justify-between items-center text-charcoal-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">Total Bookings</span>
-              <Calendar className="w-5 h-5 text-rosegold-500" />
+              <span className="text-xs font-semibold uppercase tracking-wider">Total Services</span>
+              <Scissors className="w-5 h-5 text-rosegold-500" />
             </div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-charcoal-950 dark:text-white">{bookingsCount}</span>
-              <span className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full flex items-center">
-                <TrendingUp className="w-3 h-3 mr-0.5" />
-                +8%
-              </span>
+              <span className="text-3xl font-bold text-charcoal-950 dark:text-white font-mono">{stats.services}</span>
+              <span className="text-xs font-light text-charcoal-450">Catalog logs</span>
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-2 shadow-2xs">
+          <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 space-y-2 shadow-2xs">
             <div className="flex justify-between items-center text-charcoal-400">
               <span className="text-xs font-semibold uppercase tracking-wider">Average Rating</span>
               <Star className="w-5 h-5 text-rosegold-500" />
             </div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-charcoal-950 dark:text-white">{avgRating}★</span>
-              <span className="text-xs font-light text-charcoal-450">({reviewsCount} logs)</span>
+              <span className="text-3xl font-bold text-charcoal-950 dark:text-white font-mono">{avgRating}★</span>
+              <span className="text-xs font-light text-charcoal-450">({stats.reviews} logs)</span>
             </div>
           </div>
 
         </section>
 
         {/* Dynamic Navigation & Tables Grid */}
-        <section className="bg-white dark:bg-charcoal-900 rounded-3xl border border-rosegold-200 dark:border-charcoal-850 shadow-md overflow-hidden">
+        <section className="bg-white dark:bg-charcoal-900 rounded-3xl border border-rosegold-200 dark:border-charcoal-855 shadow-md overflow-hidden">
           
           {/* Tab Header Selector */}
           <div className="flex border-b border-rosegold-150 dark:border-charcoal-800 bg-linear-to-r from-rosegold-100/10 to-white dark:from-charcoal-905 overflow-x-auto">
@@ -150,7 +307,7 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                 className={`px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 text-center transition-colors shrink-0 cursor-pointer ${
                   activeTab === tab 
                     ? 'border-rosegold-500 text-rosegold-600 dark:text-gold-medium' 
-                    : 'border-transparent text-charcoal-500 dark:text-rosegold-300 hover:text-rosegold-550'
+                    : 'border-transparent text-charcoal-500 dark:text-rosegold-300 hover:text-rosegold-500'
                 }`}
               >
                 {tab} Management
@@ -188,7 +345,7 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                         <td className="py-3 px-4">{b.serviceName}</td>
                         <td className="py-3 px-4">{b.date}</td>
                         <td className="py-3 px-4">{b.time}</td>
-                        <td className="py-3 px-4 font-semibold">₹{b.price}</td>
+                        <td className="py-3 px-4 font-semibold font-mono">₹{b.price}</td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-0.5 rounded-full font-semibold ${
                             b.status === 'Confirmed' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-350' : 
@@ -220,14 +377,14 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                       <td className="py-3 px-4">Precision French Haircut</td>
                       <td className="py-3 px-4">2026-06-08</td>
                       <td className="py-3 px-4">1:30 PM</td>
-                      <td className="py-3 px-4 font-semibold">₹3000</td>
+                      <td className="py-3 px-4 font-semibold font-mono">₹3000</td>
                       <td className="py-3 px-4">
                         <span className="px-2 py-0.5 rounded-full bg-charcoal-100/50 dark:bg-charcoal-800 text-charcoal-600 dark:text-rosegold-200">
                           Completed
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span className="text-charcoal-400 font-light">Completed</span>
+                        <span className="text-charcoal-400 font-light font-sans">Completed</span>
                       </td>
                     </tr>
                   </tbody>
@@ -248,7 +405,7 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                       <th className="py-3 px-4">Reviews Count</th>
                       <th className="py-3 px-4">Brand Segment</th>
                       <th className="py-3 px-4">Home Service</th>
-                      <th className="py-3 px-4 text-center">Status</th>
+                      <th className="py-3 px-4 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-rosegold-100/50 dark:divide-charcoal-800/50 font-light text-charcoal-700 dark:text-rosegold-100">
@@ -257,8 +414,8 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                         <td className="py-3 px-4 font-semibold text-charcoal-900 dark:text-white">{s.name}</td>
                         <td className="py-3 px-4">{s.locality}</td>
                         <td className="py-3 px-4 font-mono">{s.phone}</td>
-                        <td className="py-3 px-4 text-rosegold-500 font-bold">{s.rating} ★</td>
-                        <td className="py-3 px-4">{s.reviewsCount} logs</td>
+                        <td className="py-3 px-4 text-rosegold-500 font-bold font-mono">{s.rating} ★</td>
+                        <td className="py-3 px-4 font-mono">{s.reviewsCount || (s.reviews?.length || 0)} logs</td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-0.5 rounded-full font-semibold ${
                             s.isLuxury ? 'bg-linear-to-r from-rosegold-500 to-gold-metallic text-white' : 'bg-charcoal-100 dark:bg-charcoal-800 text-charcoal-600 dark:text-rosegold-200'
@@ -270,9 +427,22 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                           {s.offersHomeService ? 'Available' : 'In-Store Only'}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-350 font-semibold">
-                            Active
-                          </span>
+                          <div className="flex items-center justify-center space-x-2">
+                            <button
+                              onClick={() => openEditModal(s)}
+                              className="p-1 rounded-lg border border-rosegold-200 hover:bg-rosegold-50 dark:border-charcoal-800 dark:hover:bg-charcoal-950/40 text-charcoal-600 dark:text-rosegold-200 cursor-pointer"
+                              title="Edit Salon Profile"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s.id)}
+                              className="p-1 rounded-lg border border-red-100 hover:bg-red-50 dark:border-red-950/20 dark:hover:bg-red-950/45 text-red-500 cursor-pointer"
+                              title="Delete Salon Profile"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -296,14 +466,14 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-rosegold-100/50 dark:divide-charcoal-800/50 font-light text-charcoal-700 dark:text-rosegold-100">
-                    {salons.flatMap(s => s.services.map(ser => ({ ...ser, salonName: s.name }))).slice(0, 10).map((ser, idx) => (
+                    {salons.flatMap(s => (s.services || []).map(ser => ({ ...ser, salonName: s.name }))).slice(0, 15).map((ser, idx) => (
                       <tr key={idx} className="hover:bg-rosegold-50/20 dark:hover:bg-charcoal-950/20 transition-colors">
                         <td className="py-3 px-4 font-semibold text-charcoal-900 dark:text-white">{ser.name}</td>
                         <td className="py-3 px-4">
                           <span className="text-[10px] uppercase font-bold tracking-widest text-rosegold-500">{ser.category}</span>
                         </td>
                         <td className="py-3 px-4">{ser.duration}</td>
-                        <td className="py-3 px-4 font-bold">₹{ser.price}</td>
+                        <td className="py-3 px-4 font-bold font-mono">₹{ser.price}</td>
                         <td className="py-3 px-4 text-charcoal-500">{ser.salonName}</td>
                         <td className="py-3 px-4 max-w-sm truncate text-charcoal-450 dark:text-rosegold-350 font-light">{ser.description}</td>
                       </tr>
@@ -335,7 +505,7 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                         <tr key={rev.id || idx} className="hover:bg-rosegold-50/20 dark:hover:bg-charcoal-950/20 transition-colors">
                           <td className="py-3 px-4 font-semibold text-charcoal-900 dark:text-white">{rev.author}</td>
                           <td className="py-3 px-4 text-charcoal-550">{rev.salonName}</td>
-                          <td className="py-3 px-4 text-rosegold-500 font-bold">{rev.rating} ★</td>
+                          <td className="py-3 px-4 text-rosegold-500 font-bold font-mono">{rev.rating} ★</td>
                           <td className="py-3 px-4 font-mono">{rev.date}</td>
                           <td className="py-3 px-4 max-w-xs truncate italic">&ldquo;{rev.comment}&rdquo;</td>
                           <td className="py-3 px-4">
@@ -370,6 +540,195 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
         </section>
 
       </main>
+
+      {/* ADD / EDIT SALON MODAL DIALOG */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-charcoal-950/45 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-charcoal-900 border border-rosegold-200 dark:border-charcoal-850 w-full max-w-xl rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto animate-fade-in space-y-6">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-center pb-3 border-b border-rosegold-100 dark:border-charcoal-800">
+              <h3 className="text-xl font-bold text-charcoal-950 dark:text-white font-playfair">
+                {editingSalonId ? 'Edit Salon Outlet' : 'Add Salon Outlet'}
+              </h3>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-charcoal-400 hover:text-charcoal-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Submitting overlay indicator */}
+            {isSubmitting && (
+              <div className="absolute inset-0 bg-white/80 dark:bg-charcoal-900/80 z-20 flex flex-col items-center justify-center rounded-2xl space-y-3">
+                <div className="w-10 h-10 border-4 border-rosegold-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-xs font-semibold text-charcoal-700 dark:text-rosegold-200">{uploadStatus}</p>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                
+                {/* Name */}
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-600 dark:text-rosegold-250 mb-1">
+                    Salon Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g. Bounce Signature"
+                    className="block w-full px-3 py-2 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Category */}
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-600 dark:text-rosegold-255 mb-1">
+                    Brand Category
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    className="block w-full px-3 py-2 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                  >
+                    <option value="Luxury">Luxury Brand</option>
+                    <option value="Home Service">Home Service Brand</option>
+                    <option value="Budget">Budget Friendly Brand</option>
+                  </select>
+                </div>
+
+                {/* Locality */}
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-600 dark:text-rosegold-255 mb-1">
+                    Locality / Neighborhood
+                  </label>
+                  <select
+                    value={formData.location}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    className="block w-full px-3 py-2 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                  >
+                    {localitiesList.map(l => (
+                      <option key={l} value={l}>{l}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Phone */}
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-600 dark:text-rosegold-255 mb-1">
+                    Contact Phone
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="e.g. +91 98765 43210"
+                    className="block w-full px-3 py-2 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Rating */}
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-600 dark:text-rosegold-255 mb-1">
+                    Initial Rating
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    max="5"
+                    required
+                    value={formData.rating}
+                    onChange={(e) => setFormData(prev => ({ ...prev, rating: e.target.value }))}
+                    className="block w-full px-3 py-2 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Image Upload Area */}
+                <div className="col-span-2 sm:col-span-1 flex flex-col justify-end">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-600 dark:text-rosegold-255 mb-1">
+                    Flagship Image
+                  </label>
+                  <div className="relative border border-dashed border-rosegold-200 dark:border-charcoal-800 rounded-xl p-2.5 text-center bg-white dark:bg-charcoal-950 cursor-pointer hover:border-rosegold-500 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          setSelectedFile(e.target.files[0]);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="flex items-center justify-center space-x-1.5 text-xs text-charcoal-555 dark:text-rosegold-300">
+                      <UploadCloud className="w-4 h-4 text-rosegold-500" />
+                      <span className="truncate max-w-[160px]">
+                        {selectedFile ? selectedFile.name : 'Select Salon Image File'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-600 dark:text-rosegold-255 mb-1">
+                    Complete Address
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="e.g. Ground Floor, No. 12, Hal 3rd Stage, Bengaluru"
+                    className="block w-full px-3 py-2 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-600 dark:text-rosegold-255 mb-1">
+                    Outlet Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Provide highlights of the salon services and brand standards..."
+                    className="block w-full px-3 py-2 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white leading-relaxed font-light"
+                  />
+                </div>
+
+              </div>
+
+              {/* Form buttons */}
+              <div className="pt-4 border-t border-rosegold-100 dark:border-charcoal-800 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-full border border-rosegold-200 dark:border-charcoal-800 text-xs font-semibold text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-950/30 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark text-white text-xs font-bold shadow-md hover:scale-102 transition-all cursor-pointer"
+                >
+                  Save Outlet
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
