@@ -3,23 +3,31 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowRight, User, Mail, Lock } from 'lucide-react';
+import { Sparkles, ArrowRight, User, Mail, Lock, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-export default function RegisterPage() {
+export default function SignupPage() {
   const router = useRouter();
+  const { signup } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate signup
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMsg(null);
+    try {
+      await signup(name, email, password);
       router.push('/dashboard');
-    }, 1000);
+    } catch (err: any) {
+      console.error('Signup error:', err);
+      setErrorMsg(err.message || 'Failed to create account. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,7 +43,7 @@ export default function RegisterPage() {
             AuraAI
           </span>
         </Link>
-        <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white">
+        <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair">
           Create beauty profile
         </h2>
         <p className="mt-2 text-sm text-charcoal-550 dark:text-rosegold-200">
@@ -48,7 +56,14 @@ export default function RegisterPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white/80 dark:bg-charcoal-900/80 border border-rosegold-200 dark:border-charcoal-850 py-8 px-6 sm:px-10 rounded-2xl shadow-xl backdrop-blur-md">
-          <form className="space-y-5" onSubmit={handleRegister}>
+          {errorMsg && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-650 dark:text-red-400 text-xs flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          <form className="space-y-5" onSubmit={handleSignup}>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-charcoal-700 dark:text-rosegold-200 mb-1.5">
                 Full Name
@@ -64,7 +79,7 @@ export default function RegisterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
-                  placeholder="Rhea Sen"
+                  placeholder="Rhea Sharma"
                 />
               </div>
             </div>
@@ -84,7 +99,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
-                  placeholder="rhea.sen@auraai.in"
+                  placeholder="rhea@gmail.com"
                 />
               </div>
             </div>
@@ -109,7 +124,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="text-xs text-charcoal-500 dark:text-rosegold-300">
+            <div className="text-xs text-charcoal-500 dark:text-rosegold-350 leading-relaxed">
               By signing up, you agree to allow AuraAI to analyze your simulated beauty profile filters and booking parameters.
             </div>
 
@@ -117,7 +132,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark shadow-md hover:scale-101 focus:outline-hidden transition-all disabled:opacity-50 group"
+                className="w-full flex justify-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark shadow-md hover:scale-101 focus:outline-hidden transition-all disabled:opacity-50 group cursor-pointer"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

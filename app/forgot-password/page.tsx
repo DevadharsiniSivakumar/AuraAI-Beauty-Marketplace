@@ -2,21 +2,29 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Mail, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Mail, ChevronLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function ForgotPasswordPage() {
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate email dispatch
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMsg(null);
+    try {
+      await resetPassword(email);
       setIsSubmitted(true);
-    }, 1200);
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      setErrorMsg(err.message || 'Failed to send password reset email.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -32,7 +40,7 @@ export default function ForgotPasswordPage() {
             AuraAI
           </span>
         </Link>
-        <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white">
+        <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair">
           Reset password
         </h2>
         <p className="mt-2 text-sm text-charcoal-550 dark:text-rosegold-200">
@@ -42,6 +50,13 @@ export default function ForgotPasswordPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white/80 dark:bg-charcoal-900/80 border border-rosegold-200 dark:border-charcoal-850 py-8 px-6 sm:px-10 rounded-2xl shadow-xl backdrop-blur-md">
+          {errorMsg && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-650 dark:text-red-400 text-xs flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
           {!isSubmitted ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
@@ -68,7 +83,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex justify-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark shadow-md hover:scale-101 focus:outline-hidden transition-all disabled:opacity-50 group"
+                  className="w-full flex justify-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark shadow-md hover:scale-101 focus:outline-hidden transition-all disabled:opacity-50 group cursor-pointer"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -84,10 +99,10 @@ export default function ForgotPasswordPage() {
           ) : (
             <div className="text-center space-y-4 py-4">
               <div className="flex justify-center text-rosegold-500 mb-2">
-                <CheckCircle2 className="w-12 h-12" />
+                <CheckCircle2 className="w-12 h-12 animate-bounce" />
               </div>
               <h3 className="text-lg font-semibold text-charcoal-900 dark:text-white">Email Sent</h3>
-              <p className="text-sm text-charcoal-500 dark:text-rosegold-350">
+              <p className="text-sm text-charcoal-550 dark:text-rosegold-350">
                 Check your inbox at <span className="font-semibold">{email}</span>. We sent a link to reset your password.
               </p>
             </div>

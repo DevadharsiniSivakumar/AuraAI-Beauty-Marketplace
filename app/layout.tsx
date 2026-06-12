@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "./context/AppContext";
+import { AuthProvider } from "./context/AuthContext";
+import RouteGuard from "./components/RouteGuard";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -31,9 +33,13 @@ export default function RootLayout({
       className={`${playfair.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-rosegold-50 dark:bg-charcoal-950 text-charcoal-900 dark:text-rosegold-100 selection:bg-rosegold-300 dark:selection:bg-rosegold-800">
-        <AppProvider>
-          {children}
-        </AppProvider>
+        <AuthProvider>
+          <RouteGuard>
+            <AppProvider>
+              {children}
+            </AppProvider>
+          </RouteGuard>
+        </AuthProvider>
       </body>
     </html>
   );

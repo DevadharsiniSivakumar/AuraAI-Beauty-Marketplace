@@ -2,23 +2,52 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
-import { Sparkles, Moon, Sun, Menu, X, User, Shield } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Sparkles, Moon, Sun, Menu, X, User, Shield, LogOut } from 'lucide-react';
 
 export default function Navbar() {
-  const { isDarkMode, toggleDarkMode, userProfile } = useApp();
+  const { isDarkMode, toggleDarkMode } = useApp();
+  const { user, role, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-
-  const navLinks = [
-    { name: 'AI Concierge', href: '/concierge' },
-    { name: 'Style Advisor', href: '/advisor' },
-    { name: 'Explore Salons', href: '/salons' },
-    { name: 'Reviews', href: '/reviews' },
-  ];
+  const router = useRouter();
 
   const isActive = (path: string) => pathname === path;
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Redirect based on current role
+      if (role === 'admin') {
+        router.push('/admin/login');
+      } else {
+        router.push('/login');
+      }
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
+
+  // Compile navigation links dynamically based on role/auth state
+  let navLinks: { name: string; href: string }[] = [];
+  if (user) {
+    if (role === 'user') {
+      navLinks = [
+        { name: 'AI Concierge', href: '/concierge' },
+        { name: 'Style Advisor', href: '/advisor' },
+        { name: 'Explore Salons', href: '/salons' },
+        { name: 'Reviews', href: '/reviews' },
+        { name: 'Dashboard', href: '/dashboard' },
+        { name: 'Profile', href: '/profile' },
+      ];
+    } else if (role === 'admin') {
+      navLinks = [
+        { name: 'Admin Dashboard', href: '/admin/dashboard' },
+      ];
+    }
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-rosegold-200/50 dark:border-charcoal-800/50 glass transition-all">
@@ -58,33 +87,48 @@ export default function Navbar() {
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-full text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-100/50 dark:hover:bg-charcoal-800 transition-colors"
+              className="p-2 rounded-full text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-100/50 dark:hover:bg-charcoal-800 transition-colors cursor-pointer"
               aria-label="Toggle Theme"
             >
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            {/* Admin link */}
-            <Link
-              href="/admin"
-              className={`p-2 rounded-full text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-100/50 dark:hover:bg-charcoal-800 transition-colors ${
-                isActive('/admin') ? 'text-rosegold-500' : ''
-              }`}
-              title="Admin Portal"
-            >
-              <Shield className="w-5 h-5" />
-            </Link>
+            {user ? (
+              <>
+                {/* User Session Detail */}
+                <div className="flex items-center space-x-2 px-4 py-2 rounded-full border border-rosegold-300 dark:border-rosegold-800 bg-rosegold-100/30 dark:bg-charcoal-900 text-sm font-medium text-charcoal-800 dark:text-rosegold-100">
+                  <User className="w-4 h-4 text-rosegold-500" />
+                  <span>{user.name.split(' ')[0]}</span>
+                  <span className="text-[10px] uppercase tracking-wider bg-rosegold-200 dark:bg-charcoal-800 px-1.5 py-0.5 rounded-sm font-bold text-rosegold-600 dark:text-gold-medium ml-1">
+                    {role}
+                  </span>
+                </div>
 
-            {/* User Dashboard / Profile Link */}
-            <Link
-              href="/dashboard"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full border border-rosegold-300 dark:border-rosegold-800 bg-rosegold-100/30 dark:bg-charcoal-900 text-sm font-medium text-charcoal-800 dark:text-rosegold-100 hover:bg-rosegold-100 dark:hover:bg-charcoal-800 transition-all ${
-                isActive('/dashboard') ? 'border-rosegold-500 ring-2 ring-rosegold-200' : ''
-              }`}
-            >
-              <User className="w-4 h-4 text-rosegold-500" />
-              <span>{userProfile.name.split(' ')[0]}</span>
-            </Link>
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="p-2 rounded-full text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-charcoal-600 dark:text-rosegold-200 hover:text-rosegold-500 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-4 py-2 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark text-white text-xs font-semibold shadow-md hover:scale-102 transition-all"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -108,7 +152,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-rosegold-200/50 dark:border-charcoal-800 bg-white/95 dark:bg-charcoal-950/95 backdrop-blur-md px-4 pt-2 pb-6 space-y-3 shadow-lg">
+        <div className="md:hidden border-b border-rosegold-200/50 dark:border-charcoal-800 bg-white/95 dark:bg-charcoal-950/95 backdrop-blur-md px-4 pt-2 pb-6 space-y-3 shadow-lg animate-fade-in">
           {navLinks.map((link) => (
             <Link
               key={link.name}
@@ -123,23 +167,43 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
+          
           <div className="pt-4 border-t border-rosegold-200 dark:border-charcoal-800 flex flex-col space-y-2">
-            <Link
-              href="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center space-x-2 px-3 py-2 text-base font-medium text-charcoal-700 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-900"
-            >
-              <Shield className="w-4 h-4 text-rosegold-500" />
-              <span>Admin Dashboard</span>
-            </Link>
-            <Link
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white text-base font-medium justify-center shadow-xs"
-            >
-              <User className="w-4 h-4" />
-              <span>{userProfile.name}&apos;s Dashboard</span>
-            </Link>
+            {user ? (
+              <>
+                <div className="flex items-center space-x-2 px-3 py-2 text-charcoal-600 dark:text-rosegold-350 text-sm">
+                  <User className="w-4 h-4 text-rosegold-500" />
+                  <span>Logged in as <strong>{user.name}</strong> ({role})</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center justify-center space-x-2 px-3 py-2 rounded-full border border-red-200 dark:border-red-950/50 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 text-base font-medium transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex justify-center items-center py-2.5 px-4 rounded-full border border-rosegold-300 dark:border-charcoal-800 text-charcoal-700 dark:text-rosegold-200 text-sm font-medium hover:bg-rosegold-50 dark:hover:bg-charcoal-900 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex justify-center items-center py-2.5 px-4 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white text-sm font-semibold shadow-md"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

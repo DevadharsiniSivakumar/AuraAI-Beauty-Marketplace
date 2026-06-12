@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useApp } from '../context/AppContext';
@@ -19,9 +20,32 @@ import {
   MessageSquare
 } from 'lucide-react';
 
-export default function AdminDashboard() {
+interface AdminDashboardProps {
+  defaultTab?: 'bookings' | 'salons' | 'services' | 'reviews';
+}
+
+export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { salons, bookings, reviews, cancelBooking } = useApp();
-  const [activeTab, setActiveTab] = useState<'bookings' | 'salons' | 'services' | 'reviews'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'salons' | 'services' | 'reviews'>(defaultTab);
+
+  // Sync tab state with props changes
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab]);
+
+  // Navigate on tab change
+  const handleTabChange = (tab: 'bookings' | 'salons' | 'services' | 'reviews') => {
+    setActiveTab(tab);
+    if (tab === 'bookings') {
+      router.push('/admin/dashboard');
+    } else {
+      router.push(`/admin/${tab}`);
+    }
+  };
 
   // Moderate / Flag state simulation
   const [flaggedReviews, setFlaggedReviews] = useState<string[]>([]);
@@ -50,11 +74,11 @@ export default function AdminDashboard() {
         
         {/* Header */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-charcoal-900 dark:bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center border border-rosegold-200 dark:border-charcoal-800 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-charcoal-905 dark:bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center border border-rosegold-200 dark:border-charcoal-800 shrink-0">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-charcoal-950 dark:text-white">Admin Console</h1>
+            <h1 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair">Admin Console</h1>
             <p className="text-sm text-charcoal-550 dark:text-rosegold-200">Corporate portal to oversee users, bookings, partner salons, and review moderation logs.</p>
           </div>
         </div>
@@ -122,8 +146,8 @@ export default function AdminDashboard() {
             {(['bookings', 'salons', 'services', 'reviews'] as const).map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 text-center transition-colors shrink-0 ${
+                onClick={() => handleTabChange(tab)}
+                className={`px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 text-center transition-colors shrink-0 cursor-pointer ${
                   activeTab === tab 
                     ? 'border-rosegold-500 text-rosegold-600 dark:text-gold-medium' 
                     : 'border-transparent text-charcoal-500 dark:text-rosegold-300 hover:text-rosegold-550'
@@ -159,7 +183,7 @@ export default function AdminDashboard() {
                     {bookings.map((b) => (
                       <tr key={b.id} className="hover:bg-rosegold-50/20 dark:hover:bg-charcoal-950/20 transition-colors">
                         <td className="py-3 px-4 font-mono font-bold text-rosegold-500">{b.id.substring(0, 12)}</td>
-                        <td className="py-3 px-4 font-semibold text-charcoal-900 dark:text-white">Rhea Sen</td>
+                        <td className="py-3 px-4 font-semibold text-charcoal-900 dark:text-white">Rhea Sharma</td>
                         <td className="py-3 px-4">{b.salonName}</td>
                         <td className="py-3 px-4">{b.serviceName}</td>
                         <td className="py-3 px-4">{b.date}</td>
@@ -281,7 +305,7 @@ export default function AdminDashboard() {
                         <td className="py-3 px-4">{ser.duration}</td>
                         <td className="py-3 px-4 font-bold">₹{ser.price}</td>
                         <td className="py-3 px-4 text-charcoal-500">{ser.salonName}</td>
-                        <td className="py-3 px-4 max-w-sm truncate text-charcoal-450 dark:text-rosegold-300 font-light">{ser.description}</td>
+                        <td className="py-3 px-4 max-w-sm truncate text-charcoal-450 dark:text-rosegold-350 font-light">{ser.description}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -3,30 +3,26 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowRight, Mail, Lock, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { Sparkles, ArrowRight, Mail, Lock, ShieldAlert, AlertCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
-  const [email, setEmail] = useState('user@auraai.com');
+  const { loginAdmin } = useAuth();
+  const [email, setEmail] = useState('admin@auraai.com');
   const [password, setPassword] = useState('password');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const session = await login(email, password);
-      if (session.role === 'admin') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/dashboard');
-      }
+      await loginAdmin(email, password);
+      router.push('/admin/dashboard');
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('Admin login error:', err);
       setErrorMsg(err.message || 'Invalid email or password.');
     } finally {
       setIsLoading(false);
@@ -36,41 +32,42 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-rosegold-50 dark:bg-charcoal-950">
       {/* Background glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full bg-linear-to-tr from-rosegold-200/20 to-gold-light/35 blur-3xl -z-10 animate-pulse-slow"></div>
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full bg-linear-to-tr from-charcoal-800/10 to-gold-metallic/20 blur-3xl -z-10 animate-pulse-slow"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-          <div className="w-9 h-9 rounded-full bg-linear-to-tr from-rosegold-500 to-gold-metallic flex items-center justify-center text-white shadow-xs">
-            <Sparkles className="w-5 h-5 animate-spin" />
+          <div className="w-9 h-9 rounded-full bg-charcoal-900 dark:bg-charcoal-800 flex items-center justify-center text-white border border-rosegold-500/30 shadow-xs">
+            <ShieldAlert className="w-5 h-5 text-rosegold-500" />
           </div>
           <span className="text-2xl font-semibold tracking-wide bg-linear-to-r from-charcoal-900 to-rosegold-700 dark:from-rosegold-100 dark:to-gold-medium bg-clip-text text-transparent">
-            AuraAI
+            AuraAI Admin
           </span>
         </Link>
         <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair">
-          Welcome back
+          Administrator Login
         </h2>
-        <p className="mt-2 text-sm text-charcoal-550 dark:text-rosegold-200">
-          Or{' '}
-          <Link href="/signup" className="font-medium text-rosegold-500 hover:text-rosegold-600 transition-colors">
-            create a new beauty profile
-          </Link>
+        <p className="mt-2 text-sm text-charcoal-550 dark:text-rosegold-350">
+          Enter administrative credentials to access the console.
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-white/80 dark:bg-charcoal-900/80 border border-rosegold-200 dark:border-charcoal-850 py-8 px-6 sm:px-10 rounded-2xl shadow-xl backdrop-blur-md">
+        <div className="bg-white/80 dark:bg-charcoal-900/80 border border-charcoal-350 dark:border-charcoal-800 py-8 px-6 sm:px-10 rounded-2xl shadow-xl backdrop-blur-md">
           {errorMsg && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-650 dark:text-red-400 text-xs flex items-center space-x-2">
+            <div className={`mb-4 p-3 rounded-xl border text-xs flex items-center space-x-2 ${
+              errorMsg === 'Unauthorized Access'
+                ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-450 font-bold'
+                : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900 text-red-650 dark:text-red-400'
+            }`}>
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleLogin}>
+          <form className="space-y-6" onSubmit={handleAdminLogin}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-charcoal-700 dark:text-rosegold-200 mb-1.5">
-                Email address
+                Admin Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-charcoal-400">
@@ -82,8 +79,8 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 dark:placeholder-charcoal-600 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
-                  placeholder="name@example.com"
+                  className="block w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-charcoal-300 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 dark:placeholder-charcoal-600 focus:outline-hidden focus:ring-1 focus:ring-charcoal-900 text-charcoal-900 dark:text-white"
+                  placeholder="admin@auraai.com"
                 />
               </div>
             </div>
@@ -93,12 +90,6 @@ export default function LoginPage() {
                 <label htmlFor="password" className="block text-sm font-medium text-charcoal-700 dark:text-rosegold-200">
                   Password
                 </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-medium text-rosegold-500 hover:text-rosegold-600 transition-colors"
-                >
-                  Forgot password?
-                </Link>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-charcoal-400">
@@ -110,40 +101,37 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                  className="block w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-charcoal-300 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 focus:outline-hidden focus:ring-1 focus:ring-charcoal-900 text-charcoal-900 dark:text-white"
                 />
               </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                type="checkbox"
-                defaultChecked
-                className="h-4 w-4 rounded-md border-rosegold-300 text-rosegold-550 focus:ring-rosegold-550 dark:bg-charcoal-950 dark:border-charcoal-800"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-xs text-charcoal-550 dark:text-rosegold-350">
-                Remember my concierge session
-              </label>
             </div>
 
             <div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark shadow-md hover:scale-101 focus:outline-hidden transition-all disabled:opacity-50 group cursor-pointer"
+                className="w-full flex justify-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-charcoal-900 hover:bg-charcoal-950 dark:bg-rosegold-600 dark:hover:bg-rosegold-700 shadow-md hover:scale-101 focus:outline-hidden transition-all disabled:opacity-50 group cursor-pointer"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <span className="flex items-center">
-                    Sign In
+                    Enter Admin Console
                     <ArrowRight className="ml-2 w-4.5 h-4.5 group-hover:translate-x-1 transition-transform" />
                   </span>
                 )}
               </button>
             </div>
           </form>
+
+          <div className="mt-6 pt-6 border-t border-rosegold-250 dark:border-charcoal-800 text-center">
+            <Link
+              href="/login"
+              className="text-xs font-semibold text-rosegold-550 hover:text-rosegold-600 transition-colors"
+            >
+              Back to standard user login
+            </Link>
+          </div>
         </div>
       </div>
     </div>
