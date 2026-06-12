@@ -137,10 +137,10 @@ export default function ProfilePage() {
                       onChange={(e) => setFaceShape(e.target.value)}
                       className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden"
                     >
-                      <option value="Oval">Oval Contour</option>
-                      <option value="Round">Round Contour</option>
-                      <option value="Square">Square Contour</option>
-                      <option value="Heart">Heart Contour</option>
+                      <option value="Oval" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Oval Contour</option>
+                      <option value="Round" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Round Contour</option>
+                      <option value="Square" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Square Contour</option>
+                      <option value="Heart" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Heart Contour</option>
                     </select>
                   </div>
 
@@ -151,10 +151,10 @@ export default function ProfilePage() {
                       onChange={(e) => setHairType(e.target.value)}
                       className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden"
                     >
-                      <option value="2C Wavy">2C Wavy Waves</option>
-                      <option value="Straight">1A Coarse Straight</option>
-                      <option value="Curly">3B Springy Curls</option>
-                      <option value="Coily">4C Dense Coils</option>
+                      <option value="2C Wavy" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">2C Wavy Waves</option>
+                      <option value="Straight" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">1A Coarse Straight</option>
+                      <option value="Curly" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">3B Springy Curls</option>
+                      <option value="Coily" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">4C Dense Coils</option>
                     </select>
                   </div>
 
@@ -165,9 +165,9 @@ export default function ProfilePage() {
                       onChange={(e) => setSkinTone(e.target.value)}
                       className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden"
                     >
-                      <option value="Warm Beige / Olive">Warm Honey / Olive</option>
-                      <option value="Fair / Cool Pink">Fair / Cool Pink</option>
-                      <option value="Deep Bronze">Deep Umber / Bronze</option>
+                      <option value="Warm Beige / Olive" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Warm Honey / Olive</option>
+                      <option value="Fair / Cool Pink" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Fair / Cool Pink</option>
+                      <option value="Deep Bronze" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Deep Umber / Bronze</option>
                     </select>
                   </div>
                 </div>
@@ -183,9 +183,9 @@ export default function ProfilePage() {
                     onChange={(e) => setBudget(e.target.value)}
                     className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden"
                   >
-                    <option value="₹">₹ - Budget Saver (Under ₹2000)</option>
-                    <option value="₹₹ - ₹₹₹">₹₹ - ₹₹₹ - Premium Select (₹2000 - ₹5000)</option>
-                    <option value="₹₹₹ - ₹₹₹₹">₹₹₹ - ₹₹₹₹ - Luxury Premium (₹5000+)</option>
+                    <option value="₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹ - Budget Saver (Under ₹2000)</option>
+                    <option value="₹₹ - ₹₹₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹₹ - ₹₹₹ - Premium Select (₹2000 - ₹5000)</option>
+                    <option value="₹₹₹ - ₹₹₹₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹₹₹ - ₹₹₹₹ - Luxury Premium (₹5000+)</option>
                   </select>
                 </div>
               </div>

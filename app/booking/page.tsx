@@ -141,9 +141,9 @@ function BookingFormContent() {
                         required
                         className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
                       >
-                        <option value="">-- Choose Salon --</option>
+                        <option value="" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">-- Choose Salon --</option>
                         {salons.map(s => (
-                          <option key={s.id} value={s.id}>{s.name} ({s.locality})</option>
+                          <option key={s.id} value={s.id} className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">{s.name} ({s.locality})</option>
                         ))}
                       </select>
                     </div>
@@ -157,9 +157,9 @@ function BookingFormContent() {
                         disabled={!selectedSalonId}
                         className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 disabled:opacity-50"
                       >
-                        <option value="">-- Choose Service --</option>
+                        <option value="" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">-- Choose Service --</option>
                         {activeSalon?.services.map(ser => (
-                          <option key={ser.id} value={ser.id}>{ser.name} (₹{ser.price})</option>
+                          <option key={ser.id} value={ser.id} className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">{ser.name} (₹{ser.price})</option>
                         ))}
                       </select>
                     </div>

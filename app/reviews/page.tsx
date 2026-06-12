@@ -158,11 +158,11 @@ export default function ReviewsPage() {
                       value={selectedSalonId}
                       onChange={(e) => setSelectedSalonId(e.target.value)}
                       required
-                      className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                      className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-505"
                     >
-                      <option value="">-- Choose Salon --</option>
+                      <option value="" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">-- Choose Salon --</option>
                       {allowedSalons.map(s => (
-                        <option key={s.id} value={s.id}>{s.name} ({s.locality})</option>
+                        <option key={s.id} value={s.id} className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">{s.name} ({s.locality})</option>
                       ))}
                     </select>
                   </div>
