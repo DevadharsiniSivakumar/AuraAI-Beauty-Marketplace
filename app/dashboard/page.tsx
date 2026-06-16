@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useApp } from '../context/AppContext';
@@ -23,15 +24,32 @@ import {
   CheckCircle,
   TrendingDown,
   TrendingUp,
-  Info
+  Info,
+  Search,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 export default function UserDashboard() {
+  const router = useRouter();
   const { userProfile, bookings, salons, cancelBooking } = useApp();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
+  const [isInsightsExpanded, setIsInsightsExpanded] = useState(false);
 
   const upcomingBookings = bookings.filter(b => b.status === 'Pending' || b.status === 'Confirmed' || b.status === 'In Progress');
   const completedBookings = bookings.filter(b => b.status === 'Completed');
   const cancelledBookings = bookings.filter(b => b.status === 'Cancelled' || b.status === 'No Show');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      router.push(`/salons?search=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      router.push('/salons');
+    }
+  };
 
   // V2 Proactive insights data array
   const proactiveInsights = [
@@ -85,381 +103,196 @@ export default function UserDashboard() {
     { name: 'Bridal Prep & Makeup', status: 'Recommended', date: 'Before Wedding', desc: 'Celebrity artist consultations at UB City.' }
   ];
 
+  const activePhase = timelinePhases.find(p => p.status === 'In Progress') || timelinePhases[0];
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         
-        {/* Welcome Banner */}
-        <section className="relative rounded-3xl overflow-hidden border border-rosegold-200 dark:border-charcoal-800 bg-linear-to-r from-rosegold-100/40 via-gold-light/20 to-white dark:from-charcoal-900 dark:to-charcoal-950 p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xs">
+        {/* Top Section: Welcome & Global Search */}
+        <section className="relative rounded-3xl overflow-hidden border border-rosegold-200 dark:border-charcoal-800 bg-linear-to-b from-rosegold-100/30 to-white dark:from-charcoal-900 dark:to-charcoal-950 p-6 sm:p-8 flex flex-col gap-6 shadow-xs">
           <div className="space-y-2">
-            <span className="text-xs font-semibold text-rosegold-600 dark:text-gold-medium uppercase tracking-widest block">AI Beauty Concierge Agent</span>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-charcoal-950 dark:text-white">
-              Hello, {userProfile.name}
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-charcoal-950 dark:text-white font-playfair">
+              Welcome back, {userProfile.name.split(' ')[0]}
             </h1>
             <p className="text-sm text-charcoal-550 dark:text-rosegold-200">
-              Your beauty concierge remembers you. AuraAI has analyzed your bookings, reviews, and DNA parameters.
+              Your Beauty DNA profile is synchronized. Discover bespoke luxury treatments matching your skin and location.
             </p>
-            <div className="flex flex-wrap gap-2 pt-2">
-              <span className="text-xs px-3 py-1 rounded-full bg-white dark:bg-charcoal-800 border border-rosegold-200/50 dark:border-charcoal-700 text-charcoal-600 dark:text-rosegold-200 flex items-center">
-                <MapPin className="w-3 h-3 text-rosegold-500 mr-1" />
-                {userProfile.location}
-              </span>
-              <span className="text-xs px-3 py-1 rounded-full bg-white dark:bg-charcoal-800 border border-rosegold-200/50 dark:border-charcoal-700 text-charcoal-600 dark:text-rosegold-200">
-                Skin: {userProfile.skinTone} (Warm Undertone)
-              </span>
-              <span className="text-xs px-3 py-1 rounded-full bg-white dark:bg-charcoal-800 border border-rosegold-200/50 dark:border-charcoal-700 text-charcoal-600 dark:text-rosegold-200">
-                Hair: {userProfile.hairType} (2C Wavy)
-              </span>
-            </div>
           </div>
           
-          <Link
-            href="/concierge"
-            className="flex items-center space-x-2 px-6 py-3 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-medium shadow-md hover:scale-102 transition-all shrink-0 animate-pulse"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Consult AI Concierge</span>
-          </Link>
+          <form onSubmit={handleSearch} className="relative w-full max-w-2xl">
+            <input
+              type="text"
+              placeholder="Search salons, services, or treatments (e.g., Hydra Facial, Hair Color)..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full text-xs sm:text-sm pl-11 pr-24 py-3.5 rounded-2xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white shadow-2xs"
+            />
+            <Search className="absolute left-4 top-4 w-5 h-5 text-charcoal-400" />
+            <button
+              type="submit"
+              className="absolute right-2 top-2 px-5 py-2 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark text-white text-xs font-bold transition-all"
+            >
+              Search
+            </button>
+          </form>
         </section>
 
-        {/* Quick Actions Grid */}
-        <section className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <Link
-            href="/concierge"
-            className="p-4 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 text-center hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all space-y-2 group shadow-2xs"
-          >
-            <div className="mx-auto w-10 h-10 rounded-full bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <MessageCircle className="w-5 h-5" />
-            </div>
-            <p className="text-sm font-semibold text-charcoal-900 dark:text-white">Talk to AuraAI</p>
-          </Link>
+        {/* Quick Actions Section (4 Large Clickable Cards) */}
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-400">Quick Actions</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <Link
+              href="/salons"
+              className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all flex items-center space-x-4 group shadow-2xs cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-xl bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <MapPin className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-base font-bold text-charcoal-900 dark:text-white">Explore Salons</p>
+                <p className="text-xs text-charcoal-400 font-light">Find local beauty hubs</p>
+              </div>
+            </Link>
 
-          <Link
-            href="/salons"
-            className="p-4 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 text-center hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all space-y-2 group shadow-2xs"
-          >
-            <div className="mx-auto w-10 h-10 rounded-full bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <MapPin className="w-5 h-5" />
-            </div>
-            <p className="text-sm font-semibold text-charcoal-900 dark:text-white">Explore Salons</p>
-          </Link>
+            <Link
+              href="/profile?tab=bookings"
+              className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all flex items-center space-x-4 group shadow-2xs cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-xl bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-base font-bold text-charcoal-900 dark:text-white">My Bookings</p>
+                <p className="text-xs text-charcoal-400 font-light">Track schedules & visits</p>
+              </div>
+            </Link>
 
-          <Link
-            href="/advisor"
-            className="p-4 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 text-center hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all space-y-2 group shadow-2xs col-span-2 sm:col-span-1"
-          >
-            <div className="mx-auto w-10 h-10 rounded-full bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <UploadCloud className="w-5 h-5" />
-            </div>
-            <p className="text-sm font-semibold text-charcoal-900 dark:text-white">Style Advisor</p>
-          </Link>
+            <Link
+              href="/concierge"
+              className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all flex items-center space-x-4 group shadow-2xs cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-xl bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-base font-bold text-charcoal-900 dark:text-white">AI Concierge</p>
+                <p className="text-xs text-charcoal-400 font-light">Consult beauty agent</p>
+              </div>
+            </Link>
 
-          <Link
-            href="/reviews"
-            className="p-4 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 text-center hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all space-y-2 group shadow-2xs"
-          >
-            <div className="mx-auto w-10 h-10 rounded-full bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Star className="w-5 h-5" />
-            </div>
-            <p className="text-sm font-semibold text-charcoal-900 dark:text-white">My Reviews</p>
-          </Link>
-
-          <Link
-            href="/profile"
-            className="p-4 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 text-center hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all space-y-2 group shadow-2xs"
-          >
-            <div className="mx-auto w-10 h-10 rounded-full bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <User className="w-5 h-5" />
-            </div>
-            <p className="text-sm font-semibold text-charcoal-900 dark:text-white">My Profile</p>
-          </Link>
-        </section>
-
-        {/* Visual Beauty Journey Timeline */}
-        <section className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-6 shadow-2xs">
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
-              <TrendingUp className="w-5 h-5 text-rosegold-500 mr-2" />
-              Your Personal Beauty Journey Timeline
-            </h3>
-            <p className="text-xs text-charcoal-500">Track and schedule treatments mapped directly to your beauty cycles and milestones.</p>
+            <Link
+              href="/advisor"
+              className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 hover:scale-102 hover:border-rosegold-400 dark:hover:border-rosegold-800 transition-all flex items-center space-x-4 group shadow-2xs cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-xl bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <UploadCloud className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-base font-bold text-charcoal-900 dark:text-white">Style Advisor</p>
+                <p className="text-xs text-charcoal-400 font-light">Upload photo for advice</p>
+              </div>
+            </Link>
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
-            {timelinePhases.map((phase, idx) => {
-              const isCompleted = phase.status === 'Completed';
-              const isInProgress = phase.status === 'In Progress';
-              const isScheduled = phase.status === 'Scheduled';
-              
-              return (
+        {/* Upcoming Bookings Section */}
+        <section className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
+          <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
+            <Calendar className="w-5 h-5 text-rosegold-500 mr-2" />
+            Upcoming Bookings
+          </h3>
+
+          {upcomingBookings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {upcomingBookings.map((b) => (
                 <div 
-                  key={idx} 
-                  className={`p-4 rounded-xl border relative transition-all ${
-                    isCompleted ? 'border-emerald-200/80 bg-emerald-50/10 dark:bg-emerald-950/10' :
-                    isInProgress ? 'border-rosegold-400 bg-rosegold-50/10 dark:bg-charcoal-950/20' :
-                    isScheduled ? 'border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-900' :
-                    'border-dashed border-rosegold-200 dark:border-charcoal-800/80 bg-rosegold-50/5 dark:bg-charcoal-950/5'
-                  }`}
+                  key={b.id}
+                  className="p-4 rounded-xl border border-rosegold-100 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-955/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 transition-colors"
                 >
-                  <div className="flex justify-between items-center mb-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                      isCompleted ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-350' :
-                      isInProgress ? 'bg-rosegold-500 text-white' :
-                      isScheduled ? 'bg-rosegold-100 dark:bg-charcoal-850 text-rosegold-600 dark:text-gold-medium' :
-                      'bg-charcoal-100 text-charcoal-400'
-                    }`}>
-                      {phase.status}
-                    </span>
-                    <span className="text-[10px] text-charcoal-400 font-mono">{phase.date}</span>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                        b.status === 'Confirmed' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-355' :
+                        b.status === 'In Progress' ? 'bg-blue-100 dark:bg-blue-955/50 text-blue-800 dark:text-blue-350' :
+                        'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-350'
+                      }`}>
+                        {b.status}
+                      </span>
+                    </div>
+                    <h4 className="font-semibold text-charcoal-900 dark:text-white">{b.serviceName}</h4>
+                    <p className="text-xs text-charcoal-550 dark:text-rosegold-300">{b.salonName}</p>
+                    <div className="flex items-center space-x-4 text-xs text-charcoal-400 pt-1">
+                      <span className="flex items-center">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {b.date}
+                      </span>
+                      <span className="flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {b.time}
+                      </span>
+                      <span className="font-semibold text-charcoal-700 dark:text-rosegold-100">
+                        ₹{b.price}
+                      </span>
+                    </div>
                   </div>
-                  <h4 className="text-sm font-bold text-charcoal-900 dark:text-white">{phase.name}</h4>
-                  <p className="text-xs text-charcoal-500 dark:text-rosegold-350 leading-relaxed font-light mt-1">{phase.desc}</p>
+                  {b.status !== 'In Progress' && (
+                    <button
+                      onClick={() => cancelBooking(b.id)}
+                      className="text-xs px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-955/50 text-red-650 dark:text-red-350 hover:bg-red-50 dark:hover:bg-red-955/20 transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      Cancel
+                    </button>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Dynamic AI Insights & Upcoming Appointments Grid */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Expanded AI Insights Card (multiple proactive alerts) */}
-          <div className="lg:col-span-1 p-6 rounded-2xl border border-rosegold-300 dark:border-charcoal-800 bg-linear-to-b from-rosegold-100/20 to-white dark:from-charcoal-900 dark:to-charcoal-950 space-y-4 shadow-sm flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2 text-rosegold-600 dark:text-gold-medium border-b border-rosegold-200/40 pb-2">
-                <Sparkles className="w-5 h-5" />
-                <h3 className="font-bold tracking-wide text-sm uppercase">Aura Concierge Insights</h3>
-              </div>
-
-              {/* Insights List */}
-              <div className="space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
-                {proactiveInsights.map((insight) => (
-                  <div 
-                    key={insight.id}
-                    className={`p-3 rounded-xl border text-xs space-y-2 leading-relaxed ${
-                      insight.severity === 'high' ? 'bg-red-500/5 border-red-200/50 text-red-950 dark:text-red-300' :
-                      insight.severity === 'price' ? 'bg-emerald-500/5 border-emerald-200/50 text-emerald-950 dark:text-emerald-350' :
-                      'bg-white/60 dark:bg-charcoal-950/40 border-rosegold-150 dark:border-charcoal-900 text-charcoal-700 dark:text-rosegold-200'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center font-bold">
-                      <span className="uppercase tracking-wider text-[9px]">{insight.type}</span>
-                      <Info className="w-3.5 h-3.5 text-rosegold-500" />
-                    </div>
-                    <p className="font-light">{insight.text}</p>
-                    <div className="pt-1 text-right">
-                      <Link 
-                        href={insight.link} 
-                        className="text-[10px] font-bold text-rosegold-500 hover:text-rosegold-650 inline-flex items-center gap-0.5"
-                      >
-                        {insight.actionLabel}
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    </div>
-                  </div>
-                ))}
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 border border-dashed border-rosegold-200 dark:border-charcoal-800 rounded-xl space-y-3 bg-white dark:bg-charcoal-900">
+              <Calendar className="w-8 h-8 text-charcoal-300 mx-auto" />
+              <p className="text-sm font-semibold text-charcoal-700 dark:text-rosegold-200">No upcoming bookings</p>
+              <p className="text-xs text-charcoal-400 max-w-xs mx-auto">You don't have any treatments scheduled. Treat yourself today.</p>
+              <div className="pt-2">
+                <Link 
+                  href="/booking"
+                  className="inline-flex items-center px-5 py-2 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white text-xs font-bold transition-all shadow-md hover:scale-102 cursor-pointer"
+                >
+                  Book Appointment
+                </Link>
               </div>
             </div>
-            
-            <div className="pt-3 border-t border-rosegold-100 dark:border-charcoal-800 text-center">
-              <span className="text-[10px] text-charcoal-400">Memory Engine: 5 parameters checked</span>
-            </div>
-          </div>
-
-          {/* Booking History & Appointments */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Upcoming Appointments */}
-            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
-              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
-                <Calendar className="w-5 h-5 text-rosegold-500 mr-2" />
-                Upcoming Appointments
-              </h3>
-
-              {upcomingBookings.length > 0 ? (
-                <div className="space-y-4">
-                  {upcomingBookings.map((b) => (
-                    <div 
-                      key={b.id}
-                      className="p-4 rounded-xl border border-rosegold-100 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 transition-colors"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                            b.status === 'Confirmed' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-350' :
-                            b.status === 'In Progress' ? 'bg-blue-100 dark:bg-blue-955/50 text-blue-800 dark:text-blue-350' :
-                            'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-350'
-                          }`}>
-                            {b.status}
-                          </span>
-                          <span className="text-[10px] text-rosegold-500 font-mono">Matched by DNA Profile</span>
-                        </div>
-                        <h4 className="font-semibold text-charcoal-900 dark:text-white">{b.serviceName}</h4>
-                        <p className="text-xs text-charcoal-550 dark:text-rosegold-300">{b.salonName}</p>
-                        <div className="flex items-center space-x-4 text-xs text-charcoal-400 pt-1">
-                          <span className="flex items-center">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            {b.date}
-                          </span>
-                          <span className="flex items-center">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {b.time}
-                          </span>
-                          <span className="font-medium text-charcoal-700 dark:text-rosegold-100">
-                            ₹{b.price}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {b.status !== 'In Progress' && (
-                        <button
-                          onClick={() => cancelBooking(b.id)}
-                          className="text-xs px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-955/50 text-red-650 dark:text-red-350 hover:bg-red-55 dark:hover:bg-red-955/20 transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <XCircle className="w-3.5 h-3.5" />
-                          Cancel Booking
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 border border-dashed border-rosegold-200 dark:border-charcoal-800 rounded-xl space-y-2">
-                  <Calendar className="w-8 h-8 text-charcoal-300 mx-auto" />
-                  <p className="text-sm font-medium text-charcoal-700 dark:text-rosegold-200">No upcoming bookings found</p>
-                  <p className="text-xs text-charcoal-405">Discover salons and book via our explore tool</p>
-                  <div className="pt-2">
-                    <Link 
-                      href="/salons"
-                      className="inline-flex items-center px-4 py-1.5 rounded-full bg-rosegold-500 text-white text-xs font-semibold"
-                    >
-                      Browse Salons
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Completed Appointments */}
-            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
-              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
-                <CheckCircle className="w-5 h-5 text-emerald-500 mr-2" />
-                Completed Visits
-              </h3>
-
-              {completedBookings.length > 0 ? (
-                <div className="space-y-4">
-                  {completedBookings.map((b) => (
-                    <div 
-                      key={b.id}
-                      className="p-4 rounded-xl border border-emerald-100 dark:border-emerald-950/20 bg-emerald-50/5 dark:bg-emerald-950/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-emerald-300 transition-colors"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-350">
-                            {b.status}
-                          </span>
-                          <Link
-                            href={`/reviews?salon=${b.salonId}`}
-                            className="text-[10px] text-rosegold-500 font-semibold hover:underline"
-                          >
-                            Write a Review
-                          </Link>
-                        </div>
-                        <h4 className="font-semibold text-charcoal-900 dark:text-white">{b.serviceName}</h4>
-                        <p className="text-xs text-charcoal-550 dark:text-rosegold-300">{b.salonName}</p>
-                        <div className="flex items-center space-x-4 text-xs text-charcoal-450 pt-1">
-                          <span className="flex items-center">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            {b.date}
-                          </span>
-                          <span className="flex items-center">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {b.time}
-                          </span>
-                          <span className="font-medium text-charcoal-700 dark:text-rosegold-100">
-                            ₹{b.price}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-charcoal-400 dark:text-rosegold-300 text-xs">
-                  No completed visits logged yet.
-                </div>
-              )}
-            </div>
-
-            {/* Cancelled & No Show Appointments */}
-            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
-              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
-                <XCircle className="w-5 h-5 text-charcoal-400 mr-2" />
-                Cancelled / No Show
-              </h3>
-
-              {cancelledBookings.length > 0 ? (
-                <div className="space-y-4">
-                  {cancelledBookings.map((b) => (
-                    <div 
-                      key={b.id}
-                      className="p-4 rounded-xl border border-charcoal-200 dark:border-charcoal-800 bg-charcoal-50/5 dark:bg-charcoal-950/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-charcoal-400 dark:text-charcoal-500"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-charcoal-100 dark:bg-charcoal-800 text-charcoal-600 dark:text-charcoal-450">
-                            {b.status}
-                          </span>
-                        </div>
-                        <h4 className="font-semibold text-sm sm:text-base">{b.serviceName}</h4>
-                        <p className="text-xs">{b.salonName}</p>
-                        <div className="flex items-center space-x-4 text-xs pt-1">
-                          <span className="flex items-center">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            {b.date}
-                          </span>
-                          <span className="flex items-center">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {b.time}
-                          </span>
-                          <span className="font-medium">
-                            ₹{b.price}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-charcoal-400 dark:text-rosegold-300 text-xs">
-                  No cancelled or no-show bookings.
-                </div>
-              )}
-            </div>
-
-          </div>
+          )}
         </section>
 
-        {/* AI Recommendations For You Section */}
+        {/* Recommended Salons Section */}
         <section className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-6 shadow-2xs">
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
-              <Sparkles className="w-5 h-5 text-rosegold-500 mr-2 animate-bounce" />
-              AI Recommendations For You
-            </h3>
-            <p className="text-xs text-charcoal-550 dark:text-rosegold-200">High-matching selections generated dynamically based on your skin type (Warm Beige) and location.</p>
+          <div className="flex justify-between items-end">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
+                <Sparkles className="w-5 h-5 text-rosegold-550 mr-2 animate-pulse" />
+                Recommended Salons
+              </h3>
+              <p className="text-xs text-charcoal-550 dark:text-rosegold-200">High-matching selections generated dynamically based on your skin type (Warm Beige) and location.</p>
+            </div>
+            <Link 
+              href="/salons"
+              className="text-xs font-bold text-rosegold-500 hover:text-rosegold-650 flex items-center gap-0.5 hover:underline cursor-pointer"
+            >
+              View All
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {salons.slice(0, 3).map((salon) => {
-              const startingPrice = Math.min(...salon.services.map(s => s.price));
+              const startingPrice = Math.min(...(salon.services || []).map(s => s.price));
               return (
                 <div 
                   key={salon.id}
-                  className="rounded-xl border border-rosegold-200/50 dark:border-charcoal-850 bg-rosegold-50/10 dark:bg-charcoal-950/20 p-4 flex flex-col justify-between space-y-4 hover:border-rosegold-350 transition-colors"
+                  className="rounded-xl border border-rosegold-200/50 dark:border-charcoal-850 bg-rosegold-50/10 dark:bg-charcoal-950/20 p-4 flex flex-col justify-between space-y-4 hover:border-rosegold-350 transition-colors shadow-2xs group"
                 >
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -472,11 +305,11 @@ export default function UserDashboard() {
                       </div>
                     </div>
 
-                    <h4 className="font-bold text-sm text-charcoal-900 dark:text-white">{salon.name}</h4>
+                    <h4 className="font-bold text-sm text-charcoal-900 dark:text-white line-clamp-1">{salon.name}</h4>
                     <p className="text-xs text-charcoal-400">{salon.locality}</p>
                     
                     {/* Reasoning list preview */}
-                    <div className="space-y-1 pt-1 border-t border-rosegold-200/40">
+                    <div className="space-y-1.5 pt-1.5 border-t border-rosegold-200/40">
                       {salon.badges.slice(0, 2).map((badge, bIdx) => (
                         <p key={bIdx} className="text-[10px] text-charcoal-550 dark:text-rosegold-200 flex items-center gap-1">
                           <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />
@@ -487,19 +320,147 @@ export default function UserDashboard() {
                   </div>
 
                   <div className="flex justify-between items-center pt-2 border-t border-rosegold-100 dark:border-charcoal-800">
-                    <span className="text-xs text-charcoal-500">From ₹{startingPrice}</span>
+                    <span className="text-xs text-charcoal-550">From ₹{startingPrice}</span>
                     <Link
                       href={`/salons/${salon.id}`}
-                      className="text-xs font-semibold text-rosegold-500 hover:text-rosegold-650 flex items-center gap-0.5"
+                      className="text-xs font-semibold text-rosegold-500 hover:text-rosegold-650 flex items-center gap-0.5 cursor-pointer"
                     >
                       Book Agent
-                      <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                 </div>
               );
             })}
           </div>
+        </section>
+
+        {/* Collapsible Recent Activity & Beauty Journey */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-center border-b border-rosegold-200/40 pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-400">Recent Activity & Beauty Journey</h3>
+            <button
+              onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}
+              className="text-xs font-semibold text-rosegold-500 hover:text-rosegold-655 flex items-center gap-1 cursor-pointer"
+            >
+              {isTimelineExpanded ? (
+                <>
+                  <span>Show Less</span>
+                  <ChevronUp className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  <span>View More / Expand</span>
+                  <ChevronDown className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+
+          {!isTimelineExpanded ? (
+            /* Summary Row (Simple on the surface) */
+            <div className="p-4 rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 flex justify-between items-center gap-4 text-xs text-charcoal-650 dark:text-rosegold-200 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-rosegold-500" />
+                <span><strong>Active Treatment Cycle:</strong> {activePhase.name}</span>
+                <span className="bg-rosegold-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-semibold">{activePhase.status}</span>
+              </div>
+              <span className="font-mono text-charcoal-400">{activePhase.date}</span>
+            </div>
+          ) : (
+            /* Detailed view (Detailed when needed) */
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+              {/* Timeline */}
+              <div className="lg:col-span-2 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-2xs">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-charcoal-900 dark:text-white flex items-center text-sm uppercase tracking-wider">
+                    <TrendingUp className="w-4 h-4 text-rosegold-500 mr-2" />
+                    Personal Beauty Journey Timeline
+                  </h4>
+                  <p className="text-[11px] text-charcoal-400">Track and schedule treatments mapped directly to your beauty cycles.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {timelinePhases.map((phase, idx) => {
+                    const isCompleted = phase.status === 'Completed';
+                    const isInProgress = phase.status === 'In Progress';
+                    const isScheduled = phase.status === 'Scheduled';
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`p-3.5 rounded-xl border relative transition-all text-xs ${
+                          isCompleted ? 'border-emerald-200/80 bg-emerald-50/10 dark:bg-emerald-950/10' :
+                          isInProgress ? 'border-rosegold-400 bg-rosegold-50/10 dark:bg-charcoal-955/20' :
+                          isScheduled ? 'border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-900' :
+                          'border-dashed border-rosegold-200 dark:border-charcoal-850 bg-rosegold-50/5'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
+                            isCompleted ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-355' :
+                            isInProgress ? 'bg-rosegold-500 text-white' :
+                            isScheduled ? 'bg-rosegold-100 dark:bg-charcoal-850 text-rosegold-600 dark:text-gold-medium' :
+                            'bg-charcoal-100 text-charcoal-405'
+                          }`}>
+                            {phase.status}
+                          </span>
+                          <span className="text-[9px] text-charcoal-400 font-mono">{phase.date}</span>
+                        </div>
+                        <h5 className="font-bold text-charcoal-900 dark:text-white">{phase.name}</h5>
+                        <p className="text-[11px] text-charcoal-555 dark:text-rosegold-300 font-light mt-1">{phase.desc}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Concierge Insights */}
+              <div className="p-6 rounded-2xl border border-rosegold-300 dark:border-charcoal-800 bg-linear-to-b from-rosegold-100/20 to-white dark:from-charcoal-900 dark:to-charcoal-950 space-y-4 shadow-sm flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2 text-rosegold-600 dark:text-gold-medium border-b border-rosegold-200/40 pb-2">
+                    <Sparkles className="w-4 h-4" />
+                    <h4 className="font-bold tracking-wide text-xs uppercase">Aura Concierge Insights</h4>
+                  </div>
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                    {proactiveInsights.slice(0, isInsightsExpanded ? 5 : 2).map((insight) => (
+                      <div 
+                        key={insight.id}
+                        className={`p-2.5 rounded-xl border text-[11px] space-y-1.5 leading-normal ${
+                          insight.severity === 'high' ? 'bg-red-500/5 border-red-200/50 text-red-955 dark:text-red-300' :
+                          insight.severity === 'price' ? 'bg-emerald-500/5 border-emerald-200/50 text-emerald-955 dark:text-emerald-355' :
+                          'bg-white/60 dark:bg-charcoal-950/40 border-rosegold-150 dark:border-charcoal-900 text-charcoal-700 dark:text-rosegold-200'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center font-bold">
+                          <span className="uppercase tracking-wider text-[8px]">{insight.type}</span>
+                          <Info className="w-3.5 h-3.5 text-rosegold-550" />
+                        </div>
+                        <p className="font-light">{insight.text}</p>
+                        <div className="text-right">
+                          <Link 
+                            href={insight.link} 
+                            className="text-[9px] font-bold text-rosegold-500 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                          >
+                            {insight.actionLabel}
+                            <ArrowRight className="w-2.5 h-2.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {proactiveInsights.length > 2 && (
+                    <button
+                      onClick={() => setIsInsightsExpanded(!isInsightsExpanded)}
+                      className="text-[10px] font-bold text-rosegold-500 hover:text-rosegold-650 mt-1 cursor-pointer"
+                    >
+                      {isInsightsExpanded ? "Show fewer insights" : `Show all ${proactiveInsights.length} insights`}
+                    </button>
+                  )}
+                </div>
+                <div className="pt-2 border-t border-rosegold-100 dark:border-charcoal-800 text-center">
+                  <span className="text-[9px] text-charcoal-400">Memory Engine: 5 parameters checked</span>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
       </main>

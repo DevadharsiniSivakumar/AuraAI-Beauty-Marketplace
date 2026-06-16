@@ -45,6 +45,8 @@ function BookingFormContent() {
   const handleSalonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSalonId(e.target.value);
     setSelectedServiceId(''); // reset service
+    setBookingDate(''); // reset date
+    setBookingTime(''); // reset time
   };
 
   // Preset calendar days (next 5 days)
@@ -123,7 +125,7 @@ function BookingFormContent() {
 
             <form onSubmit={handleBookingSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Form Input fields */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className={`space-y-6 transition-all duration-500 ${bookingTime ? 'lg:col-span-2' : 'lg:col-span-3 max-w-3xl mx-auto w-full'}`}>
                 
                 {/* Salon & Service Selection Card */}
                 <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4">
@@ -152,7 +154,11 @@ function BookingFormContent() {
                       <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Select Service</label>
                       <select 
                         value={selectedServiceId}
-                        onChange={(e) => setSelectedServiceId(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedServiceId(e.target.value);
+                          setBookingDate('');
+                          setBookingTime('');
+                        }}
                         required
                         disabled={!selectedSalonId}
                         className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 disabled:opacity-50"
@@ -167,114 +173,121 @@ function BookingFormContent() {
                 </div>
 
                 {/* Date Picker Grid */}
-                <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4">
-                  <h3 className="font-bold text-charcoal-900 dark:text-white flex items-center gap-2 text-sm uppercase tracking-wider">
-                    <Calendar className="w-4 h-4 text-rosegold-550" />
-                    2. Select Appointment Date
-                  </h3>
-                  
-                  <div className="grid grid-cols-5 gap-2">
-                    {datesList.map((dt) => (
-                      <button
-                        key={dt.isoString}
-                        type="button"
-                        onClick={() => setBookingDate(dt.isoString)}
-                        className={`p-3 rounded-xl border text-center flex flex-col justify-center space-y-1 transition-all ${
-                          bookingDate === dt.isoString 
-                            ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                            : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
-                        }`}
-                      >
-                        <span className="text-[10px] uppercase font-light">{dt.dayName}</span>
-                        <span className="text-lg font-bold">{dt.dayNum}</span>
-                        <span className="text-[9px] uppercase font-semibold">{dt.month}</span>
-                      </button>
-                    ))}
+                {selectedSalonId && selectedServiceId && (
+                  <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 animate-fade-in">
+                    <h3 className="font-bold text-charcoal-900 dark:text-white flex items-center gap-2 text-sm uppercase tracking-wider">
+                      <Calendar className="w-4 h-4 text-rosegold-550" />
+                      2. Select Appointment Date
+                    </h3>
+                    
+                    <div className="grid grid-cols-5 gap-2">
+                      {datesList.map((dt) => (
+                        <button
+                          key={dt.isoString}
+                          type="button"
+                          onClick={() => {
+                            setBookingDate(dt.isoString);
+                            setBookingTime('');
+                          }}
+                          className={`p-3 rounded-xl border text-center flex flex-col justify-center space-y-1 transition-all cursor-pointer ${
+                            bookingDate === dt.isoString 
+                              ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
+                              : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                          }`}
+                        >
+                          <span className="text-[10px] uppercase font-light">{dt.dayName}</span>
+                          <span className="text-lg font-bold">{dt.dayNum}</span>
+                          <span className="text-[9px] uppercase font-semibold">{dt.month}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Time Slots Grid */}
-                <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-5">
-                  <h3 className="font-bold text-charcoal-900 dark:text-white flex items-center gap-2 text-sm uppercase tracking-wider">
-                    <Clock className="w-4 h-4 text-rosegold-550" />
-                    3. Select Time Slot
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {/* Morning */}
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal-400">Morning Slots</span>
-                      <div className="flex flex-wrap gap-2">
-                        {morningSlots.map(time => (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => setBookingTime(time)}
-                            className={`px-4 py-2 rounded-xl border text-xs transition-all ${
-                              bookingTime === time 
-                                ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                                : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        ))}
+                {selectedSalonId && selectedServiceId && bookingDate && (
+                  <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-5 animate-fade-in">
+                    <h3 className="font-bold text-charcoal-900 dark:text-white flex items-center gap-2 text-sm uppercase tracking-wider">
+                      <Clock className="w-4 h-4 text-rosegold-550" />
+                      3. Select Time Slot
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      {/* Morning */}
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal-400">Morning Slots</span>
+                        <div className="flex flex-wrap gap-2">
+                          {morningSlots.map(time => (
+                            <button
+                              key={time}
+                              type="button"
+                              onClick={() => setBookingTime(time)}
+                              className={`px-4 py-2 rounded-xl border text-xs transition-all cursor-pointer ${
+                                bookingTime === time 
+                                  ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
+                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Afternoon */}
-                    <div className="space-y-2 pt-2">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal-400">Afternoon Slots</span>
-                      <div className="flex flex-wrap gap-2">
-                        {afternoonSlots.map(time => (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => setBookingTime(time)}
-                            className={`px-4 py-2 rounded-xl border text-xs transition-all ${
-                              bookingTime === time 
-                                ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                                : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        ))}
+                      {/* Afternoon */}
+                      <div className="space-y-2 pt-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal-400">Afternoon Slots</span>
+                        <div className="flex flex-wrap gap-2">
+                          {afternoonSlots.map(time => (
+                            <button
+                              key={time}
+                              type="button"
+                              onClick={() => setBookingTime(time)}
+                              className={`px-4 py-2 rounded-xl border text-xs transition-all cursor-pointer ${
+                                bookingTime === time 
+                                  ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
+                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Evening */}
-                    <div className="space-y-2 pt-2">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal-400">Evening Slots</span>
-                      <div className="flex flex-wrap gap-2">
-                        {eveningSlots.map(time => (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => setBookingTime(time)}
-                            className={`px-4 py-2 rounded-xl border text-xs transition-all ${
-                              bookingTime === time 
-                                ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                                : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        ))}
+                      {/* Evening */}
+                      <div className="space-y-2 pt-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal-400">Evening Slots</span>
+                        <div className="flex flex-wrap gap-2">
+                          {eveningSlots.map(time => (
+                            <button
+                              key={time}
+                              type="button"
+                              onClick={() => setBookingTime(time)}
+                              className={`px-4 py-2 rounded-xl border text-xs transition-all cursor-pointer ${
+                                bookingTime === time 
+                                  ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
+                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
               </div>
 
               {/* Sidebar Invoice & Secure checkout */}
-              <div className="lg:col-span-1 space-y-6">
-                
-                <div className="p-6 rounded-2xl border border-rosegold-350 dark:border-charcoal-850 bg-linear-to-b from-rosegold-100/15 to-white dark:from-charcoal-900 dark:to-charcoal-950 space-y-6 shadow-sm">
-                  <h3 className="font-bold text-charcoal-950 dark:text-white text-base">Booking Summary</h3>
+              {bookingTime && activeService && (
+                <div className="lg:col-span-1 space-y-6 animate-fade-in">
                   
-                  {activeService ? (
+                  <div className="p-6 rounded-2xl border border-rosegold-350 dark:border-charcoal-850 bg-linear-to-b from-rosegold-100/15 to-white dark:from-charcoal-900 dark:to-charcoal-950 space-y-6 shadow-sm">
+                    <h3 className="font-bold text-charcoal-950 dark:text-white text-base">Booking Summary</h3>
+                    
                     <div className="space-y-4 text-xs">
                       {/* Service line items */}
                       <div className="space-y-2 pb-4 border-b border-rosegold-100 dark:border-charcoal-800">
@@ -287,18 +300,14 @@ function BookingFormContent() {
 
                       {/* Date & time summary */}
                       <div className="space-y-2 pb-4 border-b border-rosegold-100 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-200">
-                        {bookingDate && (
-                          <div className="flex justify-between">
-                            <span>Date:</span>
-                            <span className="font-semibold">{bookingDate}</span>
-                          </div>
-                        )}
-                        {bookingTime && (
-                          <div className="flex justify-between">
-                            <span>Time Slot:</span>
-                            <span className="font-semibold">{bookingTime}</span>
-                          </div>
-                        )}
+                        <div className="flex justify-between">
+                          <span>Date:</span>
+                          <span className="font-semibold">{bookingDate}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Time Slot:</span>
+                          <span className="font-semibold">{bookingTime}</span>
+                        </div>
                       </div>
 
                       {/* Pricing breakdown */}
@@ -319,29 +328,23 @@ function BookingFormContent() {
 
                       <button
                         type="submit"
-                        disabled={!bookingDate || !bookingTime}
-                        className="w-full flex items-center justify-center py-3 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-sm shadow-md hover:scale-101 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer group"
+                        className="w-full flex items-center justify-center py-3 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-sm shadow-md hover:scale-101 hover:shadow-lg transition-all cursor-pointer group"
                       >
                         Confirm Booking
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </button>
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-charcoal-400 text-xs font-light space-y-2">
-                      <Scissors className="w-8 h-8 mx-auto text-charcoal-350" />
-                      <p>Select a salon and beauty service to review pricing and tax invoices.</p>
+
+                    <div className="pt-4 border-t border-rosegold-100 dark:border-charcoal-800 text-center">
+                      <span className="text-[10px] text-charcoal-450 font-light flex items-center justify-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                        100% Secure Checkout Guarantee
+                      </span>
                     </div>
-                  )}
-
-                  <div className="pt-4 border-t border-rosegold-100 dark:border-charcoal-800 text-center">
-                    <span className="text-[10px] text-charcoal-450 font-light flex items-center justify-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                      100% Secure Checkout Guarantee
-                    </span>
                   </div>
-                </div>
 
-              </div>
+                </div>
+              )}
 
             </form>
           </div>

@@ -16,45 +16,99 @@ import {
   SlidersHorizontal,
   Compass,
   Star,
-  ChevronRight
+  ChevronRight,
+  Calendar,
+  Clock,
+  MessageSquare,
+  XCircle,
+  Plus
 } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { userProfile, updateProfile, salons } = useApp();
+  const { 
+    userProfile, 
+    updateProfile, 
+    salons, 
+    bookings, 
+    reviews, 
+    cancelBooking, 
+    addReview 
+  } = useApp();
   
-  // Edit mode forms state
+  // Tab control
+  const [activeTab, setActiveTab] = useState<'personal' | 'preferences' | 'bookings' | 'reviews'>('personal');
+
+  // Personal Info Form State
   const [name, setName] = useState(userProfile.name);
   const [email, setEmail] = useState(userProfile.email);
   const [phone, setPhone] = useState(userProfile.phone);
   const [location, setLocation] = useState(userProfile.location);
+
+  // Beauty Preferences State
   const [faceShape, setFaceShape] = useState(userProfile.faceShape);
   const [hairType, setHairType] = useState(userProfile.hairType);
   const [skinTone, setSkinTone] = useState(userProfile.skinTone);
   const [budget, setBudget] = useState(userProfile.preferredBudget);
-  
+
+  // Success indicators
   const [isSaved, setIsSaved] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Write Review State
+  const [reviewSalonId, setReviewSalonId] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
+  const handlePersonalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile({
       name,
       email,
       phone,
-      location,
+      location
+    });
+    triggerSavedIndicator();
+  };
+
+  const handlePreferencesSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfile({
       faceShape,
       hairType,
       skinTone,
       preferredBudget: budget
     });
+    triggerSavedIndicator();
+  };
 
+  const triggerSavedIndicator = () => {
     setIsSaved(true);
     setTimeout(() => {
       setIsSaved(false);
     }, 2500);
   };
 
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewSalonId || !reviewComment) return;
+    await addReview(reviewSalonId, reviewRating, reviewComment, []);
+    setReviewComment('');
+    setReviewSalonId('');
+    setReviewRating(5);
+    setReviewSubmitted(true);
+    setTimeout(() => {
+      setReviewSubmitted(false);
+    }, 3000);
+  };
+
   // Map favorite salons list
   const favoriteSalonsObj = salons.filter(s => userProfile.favoriteSalons.includes(s.id));
+
+  // Sort bookings newest first
+  const sortedBookings = [...bookings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // Filter reviews authored by this user
+  const userReviews = (reviews as any[]).filter(r => r.author === userProfile.name);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -64,196 +118,423 @@ export default function ProfilePage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Panel: Profile Preferences Editor */}
-          <div className="lg:col-span-2 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-xs space-y-6">
+          {/* Left Panel: Tab widget */}
+          <div className="lg:col-span-2 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 shadow-xs space-y-6">
+            
+            {/* Header section with save indicator */}
             <div className="flex justify-between items-center pb-2 border-b border-rosegold-100 dark:border-charcoal-800">
-              <h2 className="text-xl font-bold text-charcoal-950 dark:text-white flex items-center gap-2">
+              <h2 className="text-xl font-bold text-charcoal-950 dark:text-white flex items-center gap-2 font-playfair">
                 <User className="w-5 h-5 text-rosegold-550" />
-                Profile Information
+                My Account
               </h2>
               {isSaved && (
-                <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                <span className="text-xs text-emerald-600 dark:text-emerald-500 font-semibold flex items-center gap-1 animate-fade-in">
                   <CheckCircle className="w-4 h-4" />
                   Preferences Saved!
                 </span>
               )}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              
-              {/* Credentials Section */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-505"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-505"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Phone Number</label>
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-505"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Primary Neighborhood</label>
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    required
-                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-505"
-                  />
-                </div>
-              </div>
-
-              {/* Beauty Profile Parameters */}
-              <div className="pt-4 border-t border-rosegold-100 dark:border-charcoal-855 space-y-4">
-                <h3 className="text-sm font-bold text-charcoal-900 dark:text-white uppercase tracking-wider">Beauty Topography</h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Face Shape</label>
-                    <select
-                      value={faceShape}
-                      onChange={(e) => setFaceShape(e.target.value)}
-                      className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden"
-                    >
-                      <option value="Oval" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Oval Contour</option>
-                      <option value="Round" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Round Contour</option>
-                      <option value="Square" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Square Contour</option>
-                      <option value="Heart" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Heart Contour</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Hair Structure</label>
-                    <select
-                      value={hairType}
-                      onChange={(e) => setHairType(e.target.value)}
-                      className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden"
-                    >
-                      <option value="2C Wavy" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">2C Wavy Waves</option>
-                      <option value="Straight" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">1A Coarse Straight</option>
-                      <option value="Curly" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">3B Springy Curls</option>
-                      <option value="Coily" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">4C Dense Coils</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Skin Tone Melanin</label>
-                    <select
-                      value={skinTone}
-                      onChange={(e) => setSkinTone(e.target.value)}
-                      className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden"
-                    >
-                      <option value="Warm Beige / Olive" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Warm Honey / Olive</option>
-                      <option value="Fair / Cool Pink" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Fair / Cool Pink</option>
-                      <option value="Deep Bronze" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Deep Umber / Bronze</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Budget Profile Parameters */}
-              <div className="pt-4 border-t border-rosegold-100 dark:border-charcoal-855 space-y-4">
-                <h3 className="text-sm font-bold text-charcoal-900 dark:text-white uppercase tracking-wider">Budget Settings</h3>
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Preferred Budget Range</label>
-                  <select
-                    value={budget}
-                    onChange={(e) => setBudget(e.target.value)}
-                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden"
-                  >
-                    <option value="₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹ - Budget Saver (Under ₹2000)</option>
-                    <option value="₹₹ - ₹₹₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹₹ - ₹₹₹ - Premium Select (₹2000 - ₹5000)</option>
-                    <option value="₹₹₹ - ₹₹₹₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹₹₹ - ₹₹₹₹ - Luxury Premium (₹5000+)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className="px-6 py-3 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-xs shadow-xs hover:scale-102 hover:shadow-md transition-all cursor-pointer"
-                >
-                  Save Settings
-                </button>
-              </div>
-
-            </form>
-          </div>
-
-          {/* Right Panel: Favorites & Saved lists */}
-          <aside className="space-y-6">
-            
-            {/* Display of current diagnostics */}
-            <div className="p-6 rounded-2xl border border-rosegold-350 dark:border-charcoal-800 bg-linear-to-b from-rosegold-100/20 to-white dark:from-charcoal-900 dark:to-charcoal-950 space-y-4">
-              <h3 className="font-bold text-charcoal-950 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-rosegold-500" />
-                Active Diagnostics
-              </h3>
-              
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between p-2.5 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100">
-                  <span className="text-charcoal-400">Skin Melanin</span>
-                  <span className="font-semibold text-charcoal-900 dark:text-white">{userProfile.skinTone}</span>
-                </div>
-                <div className="flex justify-between p-2.5 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100">
-                  <span className="text-charcoal-400">Hair Thickness</span>
-                  <span className="font-semibold text-charcoal-900 dark:text-white">{userProfile.hairType}</span>
-                </div>
-                <div className="flex justify-between p-2.5 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100">
-                  <span className="text-charcoal-400">Face Contour</span>
-                  <span className="font-semibold text-charcoal-900 dark:text-white">{userProfile.faceShape}</span>
-                </div>
-              </div>
+            {/* Custom Luxury Tabs Switcher */}
+            <div className="flex border-b border-rosegold-200/60 dark:border-charcoal-800 pb-px overflow-x-auto gap-2 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setActiveTab('personal')}
+                className={`py-2.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'personal'
+                    ? 'border-rosegold-500 text-rosegold-600 dark:text-rosegold-400'
+                    : 'border-transparent text-charcoal-400 hover:text-charcoal-650 dark:hover:text-white'
+                }`}
+              >
+                Personal Details
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('preferences')}
+                className={`py-2.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'preferences'
+                    ? 'border-rosegold-500 text-rosegold-600 dark:text-rosegold-400'
+                    : 'border-transparent text-charcoal-400 hover:text-charcoal-650 dark:hover:text-white'
+                }`}
+              >
+                Beauty Preferences
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('bookings')}
+                className={`py-2.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'bookings'
+                    ? 'border-rosegold-500 text-rosegold-600 dark:text-rosegold-400'
+                    : 'border-transparent text-charcoal-400 hover:text-charcoal-650 dark:hover:text-white'
+                }`}
+              >
+                Bookings ({bookings.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('reviews')}
+                className={`py-2.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'reviews'
+                    ? 'border-rosegold-500 text-rosegold-600 dark:text-rosegold-400'
+                    : 'border-transparent text-charcoal-400 hover:text-charcoal-650 dark:hover:text-white'
+                }`}
+              >
+                Reviews ({userReviews.length})
+              </button>
             </div>
 
+            {/* TAB CONTENTS */}
+            <div className="pt-2">
+
+              {/* Tab 1: Personal Info */}
+              {activeTab === 'personal' && (
+                <form onSubmit={handlePersonalSubmit} className="space-y-6 animate-fade-in">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Full Name</label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Email Address</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Phone Number</label>
+                      <input
+                        type="text"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                        className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Primary Neighborhood</label>
+                      <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        required
+                        className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="px-6 py-3 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-xs shadow-xs hover:scale-[1.02] hover:shadow-md transition-all cursor-pointer"
+                    >
+                      Save Personal Details
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Tab 2: Preferences */}
+              {activeTab === 'preferences' && (
+                <form onSubmit={handlePreferencesSubmit} className="space-y-6 animate-fade-in">
+                  
+                  {/* Active Diagnostics Visual Summary */}
+                  <div className="p-4 rounded-xl border border-rosegold-350 dark:border-charcoal-800 bg-linear-to-b from-rosegold-100/10 to-transparent space-y-4">
+                    <h3 className="font-bold text-charcoal-950 dark:text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                      <Sparkles className="w-3.5 h-3.5 text-rosegold-500" />
+                      Active Diagnostics Profile
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div className="flex justify-between p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80">
+                        <span className="text-charcoal-400">Skin Melanin</span>
+                        <span className="font-semibold text-charcoal-900 dark:text-white">{skinTone}</span>
+                      </div>
+                      <div className="flex justify-between p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80">
+                        <span className="text-charcoal-400">Hair Thickness</span>
+                        <span className="font-semibold text-charcoal-900 dark:text-white">{hairType}</span>
+                      </div>
+                      <div className="flex justify-between p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80">
+                        <span className="text-charcoal-400">Face Contour</span>
+                        <span className="font-semibold text-charcoal-900 dark:text-white">{faceShape}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dropdowns */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Face Shape</label>
+                      <select
+                        value={faceShape}
+                        onChange={(e) => setFaceShape(e.target.value)}
+                        className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                      >
+                        <option value="Oval" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Oval Contour</option>
+                        <option value="Round" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Round Contour</option>
+                        <option value="Square" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Square Contour</option>
+                        <option value="Heart" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Heart Contour</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Hair Structure</label>
+                      <select
+                        value={hairType}
+                        onChange={(e) => setHairType(e.target.value)}
+                        className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                      >
+                        <option value="2C Wavy" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">2C Wavy Waves</option>
+                        <option value="Straight" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">1A Coarse Straight</option>
+                        <option value="Curly" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">3B Springy Curls</option>
+                        <option value="Coily" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">4C Dense Coils</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Skin Tone Melanin</label>
+                      <select
+                        value={skinTone}
+                        onChange={(e) => setSkinTone(e.target.value)}
+                        className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                      >
+                        <option value="Warm Beige / Olive" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Warm Honey / Olive</option>
+                        <option value="Fair / Cool Pink" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Fair / Cool Pink</option>
+                        <option value="Deep Bronze" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Deep Umber / Bronze</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Preferred Budget Range</label>
+                    <select
+                      value={budget}
+                      onChange={(e) => setBudget(e.target.value)}
+                      className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                    >
+                      <option value="₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹ - Budget Saver (Under ₹2000)</option>
+                      <option value="₹₹ - ₹₹₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹₹ - ₹₹₹ - Premium Select (₹2000 - ₹5000)</option>
+                      <option value="₹₹₹ - ₹₹₹₹" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">₹₹₹ - ₹₹₹₹ - Luxury Premium (₹5000+)</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="px-6 py-3 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-xs shadow-xs hover:scale-[1.02] hover:shadow-md transition-all cursor-pointer"
+                    >
+                      Save Beauty Preferences
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Tab 3: Booking History */}
+              {activeTab === 'bookings' && (
+                <div className="space-y-4 animate-fade-in">
+                  {sortedBookings.length > 0 ? (
+                    <div className="space-y-3">
+                      {sortedBookings.map((booking) => (
+                        <div 
+                          key={booking.id} 
+                          className="p-4 rounded-xl border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-955/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 dark:hover:border-charcoal-700 transition-colors"
+                        >
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-sm text-charcoal-950 dark:text-white">{booking.serviceName}</h4>
+                            <p className="text-xs text-charcoal-450 dark:text-rosegold-300">{booking.salonName}</p>
+                            <div className="flex items-center gap-3 text-[11px] text-charcoal-400 mt-1.5 font-mono">
+                              <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-rosegold-500" /> {booking.date}</span>
+                              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-rosegold-500" /> {booking.time}</span>
+                              <span className="font-semibold text-charcoal-800 dark:text-white">₹{booking.price}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-start">
+                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                              booking.status === 'Confirmed' || booking.status === 'Completed'
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                                : booking.status === 'Cancelled'
+                                ? 'bg-rose-500/10 border-rose-500/20 text-rose-500'
+                                : 'bg-charcoal-550/10 border-charcoal-550/20 text-charcoal-400'
+                            }`}>
+                              {booking.status}
+                            </span>
+                            {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                              <button
+                                onClick={() => cancelBooking(booking.id)}
+                                className="px-3 py-1.5 text-[10px] font-bold text-rose-500 hover:text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors cursor-pointer"
+                              >
+                                Cancel Visit
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 border border-dashed border-rosegold-200 dark:border-charcoal-800 rounded-2xl space-y-3">
+                      <Calendar className="w-10 h-10 text-charcoal-300 mx-auto" />
+                      <h4 className="text-base font-bold text-charcoal-800 dark:text-white">No Appointment History</h4>
+                      <p className="text-xs text-charcoal-400 max-w-xs mx-auto">
+                        You have not scheduled any luxury treatments yet.
+                      </p>
+                      <div className="pt-2">
+                        <Link
+                          href="/booking"
+                          className="inline-block px-5 py-2 rounded-xl bg-rosegold-500 hover:bg-rosegold-600 text-white text-xs font-semibold cursor-pointer"
+                        >
+                          Book An Appointment
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 4: Reviews */}
+              {activeTab === 'reviews' && (
+                <div className="space-y-6 animate-fade-in">
+                  
+                  {/* Reviews List */}
+                  <div className="space-y-3">
+                    {userReviews.length > 0 ? (
+                      userReviews.map((rev) => (
+                        <div key={rev.id} className="p-4 rounded-xl border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-955/30 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-bold text-xs text-charcoal-950 dark:text-white uppercase tracking-wider">{rev.salonName}</h4>
+                              <span className="text-[10px] text-charcoal-400 font-mono">{rev.date}</span>
+                            </div>
+                            <div className="flex items-center text-rosegold-500 font-bold text-xs">
+                              <Star className="w-3.5 h-3.5 fill-rosegold-500 mr-1 text-rosegold-500" />
+                              {rev.rating} / 5
+                            </div>
+                          </div>
+                          <p className="text-xs text-charcoal-650 dark:text-rosegold-200 italic font-light">"{rev.comment}"</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-charcoal-400 text-xs font-light">
+                        <MessageSquare className="w-8 h-8 mx-auto text-charcoal-300 mb-2" />
+                        You haven't written any reviews yet. Share your feedback below.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add Review Form */}
+                  <form onSubmit={handleReviewSubmit} className="p-5 rounded-xl border border-dashed border-rosegold-200/80 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-955/5 space-y-4">
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-charcoal-900 dark:text-white flex items-center gap-1.5">
+                      <Plus className="w-4 h-4 text-rosegold-550" />
+                      Write a Review
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-semibold text-charcoal-500 uppercase tracking-wider mb-1.5">Select Outlet</label>
+                        <select
+                          value={reviewSalonId}
+                          onChange={(e) => setReviewSalonId(e.target.value)}
+                          required
+                          className="block w-full px-3 py-2 text-xs rounded-lg border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                        >
+                          <option value="">-- Select Salon --</option>
+                          {salons.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-semibold text-charcoal-500 uppercase tracking-wider mb-1.5">Rating</label>
+                        <select
+                          value={reviewRating}
+                          onChange={(e) => setReviewRating(Number(e.target.value))}
+                          className="block w-full px-3 py-2 text-xs rounded-lg border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500"
+                        >
+                          <option value={5}>5★ - Flawless Treatment</option>
+                          <option value={4}>4★ - Great Experience</option>
+                          <option value={3}>3★ - Average Visit</option>
+                          <option value={2}>2★ - Subpar Service</option>
+                          <option value={1}>1★ - Disappointing Treatment</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-charcoal-500 uppercase tracking-wider mb-1.5">Share Your Opinion</label>
+                      <textarea
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        placeholder="Tell us about the atmosphere, styling service quality, and therapist attentiveness..."
+                        required
+                        rows={3}
+                        className="block w-full px-3 py-2 text-xs rounded-lg border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 placeholder-charcoal-400"
+                      />
+                    </div>
+
+                    <div className="flex justify-between items-center pt-1">
+                      {reviewSubmitted && (
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-500 font-semibold flex items-center gap-1 animate-fade-in">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          Review Published!
+                        </span>
+                      )}
+                      <button
+                        type="submit"
+                        className="px-5 py-2.5 rounded-lg bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-[11px] shadow-xs hover:scale-101 hover:shadow-sm transition-all cursor-pointer ml-auto"
+                      >
+                        Publish Review
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+            </div>
+
+          </div>
+
+          {/* Right Panel: Favorites */}
+          <aside className="space-y-6">
+            
             {/* Favorite salons listing */}
-            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4">
-              <h3 className="font-bold text-charcoal-950 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
+            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 shadow-xs space-y-4">
+              <h3 className="font-bold text-charcoal-950 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2 font-playfair">
                 <Heart className="w-4 h-4 text-rosegold-550 fill-rosegold-500" />
                 Favorite Salons
               </h3>
               
               <div className="space-y-3">
-                {favoriteSalonsObj.map((fs) => (
-                  <div key={fs.id} className="p-3 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 flex justify-between items-center gap-2">
-                    <div>
-                      <h4 className="text-xs font-bold text-charcoal-900 dark:text-white line-clamp-1">{fs.name}</h4>
-                      <p className="text-[10px] text-charcoal-400 flex items-center gap-0.5 mt-0.5">
-                        <MapPin className="w-3 h-3 text-rosegold-500" />
-                        {fs.location}
-                      </p>
+                {favoriteSalonsObj.length > 0 ? (
+                  favoriteSalonsObj.map((fs) => (
+                    <div key={fs.id} className="p-3 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-955/20 flex justify-between items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-bold text-charcoal-900 dark:text-white truncate">{fs.name}</h4>
+                        <p className="text-[10px] text-charcoal-400 flex items-center gap-0.5 mt-0.5">
+                          <MapPin className="w-3 h-3 text-rosegold-550 shrink-0" />
+                          <span className="truncate">{fs.location}</span>
+                        </p>
+                      </div>
+                      <Link
+                        href={`/salons/${fs.id}`}
+                        className="text-[10px] font-semibold text-rosegold-500 hover:text-rosegold-650 flex items-center shrink-0"
+                      >
+                        View
+                        <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                      </Link>
                     </div>
-                    <Link
-                      href={`/salons/${fs.id}`}
-                      className="text-[10px] font-semibold text-rosegold-500 hover:text-rosegold-650 flex items-center"
-                    >
-                      View
-                      <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-                    </Link>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-xs text-charcoal-400 font-light italic text-center py-4">No saved outlets yet.</p>
+                )}
               </div>
             </div>
 
