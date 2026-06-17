@@ -114,7 +114,7 @@ export default function StyleAdvisor() {
           <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
             
             {/* Selfie Upload / Selector Area */}
-            <div className="p-8 border-b md:border-b-0 md:border-r border-rosegold-150 dark:border-charcoal-800 flex flex-col justify-between space-y-6">
+            <div className="p-8 border-b md:border-b-0 md:border-r border-rosegold-200/50 dark:border-charcoal-800 flex flex-col justify-between space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-charcoal-950 dark:text-white mb-2">Selfie Upload Sandbox</h3>
                 <p className="text-xs text-charcoal-450 dark:text-rosegold-350">
@@ -349,7 +349,7 @@ export default function StyleAdvisor() {
                 {salons.slice(0, 2).map((salon) => (
                   <div 
                     key={salon.id} 
-                    className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 flex flex-col justify-between gap-4 hover:border-rosegold-350 transition-colors"
+                    className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-955 flex flex-col justify-between gap-4 hover:border-rosegold-350 transition-colors"
                   >
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-rose-50: #fff1f2;
   --color-rose-100: #ffe4e6;
@@ -13,35 +15,35 @@
   --color-rose-900: #881337;
   --color-rose-950: #4c0519;
 
-  /* AuraAI Luxury Colors */
-  --color-gold-light: #f6e6e2;
-  --color-gold-medium: #d9ab9e;
-  --color-gold-dark: #b8867a;
-  --color-gold-metallic: #c5a880;
+  /* Royal Purple & Gold Luxury Colors */
+  --color-gold-light: #fef9c3;
+  --color-gold-medium: #eab308;
+  --color-gold-dark: #ca8a04;
+  --color-gold-metallic: #d4af37;
   
-  --color-rosegold-50: #fdfaf8;
-  --color-rosegold-100: #f9f0ec;
-  --color-rosegold-200: #f2dec5;
-  --color-rosegold-300: #e6c5bb;
-  --color-rosegold-400: #daab9f;
-  --color-rosegold-500: #cb8e80;
-  --color-rosegold-600: #bc7263;
-  --color-rosegold-700: #9e5547;
-  --color-rosegold-800: #7d4035;
-  --color-rosegold-900: #5d2f26;
-  --color-rosegold-950: #3c1c16;
+  --color-rosegold-50: #faf5ff;
+  --color-rosegold-100: #f3e8ff;
+  --color-rosegold-200: #e9d5ff;
+  --color-rosegold-300: #d8b4fe;
+  --color-rosegold-400: #c084fc;
+  --color-rosegold-500: #a855f7;
+  --color-rosegold-600: #9333ea;
+  --color-rosegold-700: #7e22ce;
+  --color-rosegold-800: #6b21a8;
+  --color-rosegold-900: #581c87;
+  --color-rosegold-950: #3b0764;
 
-  --color-charcoal-50: #f6f6f7;
-  --color-charcoal-100: #ebebec;
-  --color-charcoal-200: #d0d0d5;
-  --color-charcoal-300: #a7a7b1;
-  --color-charcoal-400: #787884;
-  --color-charcoal-500: #5a5a66;
-  --color-charcoal-600: #454550;
-  --color-charcoal-700: #33333b;
-  --color-charcoal-800: #232329;
-  --color-charcoal-900: #16161b;
-  --color-charcoal-950: #0c0c0e;
+  --color-charcoal-50: #fafafb;
+  --color-charcoal-100: #f4f3f6;
+  --color-charcoal-200: #e4e2eb;
+  --color-charcoal-300: #c5c2d3;
+  --color-charcoal-400: #9893af;
+  --color-charcoal-500: #716b8c;
+  --color-charcoal-600: #544e6f;
+  --color-charcoal-700: #3b3554;
+  --color-charcoal-800: #251e39;
+  --color-charcoal-900: #171127;
+  --color-charcoal-950: #0a0518;
 }
 
 :root {

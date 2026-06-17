@@ -471,7 +471,7 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
         <section className="bg-white dark:bg-charcoal-900 rounded-3xl border border-rosegold-200 dark:border-charcoal-855 shadow-md overflow-hidden">
           
           {/* Tab Header Selector */}
-          <div className="flex border-b border-rosegold-150 dark:border-charcoal-800 bg-linear-to-r from-rosegold-100/10 to-white dark:from-charcoal-905 overflow-x-auto">
+          <div className="flex border-b border-rosegold-200/50 dark:border-charcoal-800 bg-linear-to-r from-rosegold-100/10 to-white dark:from-charcoal-905 overflow-x-auto">
             {(['bookings', 'salons', 'services', 'reviews'] as const).map((tab) => (
               <button
                 key={tab}
@@ -494,19 +494,19 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
               <div className="space-y-8 animate-fade-in w-full">
                 {/* Advanced Analytics Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/20 space-y-1">
+                  <div className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/20 space-y-1">
                     <span className="text-[10px] uppercase tracking-wider text-charcoal-400 font-bold">Most Booked Salon</span>
                     <p className="text-sm font-bold text-charcoal-900 dark:text-white truncate">{mostBookedSalonName}</p>
                   </div>
-                  <div className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/20 space-y-1">
+                  <div className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/20 space-y-1">
                     <span className="text-[10px] uppercase tracking-wider text-charcoal-400 font-bold">Most Booked Service</span>
                     <p className="text-sm font-bold text-charcoal-900 dark:text-white truncate">{mostBookedServiceName}</p>
                   </div>
-                  <div className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/20 space-y-1">
+                  <div className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/20 space-y-1">
                     <span className="text-[10px] uppercase tracking-wider text-charcoal-400 font-bold">Average Rating</span>
                     <p className="text-sm font-bold text-charcoal-900 dark:text-white">{avgRating} ★</p>
                   </div>
-                  <div className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/20 space-y-1">
+                  <div className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/20 space-y-1">
                     <span className="text-[10px] uppercase tracking-wider text-charcoal-400 font-bold">Total Bookings</span>
                     <p className="text-sm font-bold text-charcoal-900 dark:text-white">{bookings.length}</p>
                   </div>
@@ -538,7 +538,7 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                                 <select
                                   value={b.status}
                                   onChange={(e) => updateBookingStatus(b.id, e.target.value as Booking['status'])}
-                                  className="bg-transparent border border-rosegold-150 dark:border-charcoal-800 text-[10px] rounded px-1 py-0.5 text-charcoal-900 dark:text-white font-semibold cursor-pointer"
+                                  className="bg-transparent border border-rosegold-200/50 dark:border-charcoal-800 text-[10px] rounded px-1 py-0.5 text-charcoal-900 dark:text-white font-semibold cursor-pointer"
                                 >
                                   <option value="Pending" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Pending</option>
                                   <option value="Confirmed" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">Confirmed</option>

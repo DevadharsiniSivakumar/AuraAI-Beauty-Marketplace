@@ -426,7 +426,7 @@ export default function UserDashboard() {
                         className={`p-2.5 rounded-xl border text-[11px] space-y-1.5 leading-normal ${
                           insight.severity === 'high' ? 'bg-red-500/5 border-red-200/50 text-red-955 dark:text-red-300' :
                           insight.severity === 'price' ? 'bg-emerald-500/5 border-emerald-200/50 text-emerald-955 dark:text-emerald-355' :
-                          'bg-white/60 dark:bg-charcoal-950/40 border-rosegold-150 dark:border-charcoal-900 text-charcoal-700 dark:text-rosegold-200'
+                          'bg-white/60 dark:bg-charcoal-950/40 border-rosegold-200/50 dark:border-charcoal-900 text-charcoal-700 dark:text-rosegold-200'
                         }`}
                       >
                         <div className="flex justify-between items-center font-bold">

@@ -175,7 +175,7 @@ export default function SalonDetails() {
             </div>
           </div>
 
-          <div className="w-full md:w-auto p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 shrink-0 space-y-2.5">
+          <div className="w-full md:w-auto p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 shrink-0 space-y-2.5">
             <h4 className="text-xs font-semibold uppercase tracking-widest text-charcoal-400">Quick Connect</h4>
             <div className="flex flex-col space-y-1.5 text-xs text-charcoal-600 dark:text-rosegold-100 font-mono">
               <span className="flex items-center gap-1.5 font-sans">
@@ -197,7 +197,7 @@ export default function SalonDetails() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Tabs Trigger */}
-            <div className="flex border-b border-rosegold-150 dark:border-charcoal-800">
+            <div className="flex border-b border-rosegold-200/50 dark:border-charcoal-800">
               {(['services', 'reviews', 'about'] as const).map((tab) => (
                 <button
                   key={tab}
@@ -243,7 +243,7 @@ export default function SalonDetails() {
                         {filteredServices.map((service) => (
                           <div 
                             key={service.id}
-                            className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-white dark:bg-charcoal-900/60 flex justify-between items-center gap-4 hover:border-rosegold-300 transition-colors"
+                            className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900/60 flex justify-between items-center gap-4 hover:border-rosegold-300 transition-colors"
                           >
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
@@ -306,7 +306,7 @@ export default function SalonDetails() {
                   {reviewsList.length > 0 ? (
                     <div className="space-y-4">
                       {reviewsList.map((rev) => (
-                        <div key={rev.id} className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-white dark:bg-charcoal-900/60 space-y-2">
+                        <div key={rev.id} className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900/60 space-y-2">
                           <div className="flex justify-between items-center">
                             <div className="flex items-center space-x-2">
                               <div className="w-7 h-7 rounded-full bg-rosegold-100 dark:bg-charcoal-800 text-rosegold-550 flex items-center justify-center font-bold text-xs">
@@ -348,7 +348,7 @@ export default function SalonDetails() {
 
               {/* ABOUT TAB */}
               {activeTab === 'about' && (
-                <div className="p-6 rounded-2xl border border-rosegold-150 dark:border-charcoal-800 bg-white dark:bg-charcoal-900/60 space-y-4 animate-fade-in">
+                <div className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900/60 space-y-4 animate-fade-in">
                   <h3 className="font-bold text-charcoal-950 dark:text-white text-base font-playfair">About {salon.name}</h3>
                   <p className="text-sm text-charcoal-600 dark:text-rosegold-200 leading-relaxed font-light">
                     {salon.description}

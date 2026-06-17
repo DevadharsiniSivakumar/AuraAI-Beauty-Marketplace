@@ -184,7 +184,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                 allRecommendations.map((rec, idx) => (
                   <div 
                     key={idx}
-                    className="p-3 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 space-y-2 hover:border-rosegold-300 dark:hover:border-charcoal-700 transition-colors"
+                    className="p-3 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 space-y-2 hover:border-rosegold-300 dark:hover:border-charcoal-700 transition-colors"
                   >
                     <div className="flex justify-between items-start">
                       <div className="min-w-0 flex-1">
@@ -207,7 +207,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                     ) : (
                       <Link
                         href={`/salons/${rec.id}`}
-                        className="w-full py-1.5 text-center rounded-lg border border-rosegold-200 dark:border-charcoal-800 hover:bg-rosegold-50 dark:hover:bg-charcoal-805 text-[10px] font-bold text-charcoal-800 dark:text-rosegold-150 flex items-center justify-center gap-1 transition-all cursor-pointer"
+                        className="w-full py-1.5 text-center rounded-lg border border-rosegold-200 dark:border-charcoal-800 hover:bg-rosegold-50 dark:hover:bg-charcoal-805 text-[10px] font-bold text-charcoal-800 dark:text-rosegold-200 flex items-center justify-center gap-1 transition-all cursor-pointer"
                       >
                         <Compass className="w-3.5 h-3.5" />
                         Explore Profile
@@ -267,11 +267,21 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                     {/* Chat Bubble */}
                     <div className={`p-4 rounded-2xl text-sm leading-relaxed ${
                       isAura 
-                        ? 'bg-rosegold-50/40 dark:bg-charcoal-950/20 border border-rosegold-200/50 dark:border-charcoal-800 text-charcoal-900 dark:text-rosegold-150' 
-                        : 'bg-linear-to-r from-rosegold-500 to-gold-metallic text-white shadow-xs'
+                        ? 'bg-charcoal-50 dark:bg-charcoal-800/60 border border-rosegold-200/40 dark:border-charcoal-800 shadow-2xs' 
+                        : 'bg-linear-to-r from-rosegold-500 to-gold-metallic shadow-xs'
                     }`}>
-                      <p className="whitespace-pre-line font-light">{msg.text}</p>
-                      <span className={`block text-[10px] pt-1.5 ${isAura ? 'text-charcoal-400' : 'text-rosegold-200'}`}>
+                      <p className={`whitespace-pre-line ${
+                        isAura 
+                          ? 'text-charcoal-900 dark:text-rosegold-50 font-normal' 
+                          : 'text-white font-semibold'
+                      }`}>
+                        {msg.text}
+                      </p>
+                      <span className={`block text-[10px] pt-1.5 ${
+                        isAura 
+                          ? 'text-charcoal-450 dark:text-rosegold-300' 
+                          : 'text-white/85 font-medium'
+                      }`}>
                         {msg.timestamp}
                       </span>
                     </div>
@@ -308,7 +318,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                                 <div className="relative h-24 w-full rounded-xl overflow-hidden bg-charcoal-100 dark:bg-charcoal-900">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={image} alt={rec.name} className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500" />
-                                  <div className="absolute top-2 right-2 bg-linear-to-r from-rosegold-550 to-gold-metallic text-white font-bold text-[9px] px-2.5 py-0.5 rounded-full shadow-xs">
+                                  <div className="absolute top-2 right-2 bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-bold text-[9px] px-2.5 py-0.5 rounded-full shadow-xs">
                                     {matchScore}% Match
                                   </div>
                                 </div>
@@ -364,7 +374,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                                   )}
                                   <Link
                                     href={`/salons/${salonId}`}
-                                    className="px-3.5 py-2 rounded-xl border border-rosegold-200 dark:border-charcoal-800 text-xs font-semibold text-charcoal-700 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-900 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                                    className="px-3.5 py-2 rounded-xl border border-rosegold-200 dark:border-charcoal-800 text-xs font-semibold text-charcoal-700 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-900 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
                                     title="View Salon Profile"
                                   >
                                     Profile
@@ -385,7 +395,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
             {/* AI Typing & Loading Experience Indicator */}
             {isAiTyping && (
               <div className="flex gap-3 max-w-[80%] mr-auto items-start animate-fade-in">
-                <div className="w-8 h-8 rounded-full bg-linear-to-tr from-rosegold-550 to-gold-metallic text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
+                <div className="w-8 h-8 rounded-full bg-linear-to-tr from-rosegold-500 to-gold-metallic text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col space-y-1">
@@ -407,7 +417,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
           </div>
 
           {/* Chat input controls */}
-          <div className="p-4 border-t border-rosegold-150 dark:border-charcoal-800 bg-white/70 dark:bg-charcoal-900/70 space-y-4 shrink-0">
+          <div className="p-4 border-t border-rosegold-200/50 dark:border-charcoal-800 bg-white/70 dark:bg-charcoal-900/70 space-y-4 shrink-0">
             
             {/* Suggested prompts list */}
             <div className="flex flex-wrap gap-2">

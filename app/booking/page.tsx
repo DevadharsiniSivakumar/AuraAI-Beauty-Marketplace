@@ -192,7 +192,7 @@ function BookingFormContent() {
                           className={`p-3 rounded-xl border text-center flex flex-col justify-center space-y-1 transition-all cursor-pointer ${
                             bookingDate === dt.isoString 
                               ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                              : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                              : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
                           }`}
                         >
                           <span className="text-[10px] uppercase font-light">{dt.dayName}</span>
@@ -225,7 +225,7 @@ function BookingFormContent() {
                               className={`px-4 py-2 rounded-xl border text-xs transition-all cursor-pointer ${
                                 bookingTime === time 
                                   ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
                               }`}
                             >
                               {time}
@@ -246,7 +246,7 @@ function BookingFormContent() {
                               className={`px-4 py-2 rounded-xl border text-xs transition-all cursor-pointer ${
                                 bookingTime === time 
                                   ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
                               }`}
                             >
                               {time}
@@ -267,7 +267,7 @@ function BookingFormContent() {
                               className={`px-4 py-2 rounded-xl border text-xs transition-all cursor-pointer ${
                                 bookingTime === time 
                                   ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-150 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                                  : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
                               }`}
                             >
                               {time}
