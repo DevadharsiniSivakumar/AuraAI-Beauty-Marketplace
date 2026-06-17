@@ -32,7 +32,8 @@ export default function ProfilePage() {
     bookings, 
     reviews, 
     cancelBooking, 
-    addReview 
+    addReview,
+    userMemory
   } = useApp();
   
   // Tab control
@@ -502,7 +503,7 @@ export default function ProfilePage() {
 
           </div>
 
-          {/* Right Panel: Favorites */}
+          {/* Right Panel: Favorites & Memory */}
           <aside className="space-y-6">
             
             {/* Favorite salons listing */}
@@ -536,6 +537,134 @@ export default function ProfilePage() {
                   <p className="text-xs text-charcoal-400 font-light italic text-center py-4">No saved outlets yet.</p>
                 )}
               </div>
+            </div>
+
+            {/* Beauty Preferences AI Memory Panel */}
+            <div className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 shadow-xs space-y-5">
+              <div className="space-y-1">
+                <h3 className="font-bold text-charcoal-950 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2 font-playfair">
+                  <Sparkles className="w-4 h-4 text-rosegold-550" />
+                  Beauty Preferences
+                </h3>
+                <p className="text-[10px] text-charcoal-400 font-light italic">
+                  Dynamically compiled from your booking activity & reviews
+                </p>
+              </div>
+
+              {userMemory ? (
+                <div className="space-y-4 text-xs">
+                  {/* Preferred Services */}
+                  <div className="space-y-1.5">
+                    <span className="block text-[10px] font-semibold text-charcoal-450 uppercase tracking-wider">Preferred Services</span>
+                    {userMemory.preferredServices && userMemory.preferredServices.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {userMemory.preferredServices.slice(0, 3).map((service, index) => (
+                          <span 
+                            key={index}
+                            className="px-2 py-1 bg-rosegold-50 dark:bg-charcoal-800 text-rosegold-650 dark:text-rosegold-300 rounded-md font-medium"
+                          >
+                            {service}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-charcoal-400 italic text-[11px]">No bookings recorded yet</p>
+                    )}
+                  </div>
+
+                  {/* Preferred Locations */}
+                  <div className="space-y-1.5">
+                    <span className="block text-[10px] font-semibold text-charcoal-450 uppercase tracking-wider">Preferred Locations</span>
+                    {userMemory.preferredLocations && userMemory.preferredLocations.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {userMemory.preferredLocations.slice(0, 2).map((loc, index) => (
+                          <span 
+                            key={index}
+                            className="px-2 py-1 bg-amber-550/5 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-md font-medium flex items-center gap-1"
+                          >
+                            <MapPin className="w-3.5 h-3.5 shrink-0" />
+                            {loc}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-charcoal-400 italic text-[11px]">No location data yet</p>
+                    )}
+                  </div>
+
+                  {/* Preferred Budget */}
+                  <div className="space-y-1.5">
+                    <span className="block text-[10px] font-semibold text-charcoal-450 uppercase tracking-wider">Preferred Budget</span>
+                    <div className="p-2.5 rounded-lg bg-linear-to-r from-rosegold-50/50 to-gold-metallic/5 dark:from-charcoal-800 dark:to-charcoal-900 border border-rosegold-100 dark:border-charcoal-750 flex items-center justify-between">
+                      <span className="text-charcoal-500 dark:text-charcoal-300 font-medium">Average Spending</span>
+                      <span className="font-bold text-rosegold-600 dark:text-gold-metallic">
+                        {userMemory.averageBudget > 0 ? `₹${userMemory.averageBudget}` : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Favorite Categories */}
+                  <div className="space-y-1.5">
+                    <span className="block text-[10px] font-semibold text-charcoal-450 uppercase tracking-wider">Favorite Categories</span>
+                    {userMemory.preferredCategories && userMemory.preferredCategories.length > 0 ? (
+                      <div className="space-y-2">
+                        {userMemory.preferredCategories.slice(0, 3).map((item, index) => {
+                          const total = userMemory.preferredCategories.reduce((sum, c) => sum + c.score, 0);
+                          const percentage = total > 0 ? Math.round((item.score / total) * 100) : 0;
+                          return (
+                            <div key={index} className="space-y-1">
+                              <div className="flex justify-between text-[11px]">
+                                <span className="font-medium text-charcoal-700 dark:text-white">{item.category} Salons</span>
+                                <span className="text-charcoal-400">{percentage}%</span>
+                              </div>
+                              <div className="w-full bg-rosegold-100/50 dark:bg-charcoal-800 rounded-full h-1.5">
+                                <div 
+                                  className="bg-linear-to-r from-rosegold-500 to-gold-metallic h-1.5 rounded-full" 
+                                  style={{ width: `${percentage}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-charcoal-400 italic text-[11px]">No category data yet</p>
+                    )}
+                  </div>
+
+                  {/* Recent Beauty Activity */}
+                  <div className="space-y-2 pt-2 border-t border-rosegold-100 dark:border-charcoal-800">
+                    <span className="block text-[10px] font-semibold text-charcoal-450 uppercase tracking-wider">Recent Beauty Activity</span>
+                    {userMemory.bookingHistory && userMemory.bookingHistory.length > 0 ? (
+                      <div className="space-y-2.5">
+                        {userMemory.bookingHistory.slice(0, 3).map((activity, index) => (
+                          <div key={index} className="flex gap-2.5 items-start">
+                            <div className={`p-1.5 rounded-md ${
+                              activity.status === 'Completed' || activity.status === 'Confirmed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                            } mt-0.5`}>
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="space-y-0.5">
+                              <span className="block font-medium text-[11px] text-charcoal-800 dark:text-white truncate max-w-[180px]">
+                                {activity.serviceName} at {activity.salonName}
+                              </span>
+                              <span className="block text-[9px] text-charcoal-400 font-mono">
+                                {activity.date} • {activity.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-charcoal-400 italic text-[11px]">No recent activity</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4 text-charcoal-400 text-xs italic">
+                  Compiling your preferences...
+                </div>
+              )}
             </div>
 
           </aside>

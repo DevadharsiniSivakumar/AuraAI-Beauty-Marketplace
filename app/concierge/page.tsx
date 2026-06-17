@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export default function AiConcierge() {
-  const { salons, userProfile, bookings } = useApp();
+  const { salons, userProfile, bookings, userMemory } = useApp();
   
   // Store chat history in local state for custom concierge pipeline
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -87,7 +87,8 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
         body: JSON.stringify({
           message: textToSend,
           userProfile,
-          bookings
+          bookings,
+          userMemory
         })
       });
 

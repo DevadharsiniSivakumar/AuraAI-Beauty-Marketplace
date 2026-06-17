@@ -26,12 +26,26 @@ import {
 export default function SalonDetails() {
   const params = useParams();
   const router = useRouter();
-  const { salons } = useApp();
+  const { salons, userProfile, updateProfile } = useApp();
   const [activeTab, setActiveTab] = useState<'services' | 'reviews' | 'about'>('services');
-  const [isSaved, setIsSaved] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   const id = params.id as string;
   const salon = salons.find(s => s.id === id);
+
+  const isSaved = userProfile?.favoriteSalons?.includes(id) || false;
+
+  const toggleSave = () => {
+    if (!userProfile) return;
+    const currentFavs = userProfile.favoriteSalons || [];
+    let updatedFavorites;
+    if (isSaved) {
+      updatedFavorites = currentFavs.filter(favId => favId !== id);
+    } else {
+      updatedFavorites = [...currentFavs, id];
+    }
+    updateProfile({ favoriteSalons: updatedFavorites });
+  };
 
   if (!salon) {
     return (
@@ -55,9 +69,9 @@ export default function SalonDetails() {
 
   // Group services by category
   const categories = Array.from(new Set(servicesList.map(s => s.category)));
-  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0] || 'Hair');
+  const activeCategory = selectedCategory || categories[0] || 'Hair';
 
-  const filteredServices = servicesList.filter(s => s.category === selectedCategory);
+  const filteredServices = servicesList.filter(s => s.category === activeCategory);
 
   // V2 Similar Salons logic: find alternative salons matching location or luxury tags
   const similarSalons = salons
@@ -80,9 +94,9 @@ export default function SalonDetails() {
 
           <div className="flex items-center space-x-2">
             <button 
-              onClick={() => setIsSaved(!isSaved)}
+              onClick={toggleSave}
               className={`p-2 rounded-xl border border-rosegold-200 dark:border-charcoal-800 transition-colors cursor-pointer ${
-                isSaved ? 'text-rosegold-555 bg-rosegold-50/50 dark:bg-charcoal-900' : 'text-charcoal-600 dark:text-rosegold-100 hover:bg-rosegold-50'
+                isSaved ? 'text-rosegold-500 bg-rosegold-50/50 dark:bg-charcoal-900' : 'text-charcoal-600 dark:text-rosegold-100 hover:bg-rosegold-50'
               }`}
               title="Save Salon"
             >
@@ -228,7 +242,7 @@ export default function SalonDetails() {
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
                             className={`text-xs px-4 py-2 rounded-full border transition-all shrink-0 cursor-pointer ${
-                              selectedCategory === cat 
+                              activeCategory === cat 
                                 ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
                                 : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-100 hover:bg-rosegold-50'
                             }`}

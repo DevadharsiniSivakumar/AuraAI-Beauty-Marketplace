@@ -35,11 +35,11 @@ export default function Navbar() {
   if (user) {
     if (role === 'user') {
       navLinks = [
+        { name: 'Dashboard', href: '/dashboard' },
         { name: 'AI Concierge', href: '/concierge' },
         { name: 'Style Advisor', href: '/advisor' },
         { name: 'Explore Salons', href: '/salons' },
         { name: 'Reviews', href: '/reviews' },
-        { name: 'Dashboard', href: '/dashboard' },
         { name: 'Profile', href: '/profile' },
       ];
     } else if (role === 'admin') {

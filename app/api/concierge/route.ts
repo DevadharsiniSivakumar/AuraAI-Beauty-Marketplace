@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { detectIntent } from '../../../lib/intentDetector';
 import { searchAndRank } from '../../../lib/searchEngine';
 import { explainRecommendations } from '../../../lib/groq';
+import { buildUserMemoryContext } from '../../../lib/userMemory';
 
 export async function POST(request: Request) {
   try {
-    const { message, userProfile, bookings } = await request.json();
+    const { message, userProfile, bookings, userMemory } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'User message query is required.' }, { status: 400 });
@@ -13,6 +14,7 @@ export async function POST(request: Request) {
 
     const clientProfile = userProfile || { name: 'Guest' };
     const clientBookings = bookings || [];
+    const memoryContext = userMemory ? buildUserMemoryContext(userMemory) : '';
 
     // 1. Intent Detection
     const parsedQuery = detectIntent(message);
@@ -46,15 +48,16 @@ export async function POST(request: Request) {
           clientProfile.name,
           message,
           parsedQuery.intent,
-          recommendations
+          recommendations,
+          memoryContext
         );
       } catch (apiError: any) {
         console.error('Groq API Error, falling back to simulated explanation:', apiError);
-        aiResponse = generateLocalExplanation(clientProfile.name, parsedQuery.intent, recommendations);
+        aiResponse = generateLocalExplanation(clientProfile.name, parsedQuery.intent, recommendations, userMemory);
       }
     } else {
       console.warn('GROQ_API_KEY not found. Operating in local explanation fallback mode.');
-      aiResponse = generateLocalExplanation(clientProfile.name, parsedQuery.intent, recommendations);
+      aiResponse = generateLocalExplanation(clientProfile.name, parsedQuery.intent, recommendations, userMemory);
     }
 
     return NextResponse.json({
@@ -76,11 +79,43 @@ export async function POST(request: Request) {
 /**
  * Fallback local description generator in case of missing keys or network errors.
  */
-function generateLocalExplanation(userName: string, intent: string, recommendations: any[]): string {
+function generateLocalExplanation(userName: string, intent: string, recommendations: any[], userMemory?: any): string {
   const nameFirst = userName.split(' ')[0];
   
+  // Custom personalization prefix based on userMemory
+  let personalizationPrefix = '';
+  if (userMemory) {
+    const prefersSkincare = userMemory.preferredServices?.some((s: string) => 
+      s.toLowerCase().includes('facial') || s.toLowerCase().includes('skin')
+    );
+    if (prefersSkincare) {
+      personalizationPrefix += `since you highly rate skincare treatments like Hydra Facials, `;
+    } else if (userMemory.preferredServices && userMemory.preferredServices.length > 0) {
+      personalizationPrefix += `based on your previous bookings for ${userMemory.preferredServices[0]} treatments, `;
+    }
+    
+    if (userMemory.averageBudget > 0) {
+      const conjunction = personalizationPrefix ? 'and considering ' : 'considering ';
+      personalizationPrefix += `${conjunction}your typical budget range of around ₹${userMemory.averageBudget}, `;
+    }
+    
+    const luxuryScore = userMemory.preferredCategories?.find((c: any) => c.category === 'Luxury')?.score || 0;
+    if (luxuryScore > 0 && !personalizationPrefix.includes('skincare')) {
+      const conjunction = personalizationPrefix ? 'as well as ' : '';
+      personalizationPrefix += `${conjunction}your preference for luxury salons, `;
+    }
+  }
+  
+  if (personalizationPrefix) {
+    personalizationPrefix = personalizationPrefix.trim();
+    if (!personalizationPrefix.endsWith(',')) {
+      personalizationPrefix += ',';
+    }
+    personalizationPrefix = personalizationPrefix.charAt(0).toUpperCase() + personalizationPrefix.slice(1) + ' ';
+  }
+
   if (recommendations.length === 0) {
-    return `Hello ${nameFirst}, I scanned our beauty catalog for treatments matching your request, but could not find matching results. 
+    return `Hello ${nameFirst}, ${personalizationPrefix || 'I scanned our beauty catalog for treatments matching your request, '}but could not find matching results. 
 
 Try broadening your search term or neighborhood preference, and I'll find alternative wellness outlets for you.`;
   }
@@ -93,7 +128,11 @@ Try broadening your search term or neighborhood preference, and I'll find altern
     }
   }).join('\n');
 
-  return `Hello ${nameFirst}! Here are the personalized recommendation highlights I compiled for you:
+  const greeting = personalizationPrefix 
+    ? `Hello ${nameFirst}! ${personalizationPrefix}here are the personalized recommendation highlights I compiled for you:`
+    : `Hello ${nameFirst}! Here are the personalized recommendation highlights I compiled for you:`;
+
+  return `${greeting}
 
 ${recsBrief}
 

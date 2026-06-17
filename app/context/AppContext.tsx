@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { MOCK_SALONS, MOCK_USER, Salon, Service, Review, UserProfile } from '../data/mockData';
 import { IS_MOCK } from '../../lib/firebase';
+import { UserMemory, recalculateUserMemory } from '../../lib/userMemory';
+import { useAuth } from './AuthContext';
 
 export interface Booking {
   id: string;
@@ -41,6 +43,7 @@ interface AppContextType {
   reviews: Review[];
   chatHistory: ChatMessage[];
   userProfile: UserProfile;
+  userMemory: UserMemory | null;
   isDarkMode: boolean;
   addBooking: (salonId: string, serviceId: string, date: string, time: string) => Promise<void>;
   cancelBooking: (bookingId: string) => Promise<void>;
@@ -62,13 +65,26 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   // Underlying DB states
   const [dbSalons, setDbSalons] = useState<any[]>([]);
   const [dbServices, setDbServices] = useState<any[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(MOCK_USER);
+
+  // Synchronize user profile with authenticated user session
+  useEffect(() => {
+    if (user) {
+      setUserProfile((prev) => ({
+        ...prev,
+        name: user.name,
+        email: user.email,
+      }));
+    }
+  }, [user]);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [userMemory, setUserMemory] = useState<UserMemory | null>(null);
 
   // Load state from localStorage or Firestore on mount
   useEffect(() => {
@@ -762,6 +778,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Reactive User Memory Syncing & Computation
+  useEffect(() => {
+    if (salons.length === 0) return;
+
+    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const computedMemory = recalculateUserMemory(bookings, reviews, salons, email);
+
+    // Sync favorite salons from userProfile
+    computedMemory.favoriteSalons = userProfile.favoriteSalons || [];
+
+    setUserMemory(computedMemory);
+
+    const persistMemory = async () => {
+      if (IS_MOCK) {
+        localStorage.setItem('aura_user_memory', JSON.stringify(computedMemory));
+      } else {
+        try {
+          const { doc, setDoc } = await import('firebase/firestore');
+          const { db } = await import('../../lib/firebase');
+          await setDoc(doc(db, 'user_memory', email), computedMemory);
+        } catch (error) {
+          console.error('Failed to sync user memory to Firestore:', error);
+        }
+      }
+    };
+
+    persistMemory();
+  }, [bookings, reviews, salons, userProfile.email, userProfile.favoriteSalons]);
+
   return (
     <AppContext.Provider
       value={{
@@ -770,6 +815,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         reviews,
         chatHistory,
         userProfile,
+        userMemory,
         isDarkMode,
         addBooking,
         cancelBooking,
