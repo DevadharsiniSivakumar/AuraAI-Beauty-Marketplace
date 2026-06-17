@@ -22,11 +22,144 @@ import {
 } from 'lucide-react';
 
 export default function StyleAdvisor() {
-  const { salons } = useApp();
+  const { salons, activeJourney, saveJourney, deleteActiveJourney, userProfile, userMemory } = useApp();
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [hasResults, setHasResults] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+
+  // Journey Planner state variables
+  const [activeTab, setActiveTab] = useState<'scanner' | 'planner'>('scanner');
+  const [goalInput, setGoalInput] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [generatedPlan, setGeneratedPlan] = useState<any | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [visibleSalonsForStep, setVisibleSalonsForStep] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'planner') {
+        setActiveTab('planner');
+      }
+    }
+  }, []);
+
+  const quickGoals = [
+    { label: 'Wedding in 45 days', text: 'My wedding is in 45 days. I need a complete glow-up plan for skin and hair.' },
+    { label: 'Party next week', text: 'I have a major party next week and need to look my absolute best.' },
+    { label: 'Dry/damaged hair recovery', text: 'My hair is severely dry and damaged. I need a recovery journey.' },
+    { label: 'Acne & skin glow', text: 'I want to clear up my skin congestion and get a healthy radiant glow.' }
+  ];
+
+  const getMatchingSalonsForService = (serviceName: string) => {
+    const query = serviceName.toLowerCase();
+    return salons.map(salon => {
+      const matchingServices = salon.services.filter(s => 
+        s.name.toLowerCase().includes(query) || 
+        query.includes(s.name.toLowerCase()) ||
+        s.category.toLowerCase().includes(query) ||
+        query.includes(s.category.toLowerCase())
+      );
+      if (matchingServices.length === 0) return null;
+      return {
+        ...salon,
+        matchedService: matchingServices[0]
+      };
+    }).filter((s): s is any => s !== null);
+  };
+
+  const handleSaveJourney = async () => {
+    if (!generatedPlan) return;
+    try {
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + (generatedPlan.durationDays || 30));
+
+      await saveJourney({
+        goal: goalInput,
+        journeyType: generatedPlan.journeyType,
+        durationDays: generatedPlan.durationDays || 30,
+        steps: generatedPlan.steps.map((step: any) => ({
+          ...step,
+          status: 'Pending'
+        })),
+        targetDate: targetDate.toISOString().split('T')[0]
+      });
+      setSaveSuccess(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleGenerateJourney = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!goalInput.trim()) return;
+
+    setGenerating(true);
+    setGeneratedPlan(null);
+    setSaveSuccess(false);
+    setVisibleSalonsForStep({});
+
+    try {
+      const res = await fetch('/api/journey/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userGoal: goalInput,
+          userProfile,
+          userMemory
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to generate journey');
+      }
+
+      const data = await res.json();
+      setGeneratedPlan(data);
+    } catch (err) {
+      console.error('Fetch failed, generating local fallback:', err);
+      // Client-side quick fallback construction
+      const clientFallback = (goal: string) => {
+        const goalLower = goal.toLowerCase();
+        let type: any = 'Maintenance';
+        let days = 30;
+        let steps = [];
+
+        if (goalLower.includes('wed') || goalLower.includes('marri') || goalLower.includes('brid')) {
+          type = 'Bridal';
+          days = 45;
+          steps = [
+            { stepNumber: 1, title: 'Consultation & Hydra Facial', description: 'Begin hydration prep and skin health evaluation.', timeline: 'Day 45 (6 Weeks Out)', recommendedService: 'Advanced Hydra Facial' },
+            { stepNumber: 2, title: 'Hair Spa', description: 'Rehydrate wavy hair strands and protect fiber roots.', timeline: 'Day 30 (4 Weeks Out)', recommendedService: 'Hair Spa' },
+            { stepNumber: 3, title: 'Manicure & Pedicure', description: 'Soften hands and feet for event-day neatness.', timeline: 'Day 15 (2 Weeks Out)', recommendedService: 'Pedicure' },
+            { stepNumber: 4, title: 'Rose Gold Glow Facial', description: 'Lock in skin brightness without harsh treatments.', timeline: 'Day 3 (3 Days Out)', recommendedService: 'Rose Gold Shimmer Facial' },
+          ];
+        } else if (goalLower.includes('part') || goalLower.includes('event')) {
+          type = 'Event Prep';
+          days = 7;
+          steps = [
+            { stepNumber: 1, title: 'Hydra Facial Reset', description: 'Exfoliate dead surface cells for clear skin.', timeline: 'Day 7 (1 Week Out)', recommendedService: 'Advanced Hydra Facial' },
+            { stepNumber: 2, title: 'Hair Spa Moisture Boost', description: 'Add gloss and texture styling prep.', timeline: 'Day 3 (3 Days Out)', recommendedService: 'Hair Spa' },
+            { stepNumber: 3, title: 'Nails Prep', description: 'Clean, shape and paint nails.', timeline: 'Day 1 (1 Day Out)', recommendedService: 'Pedicure' },
+          ];
+        } else {
+          steps = [
+            { stepNumber: 1, title: 'Skincare Reset', description: 'Exfoliate and deep cleanse layers.', timeline: 'Week 1', recommendedService: 'Advanced Hydra Facial' },
+            { stepNumber: 2, title: 'Relaxation & Massage', description: 'Relieve stress and improve lymphatic flow.', timeline: 'Week 2', recommendedService: 'Deep Tissue Massage' },
+            { stepNumber: 3, title: 'Nails & Grooming', description: 'Routine clean up and moisturizing.', timeline: 'Week 4', recommendedService: 'Pedicure' },
+          ];
+        }
+
+        return { journeyType: type, durationDays: days, steps };
+      };
+      setGeneratedPlan(clientFallback(goalInput));
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const mockSelfies = [
     { name: 'Model A', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop' },
@@ -96,21 +229,47 @@ export default function StyleAdvisor() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         
         {/* Banner */}
-        <section className="space-y-2 text-center max-w-3xl mx-auto">
+        <section className="space-y-4 text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-rosegold-300 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 shadow-2xs text-xs font-semibold text-rosegold-550">
-            <Sparkles className="w-3.5 h-3.5 text-rosegold-500 animate-spin" />
-            <span>AI Computer Vision Scanner</span>
+            <Sparkles className="w-3.5 h-3.5 text-rosegold-500 animate-pulse" />
+            <span>AuraAI Style & Planning Hub</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-charcoal-950 dark:text-white">
-            AI Style Advisor
+            AI Style Advisor & Beauty Planner
           </h1>
           <p className="text-sm sm:text-base text-charcoal-550 dark:text-rosegold-200">
-            Scan your profile to map facial metrics, lock your Beauty DNA, and receive precise styling plans.
+            Get personalized consultations, scan your Beauty DNA, or build automated step-by-step beauty goal journeys.
           </p>
+
+          {/* Tab Selector */}
+          <div className="flex justify-center max-w-md mx-auto bg-rosegold-100/50 dark:bg-charcoal-900/60 p-1.5 rounded-full border border-rosegold-200/50 dark:border-charcoal-800 shadow-inner mt-6">
+            <button 
+              onClick={() => setActiveTab('scanner')}
+              className={`flex-grow py-2 px-6 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                activeTab === 'scanner' 
+                  ? 'bg-linear-to-r from-rosegold-600 to-rosegold-800 text-white shadow-md font-bold' 
+                  : 'text-charcoal-600 dark:text-rosegold-200 hover:text-rosegold-700'
+              }`}
+            >
+              Style Scanner
+            </button>
+            <button 
+              onClick={() => setActiveTab('planner')}
+              className={`flex-grow py-2 px-6 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                activeTab === 'planner' 
+                  ? 'bg-linear-to-r from-rosegold-600 to-rosegold-800 text-white shadow-md font-bold' 
+                  : 'text-charcoal-600 dark:text-rosegold-200 hover:text-rosegold-700'
+              }`}
+            >
+              AI Journey Planner
+            </button>
+          </div>
         </section>
 
-        {/* Uploader and Scanner Panel */}
-        <section className="max-w-4xl mx-auto">
+        {/* Tab content condition */}
+        {activeTab === 'scanner' ? (
+          <>
+            <section className="max-w-4xl mx-auto">
           <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
             
             {/* Selfie Upload / Selector Area */}
@@ -349,7 +508,7 @@ export default function StyleAdvisor() {
                 {salons.slice(0, 2).map((salon) => (
                   <div 
                     key={salon.id} 
-                    className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-955 flex flex-col justify-between gap-4 hover:border-rosegold-350 transition-colors"
+                    className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 flex flex-col justify-between gap-4 hover:border-rosegold-350 transition-colors"
                   >
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
@@ -391,6 +550,228 @@ export default function StyleAdvisor() {
               </div>
             </div>
 
+          </section>
+        )}
+      </>
+    ) : (
+          <section className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+            {/* Active Journey Indicator */}
+            {activeJourney && (
+              <div className="rounded-2xl border border-rosegold-200/50 bg-rosegold-50/20 dark:bg-charcoal-900/60 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-charcoal-900 dark:text-white flex items-center gap-1.5">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    Active Journey: {activeJourney.journeyType} Plan ({activeJourney.durationDays} Days)
+                  </h4>
+                  <p className="text-xs text-charcoal-500 dark:text-rosegold-200">
+                    Goal: &ldquo;{activeJourney.goal}&rdquo; | Progress: {activeJourney.progressPercent}%
+                  </p>
+                </div>
+                <button
+                  onClick={deleteActiveJourney}
+                  className="px-3 py-1.5 rounded-lg border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  Reset Journey
+                </button>
+              </div>
+            )}
+
+            {/* Planner Input card */}
+            <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-lg p-6 sm:p-8 space-y-6">
+              <div>
+                <h3 className="text-xl font-bold text-charcoal-950 dark:text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-rosegold-500" />
+                  Define Your Beauty Goal
+                </h3>
+                <p className="text-xs sm:text-sm text-charcoal-550 dark:text-rosegold-300 mt-1">
+                  Tell Aura what you want to prepare for or recover. We will design a customized, multi-week timeline.
+                </p>
+              </div>
+
+              {/* Suggestions Chips */}
+              <div className="space-y-2">
+                <p className="text-[10px] uppercase font-bold tracking-widest text-charcoal-400">Quick suggestions</p>
+                <div className="flex flex-wrap gap-2">
+                  {quickGoals.map((g, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setGoalInput(g.text)}
+                      className="px-3 py-1.5 rounded-lg border border-rosegold-200 dark:border-charcoal-800 bg-rosegold-50/20 dark:bg-charcoal-950/20 text-xs text-charcoal-800 dark:text-rosegold-200 hover:border-rosegold-400 dark:hover:border-rosegold-600 transition-colors cursor-pointer"
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <form onSubmit={(e) => handleGenerateJourney(e)} className="space-y-4">
+                <textarea
+                  value={goalInput}
+                  onChange={(e) => setGoalInput(e.target.value)}
+                  placeholder="e.g. My wedding is in 45 days and I want perfect skin and silky smooth hair..."
+                  className="w-full min-h-[100px] p-4 rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-charcoal-50/20 dark:bg-charcoal-950/40 text-sm focus:outline-none focus:ring-2 focus:ring-rosegold-400 text-charcoal-950 dark:text-white placeholder-charcoal-400 resize-y"
+                  required
+                />
+                
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={generating || !goalInput.trim()}
+                    className="px-6 py-3 rounded-xl bg-linear-to-r from-rosegold-600 to-rosegold-800 hover:from-rosegold-500 hover:to-rosegold-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {generating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Generating Journey...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Generate Journey Plan
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Generated Plan details */}
+            {generatedPlan && (
+              <div className="space-y-8 animate-fade-in">
+                {/* Header overview card */}
+                <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-linear-to-r from-rosegold-100/35 via-white to-white dark:from-charcoal-900 dark:to-charcoal-950/60 p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-md">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white tracking-widest uppercase">
+                      {generatedPlan.journeyType} Journey
+                    </span>
+                    <h3 className="text-2xl font-bold text-charcoal-950 dark:text-white">
+                      Your Beauty Roadmap ({generatedPlan.durationDays} Days)
+                    </h3>
+                    <p className="text-xs text-charcoal-550 dark:text-rosegold-300">
+                      Goal: &ldquo;{goalInput}&rdquo;
+                    </p>
+                  </div>
+
+                  {saveSuccess ? (
+                    <div className="px-5 py-2.5 bg-emerald-600/10 border border-emerald-500/20 text-emerald-600 rounded-xl font-bold text-xs flex items-center gap-1.5">
+                      <CheckCircle className="w-4 h-4" />
+                      Saved to Profile
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleSaveJourney}
+                      className="px-5 py-2.5 bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-purple-700 hover:to-indigo-800 text-white rounded-xl font-semibold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      Save Journey to Profile
+                    </button>
+                  )}
+                </div>
+
+                {/* Steps Timeline visualization */}
+                <div className="relative pl-6 sm:pl-8 border-l border-rosegold-200 dark:border-charcoal-800 space-y-10">
+                  {generatedPlan.steps.map((step: any) => {
+                    const matchedSalons = getMatchingSalonsForService(step.recommendedService);
+                    const isSalonsVisible = visibleSalonsForStep[step.stepNumber];
+
+                    return (
+                      <div key={step.stepNumber} className="relative group animate-fade-in">
+                        {/* Bullet Circle */}
+                        <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 w-6 h-6 rounded-full border-2 border-rosegold-400 bg-white dark:bg-charcoal-950 flex items-center justify-center font-bold text-[10px] text-rosegold-500">
+                          {step.stepNumber}
+                        </div>
+
+                        {/* Step content card */}
+                        <div className="rounded-2xl border border-rosegold-200/50 dark:border-charcoal-900 bg-white dark:bg-charcoal-950 p-6 hover:border-rosegold-350 transition-colors shadow-2xs space-y-4">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <span className="text-[10px] font-bold text-rosegold-500 uppercase tracking-widest bg-rosegold-100/30 dark:bg-charcoal-800 px-2 py-0.5 rounded-md">
+                              {step.timeline}
+                            </span>
+                            <h4 className="text-base font-bold text-charcoal-900 dark:text-white">
+                              {step.title}
+                            </h4>
+                          </div>
+
+                          <p className="text-xs sm:text-sm text-charcoal-600 dark:text-rosegold-200 leading-relaxed font-light">
+                            {step.description}
+                          </p>
+
+                          <div className="pt-2 border-t border-rosegold-100 dark:border-charcoal-800/85 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="text-xs">
+                              <span className="text-charcoal-400">Recommended service:</span>{' '}
+                              <strong className="text-charcoal-800 dark:text-white">{step.recommendedService}</strong>
+                            </div>
+
+                            <button
+                              onClick={() => setVisibleSalonsForStep(prev => ({
+                                ...prev,
+                                [step.stepNumber]: !prev[step.stepNumber]
+                              }))}
+                              className="px-3.5 py-1.5 border border-rosegold-350 dark:border-charcoal-850 hover:bg-rosegold-50/50 dark:hover:bg-charcoal-800 text-[10px] font-bold text-rosegold-550 dark:text-rosegold-300 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                            >
+                              {isSalonsVisible ? 'Hide Salons' : 'Find Salons'}
+                              <ChevronRight className={`w-3 h-3 transition-transform ${isSalonsVisible ? 'rotate-90' : ''}`} />
+                            </button>
+                          </div>
+
+                          {/* On-Demand Salon recommendations block */}
+                          {isSalonsVisible && (
+                            <div className="pt-4 border-t border-dashed border-rosegold-200 dark:border-charcoal-800 animate-fade-in space-y-3">
+                              <div className="flex justify-between items-center">
+                                <p className="text-[10px] uppercase font-bold tracking-widest text-charcoal-400">
+                                  Nearby Salons offering this treatment
+                                </p>
+                              </div>
+
+                              {matchedSalons.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  {matchedSalons.slice(0, 2).map((salon) => (
+                                    <div 
+                                      key={salon.id} 
+                                      className="p-4 rounded-xl border border-rosegold-200/40 dark:border-charcoal-850 bg-charcoal-50/20 dark:bg-charcoal-900/40 flex flex-col justify-between gap-3 hover:border-rosegold-300 transition-all shadow-xs"
+                                    >
+                                      <div>
+                                        <div className="flex justify-between items-center text-[10px]">
+                                          <span className="font-semibold text-rosegold-550 dark:text-rosegold-350">
+                                            {salon.matchedService.name} (₹{salon.matchedService.price})
+                                          </span>
+                                          <div className="flex text-rosegold-500 items-center font-bold">
+                                            <Star className="w-3.5 h-3.5 fill-rosegold-500 mr-0.5" />
+                                            {salon.rating}
+                                          </div>
+                                        </div>
+                                        <h5 className="text-xs font-bold text-charcoal-900 dark:text-white mt-1">
+                                          {salon.name}
+                                        </h5>
+                                        <p className="text-[10px] text-charcoal-400 flex items-center mt-0.5">
+                                          <MapPin className="w-2.5 h-2.5 text-rosegold-500 mr-0.5" />
+                                          {salon.locality}
+                                        </p>
+                                      </div>
+
+                                      <Link
+                                        href={`/booking?salon=${salon.id}&service=${salon.matchedService.id}`}
+                                        className="w-full py-1.5 text-center rounded-lg bg-rosegold-500 hover:bg-rosegold-600 text-[10px] font-bold text-white transition-colors"
+                                      >
+                                        Book Step Appointment
+                                      </Link>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-charcoal-400 py-2 italic">
+                                  No salons in our index currently match &ldquo;{step.recommendedService}&rdquo;. Try browsing our booking page!
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </section>
         )}
 

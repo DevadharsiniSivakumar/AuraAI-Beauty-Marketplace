@@ -347,7 +347,7 @@ export default function ProfilePage() {
                       {sortedBookings.map((booking) => (
                         <div 
                           key={booking.id} 
-                          className="p-4 rounded-xl border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-955/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 dark:hover:border-charcoal-700 transition-colors"
+                          className="p-4 rounded-xl border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-950/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 dark:hover:border-charcoal-700 transition-colors"
                         >
                           <div className="space-y-1">
                             <h4 className="font-bold text-sm text-charcoal-950 dark:text-white">{booking.serviceName}</h4>
@@ -408,7 +408,7 @@ export default function ProfilePage() {
                   <div className="space-y-3">
                     {userReviews.length > 0 ? (
                       userReviews.map((rev) => (
-                        <div key={rev.id} className="p-4 rounded-xl border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-955/30 space-y-2">
+                        <div key={rev.id} className="p-4 rounded-xl border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-950/30 space-y-2">
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="font-bold text-xs text-charcoal-950 dark:text-white uppercase tracking-wider">{rev.salonName}</h4>
@@ -431,7 +431,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Add Review Form */}
-                  <form onSubmit={handleReviewSubmit} className="p-5 rounded-xl border border-dashed border-rosegold-200/80 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-955/5 space-y-4">
+                  <form onSubmit={handleReviewSubmit} className="p-5 rounded-xl border border-dashed border-rosegold-200/80 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/5 space-y-4">
                     <h3 className="font-bold text-xs uppercase tracking-wider text-charcoal-900 dark:text-white flex items-center gap-1.5">
                       <Plus className="w-4 h-4 text-rosegold-550" />
                       Write a Review
@@ -516,7 +516,7 @@ export default function ProfilePage() {
               <div className="space-y-3">
                 {favoriteSalonsObj.length > 0 ? (
                   favoriteSalonsObj.map((fs) => (
-                    <div key={fs.id} className="p-3 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-955/20 flex justify-between items-center gap-2">
+                    <div key={fs.id} className="p-3 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 flex justify-between items-center gap-2">
                       <div className="min-w-0 flex-1">
                         <h4 className="text-xs font-bold text-charcoal-900 dark:text-white truncate">{fs.name}</h4>
                         <p className="text-[10px] text-charcoal-400 flex items-center gap-0.5 mt-0.5">

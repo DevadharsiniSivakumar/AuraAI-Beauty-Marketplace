@@ -37,6 +37,27 @@ export interface ChatMessage {
   }[];
 }
 
+export interface JourneyStep {
+  stepNumber: number;
+  title: string;
+  description: string;
+  timeline: string;
+  recommendedService: string;
+  status: 'Pending' | 'In Progress' | 'Completed';
+}
+
+export interface BeautyJourney {
+  id: string;
+  userId: string;
+  goal: string;
+  journeyType: 'Bridal' | 'Event Prep' | 'Vacation Glow-Up' | 'Hair Recovery' | 'Skin Recovery' | 'Maintenance';
+  durationDays: number;
+  steps: JourneyStep[];
+  progressPercent: number;
+  createdAt: string;
+  targetDate: string;
+}
+
 interface AppContextType {
   salons: Salon[];
   bookings: Booking[];
@@ -60,6 +81,11 @@ interface AppContextType {
   addService: (serviceData: any, salonId: string) => Promise<void>;
   updateService: (serviceId: string, serviceData: any) => Promise<void>;
   deleteService: (serviceId: string) => Promise<void>;
+  // Journey operations
+  activeJourney: BeautyJourney | null;
+  saveJourney: (journey: Omit<BeautyJourney, 'id' | 'userId' | 'progressPercent' | 'createdAt'>) => Promise<void>;
+  updateJourneyStepStatus: (stepNumber: number, status: JourneyStep['status']) => Promise<void>;
+  deleteActiveJourney: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -85,6 +111,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [userMemory, setUserMemory] = useState<UserMemory | null>(null);
+  const [activeJourney, setActiveJourney] = useState<BeautyJourney | null>(null);
+
+  // Load and sync active Beauty Journey
+  useEffect(() => {
+    const email = userProfile.email || 'rhea.sen@auraai.in';
+    if (IS_MOCK) {
+      const savedJourney = localStorage.getItem(`aura_journey_${email}`);
+      if (savedJourney) {
+        setActiveJourney(JSON.parse(savedJourney));
+      } else {
+        setActiveJourney(null);
+      }
+    } else {
+      let unsubJourney: any = () => {};
+      const listenToJourney = async () => {
+        try {
+          const { doc, onSnapshot } = await import('firebase/firestore');
+          const { db } = await import('../../lib/firebase');
+          unsubJourney = onSnapshot(doc(db, 'beauty_journeys', email), (docSnap) => {
+            if (docSnap.exists()) {
+              setActiveJourney(docSnap.data() as BeautyJourney);
+            } else {
+              setActiveJourney(null);
+            }
+          });
+        } catch (error) {
+          console.error('Failed to listen to beauty journey:', error);
+        }
+      };
+      listenToJourney();
+      return () => {
+        if (unsubJourney) unsubJourney();
+      };
+    }
+  }, [userProfile.email]);
 
   // Load state from localStorage or Firestore on mount
   useEffect(() => {
@@ -356,6 +417,79 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+    }
+  };
+
+  // Save Journey
+  const saveJourney = async (journeyData: Omit<BeautyJourney, 'id' | 'userId' | 'progressPercent' | 'createdAt'>) => {
+    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const completedCount = journeyData.steps.filter(s => s.status === 'Completed').length;
+    const progressPercent = journeyData.steps.length > 0 
+      ? Math.round((completedCount / journeyData.steps.length) * 100) 
+      : 0;
+
+    const newJourney: BeautyJourney = {
+      ...journeyData,
+      id: email,
+      userId: email,
+      progressPercent,
+      createdAt: new Date().toISOString()
+    };
+
+    if (IS_MOCK) {
+      setActiveJourney(newJourney);
+      localStorage.setItem(`aura_journey_${email}`, JSON.stringify(newJourney));
+    } else {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await setDoc(doc(db, 'beauty_journeys', email), newJourney);
+    }
+  };
+
+  // Update step status
+  const updateJourneyStepStatus = async (stepNumber: number, status: JourneyStep['status']) => {
+    if (!activeJourney) return;
+    const email = userProfile.email || 'rhea.sen@auraai.in';
+
+    const updatedSteps = activeJourney.steps.map(s => 
+      s.stepNumber === stepNumber ? { ...s, status } : s
+    );
+
+    const completedCount = updatedSteps.filter(s => s.status === 'Completed').length;
+    const progressPercent = updatedSteps.length > 0 
+      ? Math.round((completedCount / updatedSteps.length) * 100) 
+      : 0;
+
+    const updatedJourney: BeautyJourney = {
+      ...activeJourney,
+      steps: updatedSteps,
+      progressPercent
+    };
+
+    if (IS_MOCK) {
+      setActiveJourney(updatedJourney);
+      localStorage.setItem(`aura_journey_${email}`, JSON.stringify(updatedJourney));
+    } else {
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await updateDoc(doc(db, 'beauty_journeys', email), {
+        steps: updatedSteps,
+        progressPercent
+      });
+    }
+  };
+
+  // Delete active journey
+  const deleteActiveJourney = async () => {
+    const email = userProfile.email || 'rhea.sen@auraai.in';
+    if (IS_MOCK) {
+      setActiveJourney(null);
+      localStorage.removeItem(`aura_journey_${email}`);
+    } else {
+      const { doc, deleteDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await deleteDoc(doc(db, 'beauty_journeys', email));
+      setActiveJourney(null);
     }
   };
 
@@ -829,7 +963,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         deleteSalon,
         addService,
         updateService,
-        deleteService
+        deleteService,
+        activeJourney,
+        saveJourney,
+        updateJourneyStepStatus,
+        deleteActiveJourney
       }}
     >
       {children}
