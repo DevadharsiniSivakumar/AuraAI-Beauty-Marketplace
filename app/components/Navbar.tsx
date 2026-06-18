@@ -39,6 +39,7 @@ export default function Navbar() {
         { name: 'AI Concierge', href: '/concierge' },
         { name: 'Style Advisor', href: '/advisor' },
         { name: 'Explore Salons', href: '/salons' },
+        { name: 'Compare Salons', href: '/compare' },
         { name: 'Reviews', href: '/reviews' },
         { name: 'Profile', href: '/profile' },
       ];

@@ -355,3 +355,64 @@ ${memoryContext ? `Memory Context: ${memoryContext}` : ''}`;
 
   return generateGroqResponse(messages, 'llama-3.3-70b-versatile', 1500, { type: 'json_object' });
 }
+
+/**
+ * Generate a comprehensive and structured salon comparison using Groq.
+ */
+export async function generateSalonComparison(
+  userQuery: string,
+  metrics: any[],
+  memoryContext?: string
+): Promise<string> {
+  const systemPrompt = `You are Aura, the expert Beauty & Wellness Advisor.
+Your task is to compare the provided salons based on the user's query, their personal preferences, and the calculated review metrics.
+You MUST respond with a single valid JSON object. Do not include any other text, markdown wrapper (like \`\`\`json), or conversational preamble.
+
+The JSON object must match this exact schema:
+{
+  "feature1Comparison": [
+    {
+      "salonName": string,
+      "rating": number,
+      "priceRange": string,
+      "reviewScore": string,
+      "popularServices": string[],
+      "aiRecommendationBadge": string // Short phrase, e.g., "Best for Skincare", "Budget Friendly", "Premium Luxury"
+    }
+  ],
+  "feature2ReviewIntelligence": [
+    {
+      "salonName": string,
+      "overallSentiment": "Positive" | "Neutral" | "Negative",
+      "topStrengths": string[],
+      "commonComplaints": string[],
+      "mostMentionedServices": string[]
+    }
+  ],
+  "recommendation": {
+    "recommendedSalonName": string,
+    "reasonText": string
+  }
+}
+
+Guidelines:
+1. "feature1Comparison" should summarize the analytical metrics. "reviewScore" can be a qualitative statement like "Excellent (95% Positive)".
+2. "feature2ReviewIntelligence" should synthesize the customer feedback based on the sentiment indicators and top services provided.
+3. The final "recommendation" must explicitly pick ONE salon from the list that best matches the user's query and their memory preferences (if provided). The "reasonText" should clearly explain why it was chosen.`;
+
+  const userPrompt = `Client Query: "${userQuery}"
+
+Analytics Metrics:
+${JSON.stringify(metrics, null, 2)}
+
+${memoryContext ? `Client Memory Context: ${memoryContext}` : ''}
+
+Please generate the structured comparison JSON based on the metrics.`;
+
+  const messages: GroqMessage[] = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+
+  return generateGroqResponse(messages, 'llama-3.3-70b-versatile', 2500, { type: 'json_object' });
+}
