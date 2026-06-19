@@ -18,15 +18,21 @@ import {
   TrendingUp,
   Heart,
   Star,
-  Info
+  Info,
+  RefreshCw,
+  XCircle
 } from 'lucide-react';
 
 export default function StyleAdvisor() {
-  const { salons, activeJourney, saveJourney, deleteActiveJourney, userProfile, userMemory } = useApp();
+  const { salons, activeJourney, saveJourney, deleteActiveJourney, userProfile, userMemory, beautyProfile, saveBeautyProfile } = useApp();
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [hasResults, setHasResults] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  
+  const [dragActive, setDragActive] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [scanStep, setScanStep] = useState('');
 
   // Journey Planner state variables
   const [activeTab, setActiveTab] = useState<'scanner' | 'planner'>('scanner');
@@ -161,36 +167,163 @@ export default function StyleAdvisor() {
     }
   };
 
-  const mockSelfies = [
-    { name: 'Model A', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop' },
-    { name: 'Model B', url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop' },
-    { name: 'Model C', url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=300&auto=format&fit=crop' }
-  ];
-
-  // Scan simulation progress
+  // Sync selected photo and results from active beauty profile on load
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (analyzing) {
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setAnalyzing(false);
-            setHasResults(true);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 250);
+    if (beautyProfile) {
+      setSelectedPhoto(beautyProfile.imageUrl || null);
+      setHasResults(true);
     }
-    return () => clearInterval(interval);
-  }, [analyzing]);
+  }, [beautyProfile]);
 
-  const startAnalysis = (photoUrl: string) => {
-    setSelectedPhoto(photoUrl);
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      processFile(e.target.files[0]);
+    }
+  };
+
+  const processFile = (file: File) => {
+    setErrorMsg('');
+    
+    // Validate format: JPG, JPEG, PNG, WEBP
+    const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedFormats.includes(file.type)) {
+      setErrorMsg('Unsupported format. Please upload JPG, JPEG, PNG, or WEBP.');
+      return;
+    }
+    
+    // Validate size (10 MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg('File too large. Maximum size is 10 MB.');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelectedPhoto(reader.result as string);
+      triggerRealAnalysis(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerRealAnalysis = async (base64Image: string) => {
     setAnalyzing(true);
     setProgress(0);
     setHasResults(false);
+    setErrorMsg('');
+    
+    const steps = [
+      'Scanning facial contours & alignment...',
+      'Analyzing hair texture & density...',
+      'Measuring skin tone & melanin levels...',
+      'Synthesizing clinical beauty profile...',
+      'Generating bespoke style insights...'
+    ];
+
+    let currentStepIdx = 0;
+    setScanStep(steps[currentStepIdx]);
+
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 95) {
+          clearInterval(progressInterval);
+          return 95;
+        }
+        return prev + 5;
+      });
+    }, 200);
+
+    const stepInterval = setInterval(() => {
+      if (currentStepIdx < steps.length - 1) {
+        currentStepIdx++;
+        setScanStep(steps[currentStepIdx]);
+      }
+    }, 800);
+
+    try {
+      const response = await fetch('/api/analyze-selfie', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          image: base64Image
+        })
+      });
+
+      clearInterval(progressInterval);
+      clearInterval(stepInterval);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Analysis failed. Please try again.');
+      }
+
+      const results = await response.json();
+      
+      // Normalize result strings to dropdown expectations in main context
+      let normalizedFaceShape = results.faceShape || 'Oval';
+      if (normalizedFaceShape.toLowerCase().includes('oval')) normalizedFaceShape = 'Oval';
+      else if (normalizedFaceShape.toLowerCase().includes('round')) normalizedFaceShape = 'Round';
+      else if (normalizedFaceShape.toLowerCase().includes('square')) normalizedFaceShape = 'Square';
+      else if (normalizedFaceShape.toLowerCase().includes('heart')) normalizedFaceShape = 'Heart';
+      else normalizedFaceShape = 'Oval';
+
+      let normalizedHairType = results.hairType || '2C Wavy';
+      if (normalizedHairType.toLowerCase().includes('wavy')) normalizedHairType = '2C Wavy';
+      else if (normalizedHairType.toLowerCase().includes('curly')) normalizedHairType = 'Curly';
+      else if (normalizedHairType.toLowerCase().includes('coily')) normalizedHairType = 'Coily';
+      else if (normalizedHairType.toLowerCase().includes('straight')) normalizedHairType = 'Straight';
+      else normalizedHairType = '2C Wavy';
+
+      let normalizedSkinTone = results.skinTone || 'Warm Beige / Olive';
+      if (normalizedSkinTone.toLowerCase().includes('olive') || normalizedSkinTone.toLowerCase().includes('beige') || normalizedSkinTone.toLowerCase().includes('honey')) {
+        normalizedSkinTone = 'Warm Beige / Olive';
+      } else if (normalizedSkinTone.toLowerCase().includes('fair') || normalizedSkinTone.toLowerCase().includes('pink')) {
+        normalizedSkinTone = 'Fair / Cool Pink';
+      } else if (normalizedSkinTone.toLowerCase().includes('bronze') || normalizedSkinTone.toLowerCase().includes('deep') || normalizedSkinTone.toLowerCase().includes('umber')) {
+        normalizedSkinTone = 'Deep Bronze';
+      } else {
+        normalizedSkinTone = 'Warm Beige / Olive';
+      }
+
+      results.faceShape = normalizedFaceShape;
+      results.hairType = normalizedHairType;
+      results.skinTone = normalizedSkinTone;
+      results.hairLength = results.hairLength || 'Medium';
+
+      // Save using saveBeautyProfile from AppContext
+      await saveBeautyProfile(results);
+      setProgress(100);
+      setHasResults(true);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || 'An error occurred during selfie analysis.');
+      setSelectedPhoto(null);
+      setHasResults(false);
+    } finally {
+      setAnalyzing(false);
+      setScanStep('');
+    }
   };
 
   const handleReset = () => {
@@ -198,10 +331,11 @@ export default function StyleAdvisor() {
     setAnalyzing(false);
     setProgress(0);
     setHasResults(false);
+    setErrorMsg('');
   };
 
   // V2 Expanded style recommendations
-  const styleResults = {
+  const defaultStyleResults = {
     hairstyles: [
       { name: 'Layer Cut', desc: 'Adds movement and lightness to your waves, highlighting your jawline.', image: 'https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?q=80&w=300' },
       { name: 'Soft Waves', desc: 'Perfectly texturized styling that matches your natural 2C density.', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=300' },
@@ -220,6 +354,35 @@ export default function StyleAdvisor() {
       { name: 'Premium Keratin Smoothening', category: 'Hair', salonId: 'toni-guy-jayanagar', serviceId: 'tg-hair-2', desc: 'Remove frizz from 2C wave density.' },
       { name: 'Elite Bridal Makeup', category: 'Bridal', salonId: 'play-salon-vittal-mallya', serviceId: 'play-bridal-1', desc: 'HD bridal styling by celebrity MUAs.' }
     ]
+  };
+
+  const hairstyles = beautyProfile?.recommendedHairstyles?.map((name, idx) => ({
+    name,
+    desc: `Bespoke styling suitable for your ${beautyProfile.faceShape.toLowerCase()} face contour and ${beautyProfile.hairType.toLowerCase()} hair.`,
+    image: defaultStyleResults.hairstyles[idx % defaultStyleResults.hairstyles.length].image
+  })) || defaultStyleResults.hairstyles;
+
+  const makeups = beautyProfile?.recommendedMakeupStyles?.map((name, idx) => ({
+    name,
+    desc: `Premium custom cosmetics tailored for your ${beautyProfile.skinTone.toLowerCase()} skin tone with a ${beautyProfile.undertone?.toLowerCase() || 'warm'} undertone.`,
+    image: defaultStyleResults.makeups[idx % defaultStyleResults.makeups.length].image
+  })) || defaultStyleResults.makeups;
+
+  const services = beautyProfile?.recommendedTreatments?.map((name, idx) => {
+    const isSkincare = name.toLowerCase().includes('facial') || name.toLowerCase().includes('skin') || name.toLowerCase().includes('peel') || name.toLowerCase().includes('glow') || name.toLowerCase().includes('hydra');
+    return {
+      name,
+      category: isSkincare ? 'Skincare' : 'Hair',
+      salonId: idx % 2 === 0 ? 'bodycraft-indiranagar' : 'bounce-koramangala',
+      serviceId: idx % 2 === 0 ? 'bc-facial-1' : 'bounce-scalp-1',
+      desc: `Expertly recommended ${isSkincare ? 'skin conditioning' : 'hair nourishment'} therapy to match your Beauty DNA.`
+    };
+  }) || defaultStyleResults.services;
+
+  const styleResults = {
+    hairstyles,
+    makeups,
+    services
   };
 
   return (
@@ -270,156 +433,173 @@ export default function StyleAdvisor() {
         {activeTab === 'scanner' ? (
           <>
             <section className="max-w-4xl mx-auto">
-          <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
-            
-            {/* Selfie Upload / Selector Area */}
-            <div className="p-8 border-b md:border-b-0 md:border-r border-rosegold-200/50 dark:border-charcoal-800 flex flex-col justify-between space-y-6">
-              <div>
-                <h3 className="text-lg font-bold text-charcoal-950 dark:text-white mb-2">Selfie Upload Sandbox</h3>
-                <p className="text-xs text-charcoal-450 dark:text-rosegold-350">
-                  Select a mock profile photo to preview the AI beauty scanning engine in action.
-                </p>
-              </div>
-
-              {selectedPhoto ? (
-                <div className="relative aspect-square rounded-2xl overflow-hidden border border-rosegold-200 dark:border-charcoal-800 bg-charcoal-50 dark:bg-charcoal-950 flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={selectedPhoto} 
-                    alt="Selfie for analysis" 
-                    className="w-full h-full object-cover" 
-                  />
-                  
-                  {/* Scanner overlay */}
-                  {analyzing && (
-                    <div className="absolute inset-0 bg-black/35 flex flex-col justify-end p-4 text-white">
-                      <div className="animate-scan"></div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-mono">Scanning skin layers...</p>
-                        <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
-                          <div className="bg-rosegold-500 h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {!analyzing && hasResults && (
-                    <div className="absolute inset-0 bg-emerald-950/20 backdrop-blur-xs flex items-center justify-center">
-                      <div className="bg-white/95 dark:bg-charcoal-900/95 p-3 rounded-full text-emerald-600 shadow-lg flex items-center space-x-2 text-xs font-semibold">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Scan Completed</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div 
-                  onClick={() => startAnalysis(mockSelfies[0].url)}
-                  className="cursor-pointer aspect-square rounded-2xl border-2 border-dashed border-rosegold-200 dark:border-charcoal-800 hover:border-rosegold-400 dark:hover:border-rosegold-700 bg-rosegold-50/10 dark:bg-charcoal-950/20 flex flex-col items-center justify-center p-6 text-center space-y-3 group"
-                >
-                  <div className="w-12 h-12 rounded-full bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Camera className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-charcoal-800 dark:text-white">Click mock models below</p>
-                    <p className="text-xs text-charcoal-400">to initiate simulated skin layer detection</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Mock photo list */}
-              <div className="space-y-3">
-                <p className="text-[10px] uppercase font-bold tracking-widest text-charcoal-400">Choose simulated model</p>
-                <div className="flex gap-4">
-                  {mockSelfies.map((ms, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => startAnalysis(ms.url)}
-                      disabled={analyzing}
-                      className={`relative w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${
-                        selectedPhoto === ms.url ? 'border-rosegold-500 ring-2 ring-rosegold-100 scale-105' : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={ms.url} alt={ms.name} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-
-            {/* AI analysis result feedback */}
-            <div className="p-8 bg-rosegold-50/20 dark:bg-charcoal-950/20 flex flex-col justify-between">
-              
-              {hasResults ? (
-                <div className="space-y-6">
+              <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+                
+                {/* Selfie Upload Area */}
+                <div className="p-8 border-b md:border-b-0 md:border-r border-rosegold-200/50 dark:border-charcoal-800 flex flex-col justify-between space-y-6">
                   <div>
-                    <span className="text-[10px] font-bold text-rosegold-500 uppercase tracking-widest">AuraAI Diagnostic</span>
-                    <h3 className="text-xl font-bold text-charcoal-950 dark:text-white mt-1">Beauty DNA Profile</h3>
-                    <p className="text-xs text-charcoal-450 mt-1">Your permanent AI beauty identity token.</p>
-                  </div>
-
-                  {/* Beauty DNA Profile (Section 5) */}
-                  <div className="space-y-3 border border-rosegold-300 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 p-4 rounded-2xl shadow-xs">
-                    <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
-                      <span className="text-charcoal-400">Face Shape:</span>
-                      <span className="font-bold text-charcoal-900 dark:text-white">Oval Contour</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
-                      <span className="text-charcoal-400">Hair Type:</span>
-                      <span className="font-bold text-charcoal-900 dark:text-white">2C Wavy (High Density)</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
-                      <span className="text-charcoal-400">Skin Tone:</span>
-                      <span className="font-bold text-charcoal-900 dark:text-white">Warm Beige / Olive</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
-                      <span className="text-charcoal-400">Preferences:</span>
-                      <span className="font-bold text-charcoal-900 dark:text-white text-right">Luxury / Indiranagar</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs py-1">
-                      <span className="text-charcoal-400">Category:</span>
-                      <span className="font-bold text-rosegold-500">Skincare & Texture Cuts</span>
-                    </div>
-                  </div>
-
-                  {/* Reset action */}
-                  <button
-                    onClick={handleReset}
-                    className="w-full py-2.5 rounded-xl border border-rosegold-300 dark:border-charcoal-800 text-xs font-semibold text-charcoal-800 dark:text-rosegold-100 hover:bg-rosegold-100 dark:hover:bg-charcoal-800 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    Scan Another Selfie
-                  </button>
-                </div>
-              ) : analyzing ? (
-                <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-                  <div className="relative flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-full border-4 border-rosegold-200 border-t-rosegold-500 animate-spin"></div>
-                    <Sparkles className="absolute w-6 h-6 text-rosegold-500 animate-pulse" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-charcoal-800 dark:text-white">Topography Scan in Progress...</p>
-                    <p className="text-xs text-charcoal-400">{progress}% complete</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4 text-charcoal-400">
-                  <Sparkles className="w-10 h-10 text-rosegold-400/80" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-charcoal-850 dark:text-rosegold-100">Advisor Ready</p>
-                    <p className="text-xs leading-relaxed max-w-[240px] mx-auto font-light">
-                      Select a test portrait to analyze face mapping coordinates and load recommendations.
+                    <h3 className="text-lg font-bold text-charcoal-950 dark:text-white mb-2">Selfie Upload Scanner</h3>
+                    <p className="text-xs text-charcoal-450 dark:text-rosegold-350">
+                      Upload your portrait to analyze face mapping coordinates and load custom wellness advice.
                     </p>
                   </div>
+
+                  {selectedPhoto ? (
+                    <div className="relative aspect-square rounded-2xl overflow-hidden border border-rosegold-200 dark:border-charcoal-800 bg-charcoal-50 dark:bg-charcoal-950 flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={selectedPhoto} 
+                        alt="Selfie for analysis" 
+                        className="w-full h-full object-cover" 
+                      />
+                      
+                      {/* Scanner overlay */}
+                      {analyzing && (
+                        <div className="absolute inset-0 bg-black/45 flex flex-col justify-end p-4 text-white">
+                          <div className="animate-scan"></div>
+                          <div className="space-y-2 z-10">
+                            <div className="flex items-center space-x-2 text-xs font-mono text-rosegold-300">
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>{scanStep || 'Scanning skin layers...'}</span>
+                            </div>
+                            <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+                              <div className="bg-rosegold-500 h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {!analyzing && hasResults && (
+                        <div className="absolute inset-0 bg-emerald-950/20 backdrop-blur-xs flex items-center justify-center">
+                          <div className="bg-white/95 dark:bg-charcoal-900/95 p-3 rounded-full text-emerald-600 shadow-lg flex items-center space-x-2 text-xs font-semibold">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Scan Completed</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div 
+                      onDragEnter={handleDrag}
+                      onDragOver={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDrop={handleDrop}
+                      className={`aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center space-y-4 transition-colors ${
+                        dragActive 
+                          ? 'border-rosegold-500 bg-rosegold-50/10 dark:bg-charcoal-950/20' 
+                          : 'border-rosegold-200 dark:border-charcoal-800 hover:border-rosegold-400 dark:hover:border-rosegold-700 bg-rosegold-50/5 dark:bg-charcoal-950/5'
+                      }`}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center">
+                        <Camera className="w-6 h-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-charcoal-800 dark:text-white">Drag and drop your selfie</p>
+                        <p className="text-xs text-charcoal-400">or click below to browse your files</p>
+                      </div>
+                      <label className="px-5 py-2.5 rounded-xl bg-rosegold-500 hover:bg-rosegold-600 text-white text-xs font-semibold cursor-pointer transition-colors inline-block">
+                        Select Photo
+                        <input 
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                      <p className="text-[10px] text-charcoal-400">
+                        Supports JPG, JPEG, PNG, WEBP up to 10 MB
+                      </p>
+                    </div>
+                  )}
+
+                  {errorMsg && (
+                    <div className="p-3 bg-rose-500/10 border border-rose-500/25 rounded-xl text-xs text-rose-500 flex items-center gap-2">
+                      <XCircle className="w-4 h-4 shrink-0" />
+                      <span>{errorMsg}</span>
+                    </div>
+                  )}
                 </div>
-              )}
 
-            </div>
+                {/* AI analysis result feedback */}
+                <div className="p-8 bg-rosegold-50/20 dark:bg-charcoal-950/20 flex flex-col justify-between">
+                  
+                  {hasResults ? (
+                    <div className="space-y-6">
+                      <div>
+                        <span className="text-[10px] font-bold text-rosegold-500 uppercase tracking-widest">AuraAI Diagnostic</span>
+                        <h3 className="text-xl font-bold text-charcoal-950 dark:text-white mt-1">Beauty DNA Profile</h3>
+                        <p className="text-xs text-charcoal-450 mt-1">Your permanent AI beauty identity token.</p>
+                      </div>
 
-          </div>
-        </section>
+                      {/* Beauty DNA Profile */}
+                      <div className="space-y-3 border border-rosegold-300 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 p-4 rounded-2xl shadow-xs">
+                        <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
+                          <span className="text-charcoal-400">Face Shape:</span>
+                          <span className="font-bold text-charcoal-900 dark:text-white">
+                            {beautyProfile?.faceShape || 'Oval Contour'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
+                          <span className="text-charcoal-400">Hair Type:</span>
+                          <span className="font-bold text-charcoal-900 dark:text-white">
+                            {beautyProfile?.hairType || '2C Wavy'} {beautyProfile?.hairDensity ? `(${beautyProfile.hairDensity} Density)` : ''}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
+                          <span className="text-charcoal-400">Skin Tone:</span>
+                          <span className="font-bold text-charcoal-900 dark:text-white">
+                            {beautyProfile?.skinTone || 'Warm Beige / Olive'} {beautyProfile?.undertone ? `(${beautyProfile.undertone} Undertone)` : ''}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
+                          <span className="text-charcoal-400">Preferences:</span>
+                          <span className="font-bold text-charcoal-900 dark:text-white text-right">
+                            {userProfile.preferredBudget || 'Luxury'} / {userProfile.location || 'Indiranagar'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs py-1">
+                          <span className="text-charcoal-400">Category:</span>
+                          <span className="font-bold text-rosegold-500">
+                            {beautyProfile?.hairType?.toLowerCase()?.includes('straight') ? 'Sleek & Hydrate' : 'Skincare & Texture Cuts'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Summary explanation */}
+                      {beautyProfile?.beautySummary && (
+                        <div className="p-4 rounded-xl bg-white dark:bg-charcoal-900 border border-rosegold-200 dark:border-charcoal-800">
+                          <p className="text-xs leading-relaxed text-charcoal-600 dark:text-rosegold-200 italic">
+                            &ldquo;{beautyProfile.beautySummary}&rdquo;
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Reset action */}
+                      <button
+                        onClick={handleReset}
+                        className="w-full py-2.5 rounded-xl border border-rosegold-300 dark:border-charcoal-800 text-xs font-semibold text-charcoal-800 dark:text-rosegold-100 hover:bg-rosegold-100 dark:hover:bg-charcoal-800 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        Scan Another Selfie
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4 text-charcoal-400">
+                      <Sparkles className="w-10 h-10 text-rosegold-400/80" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-charcoal-850 dark:text-rosegold-100">Advisor Ready</p>
+                        <p className="text-xs leading-relaxed max-w-[240px] mx-auto font-light">
+                          Upload a portrait photo to analyze face mapping coordinates and load recommendations.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+
+              </div>
+            </section>
+
 
         {/* V2 Results Panels - Hairstyles, Makeup, Services, Salons */}
         {hasResults && (

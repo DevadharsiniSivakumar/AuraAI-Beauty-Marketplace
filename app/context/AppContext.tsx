@@ -58,6 +58,24 @@ export interface BeautyJourney {
   targetDate: string;
 }
 
+export interface BeautyProfile {
+  userId: string;
+  imageUrl?: string;
+  faceShape: string;
+  hairType: string;
+  hairDensity?: string;
+  skinTone: string;
+  undertone?: string;
+  hairLength: string;
+  beautySummary: string;
+  recommendedHairstyles: string[];
+  recommendedTreatments: string[];
+  recommendedMakeupStyles: string[];
+  lastUpdated: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface AppContextType {
   salons: Salon[];
   bookings: Booking[];
@@ -65,6 +83,7 @@ interface AppContextType {
   chatHistory: ChatMessage[];
   userProfile: UserProfile;
   userMemory: UserMemory | null;
+  beautyProfile: BeautyProfile | null;
   isDarkMode: boolean;
   addBooking: (salonId: string, serviceId: string, date: string, time: string) => Promise<void>;
   cancelBooking: (bookingId: string) => Promise<void>;
@@ -86,6 +105,7 @@ interface AppContextType {
   saveJourney: (journey: Omit<BeautyJourney, 'id' | 'userId' | 'progressPercent' | 'createdAt'>) => Promise<void>;
   updateJourneyStepStatus: (stepNumber: number, status: JourneyStep['status']) => Promise<void>;
   deleteActiveJourney: () => Promise<void>;
+  saveBeautyProfile: (profile: Omit<BeautyProfile, 'userId' | 'lastUpdated'>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -112,6 +132,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [userMemory, setUserMemory] = useState<UserMemory | null>(null);
   const [activeJourney, setActiveJourney] = useState<BeautyJourney | null>(null);
+  const [beautyProfile, setBeautyProfile] = useState<BeautyProfile | null>(null);
+
+  // Load and sync Beauty Profile
+  useEffect(() => {
+    const email = userProfile.email || 'rhea.sen@auraai.in';
+    if (IS_MOCK) {
+      const savedProfile = localStorage.getItem(`aura_beauty_profile_${email}`);
+      if (savedProfile) {
+        setBeautyProfile(JSON.parse(savedProfile));
+      } else {
+        setBeautyProfile(null);
+      }
+    } else {
+      let unsubProfile: any = () => {};
+      const listenToProfile = async () => {
+        try {
+          const { doc, onSnapshot } = await import('firebase/firestore');
+          const { db } = await import('../../lib/firebase');
+          unsubProfile = onSnapshot(doc(db, 'beauty_profiles', email), (docSnap) => {
+            if (docSnap.exists()) {
+              setBeautyProfile(docSnap.data() as BeautyProfile);
+            } else {
+              setBeautyProfile(null);
+            }
+          });
+        } catch (error) {
+          console.error('Failed to listen to beauty profile:', error);
+        }
+      };
+      listenToProfile();
+      return () => {
+        if (unsubProfile) unsubProfile();
+      };
+    }
+  }, [userProfile.email]);
 
   // Load and sync active Beauty Journey
   useEffect(() => {
@@ -941,6 +996,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     persistMemory();
   }, [bookings, reviews, salons, userProfile.email, userProfile.favoriteSalons]);
 
+  // Save Beauty Profile to Firestore / localStorage and update userProfile fields
+  const saveBeautyProfile = async (profileData: Omit<BeautyProfile, 'userId' | 'lastUpdated'>) => {
+    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const nowIso = new Date().toISOString();
+    let finalImageUrl = profileData.imageUrl;
+
+    if (!IS_MOCK && profileData.imageUrl?.startsWith('data:')) {
+      try {
+        const { ref, uploadString, getDownloadURL } = await import('firebase/storage');
+        const { storage } = await import('../../lib/firebase');
+        const storageRef = ref(storage, `beauty_profiles/${email}/selfie.jpg`);
+        const uploadResult = await uploadString(storageRef, profileData.imageUrl, 'data_url');
+        finalImageUrl = await getDownloadURL(uploadResult.ref);
+      } catch (uploadErr) {
+        console.error('Failed to upload profile picture to Firebase Storage:', uploadErr);
+      }
+    }
+
+    const newProfile: BeautyProfile = {
+      ...profileData,
+      imageUrl: finalImageUrl,
+      userId: email,
+      lastUpdated: nowIso,
+      createdAt: beautyProfile?.createdAt || nowIso,
+      updatedAt: nowIso
+    };
+
+    if (IS_MOCK) {
+      setBeautyProfile(newProfile);
+      localStorage.setItem(`aura_beauty_profile_${email}`, JSON.stringify(newProfile));
+    } else {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+      await setDoc(doc(db, 'beauty_profiles', email), newProfile);
+    }
+
+    // Sync changes back to the main user profile
+    updateProfile({
+      faceShape: profileData.faceShape,
+      hairType: profileData.hairType,
+      skinTone: profileData.skinTone
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -950,6 +1049,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         chatHistory,
         userProfile,
         userMemory,
+        beautyProfile,
         isDarkMode,
         addBooking,
         cancelBooking,
@@ -967,7 +1067,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         activeJourney,
         saveJourney,
         updateJourneyStepStatus,
-        deleteActiveJourney
+        deleteActiveJourney,
+        saveBeautyProfile
       }}
     >
       {children}

@@ -9,19 +9,18 @@ import {
   User, 
   Sparkles, 
   MapPin, 
-  Phone, 
-  Mail, 
   Heart, 
   CheckCircle, 
-  SlidersHorizontal,
-  Compass,
   Star,
   ChevronRight,
   Calendar,
   Clock,
   MessageSquare,
   XCircle,
-  Plus
+  Plus,
+  Camera,
+  Upload,
+  RefreshCw
 } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -33,11 +32,13 @@ export default function ProfilePage() {
     reviews, 
     cancelBooking, 
     addReview,
-    userMemory
+    userMemory,
+    beautyProfile,
+    saveBeautyProfile
   } = useApp();
   
   // Tab control
-  const [activeTab, setActiveTab] = useState<'personal' | 'preferences' | 'bookings' | 'reviews'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'preferences' | 'beauty-profile' | 'bookings' | 'reviews'>('personal');
 
   // Personal Info Form State
   const [name, setName] = useState(userProfile.name);
@@ -53,6 +54,116 @@ export default function ProfilePage() {
 
   // Success indicators
   const [isSaved, setIsSaved] = useState(false);
+
+  // Selfie upload & analysis state
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [scanStep, setScanStep] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleSelfieChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setErrorMsg('');
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelfiePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAnalyzeProfile = async () => {
+    if (!selfiePreview) return;
+
+    setIsAnalyzing(true);
+    setErrorMsg('');
+
+    const steps = [
+      'Scanning facial contours & alignment...',
+      'Analyzing hair texture & density...',
+      'Measuring skin tone & melanin levels...',
+      'Synthesizing clinical beauty profile...',
+      'Generating bespoke style insights...'
+    ];
+
+    let currentStepIdx = 0;
+    setScanStep(steps[currentStepIdx]);
+
+    const stepInterval = setInterval(() => {
+      if (currentStepIdx < steps.length - 1) {
+        currentStepIdx++;
+        setScanStep(steps[currentStepIdx]);
+      }
+    }, 700);
+
+    try {
+      const response = await fetch('/api/analyze-selfie', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          image: selfiePreview
+        })
+      });
+
+      clearInterval(stepInterval);
+
+      if (!response.ok) {
+        throw new Error('Analysis failed.');
+      }
+
+      const results = await response.json();
+      
+      // Normalize values to match dropdown entries perfectly
+      let normalizedFaceShape = results.faceShape || 'Oval';
+      if (normalizedFaceShape.toLowerCase().includes('oval')) normalizedFaceShape = 'Oval';
+      else if (normalizedFaceShape.toLowerCase().includes('round')) normalizedFaceShape = 'Round';
+      else if (normalizedFaceShape.toLowerCase().includes('square')) normalizedFaceShape = 'Square';
+      else if (normalizedFaceShape.toLowerCase().includes('heart')) normalizedFaceShape = 'Heart';
+      else normalizedFaceShape = 'Oval';
+
+      let normalizedHairType = results.hairType || '2C Wavy';
+      if (normalizedHairType.toLowerCase().includes('wavy')) normalizedHairType = '2C Wavy';
+      else if (normalizedHairType.toLowerCase().includes('curly')) normalizedHairType = 'Curly';
+      else if (normalizedHairType.toLowerCase().includes('coily')) normalizedHairType = 'Coily';
+      else if (normalizedHairType.toLowerCase().includes('straight')) normalizedHairType = 'Straight';
+      else normalizedHairType = '2C Wavy';
+
+      let normalizedSkinTone = results.skinTone || 'Warm Beige / Olive';
+      if (normalizedSkinTone.toLowerCase().includes('olive') || normalizedSkinTone.toLowerCase().includes('beige') || normalizedSkinTone.toLowerCase().includes('honey')) {
+        normalizedSkinTone = 'Warm Beige / Olive';
+      } else if (normalizedSkinTone.toLowerCase().includes('fair') || normalizedSkinTone.toLowerCase().includes('pink')) {
+        normalizedSkinTone = 'Fair / Cool Pink';
+      } else if (normalizedSkinTone.toLowerCase().includes('bronze') || normalizedSkinTone.toLowerCase().includes('deep') || normalizedSkinTone.toLowerCase().includes('umber')) {
+        normalizedSkinTone = 'Deep Bronze';
+      } else {
+        normalizedSkinTone = 'Warm Beige / Olive';
+      }
+
+      results.faceShape = normalizedFaceShape;
+      results.hairType = normalizedHairType;
+      results.skinTone = normalizedSkinTone;
+
+      await saveBeautyProfile(results);
+      
+      // Sync form inputs with newly loaded profile
+      setFaceShape(normalizedFaceShape);
+      setHairType(normalizedHairType);
+      setSkinTone(normalizedSkinTone);
+      
+    } catch (err) {
+      const error = err as Error;
+      clearInterval(stepInterval);
+      console.error(error);
+      setErrorMsg(error.message || 'An error occurred during selfie analysis.');
+    } finally {
+      setIsAnalyzing(false);
+      setScanStep('');
+    }
+  };
 
   // Write Review State
   const [reviewSalonId, setReviewSalonId] = useState('');
@@ -109,7 +220,16 @@ export default function ProfilePage() {
   const sortedBookings = [...bookings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Filter reviews authored by this user
-  const userReviews = (reviews as any[]).filter(r => r.author === userProfile.name);
+  interface ProfileReview {
+    id: string;
+    author: string;
+    rating: number;
+    date: string;
+    comment: string;
+    salonName: string;
+    salonId: string;
+  }
+  const userReviews = (reviews as unknown as ProfileReview[]).filter(r => r.author === userProfile.name);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -159,6 +279,17 @@ export default function ProfilePage() {
                 }`}
               >
                 Beauty Preferences
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('beauty-profile')}
+                className={`py-2.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'beauty-profile'
+                    ? 'border-rosegold-500 text-rosegold-600 dark:text-rosegold-400'
+                    : 'border-transparent text-charcoal-400 hover:text-charcoal-650 dark:hover:text-white'
+                }`}
+              >
+                Beauty Profile
               </button>
               <button
                 type="button"
@@ -339,6 +470,224 @@ export default function ProfilePage() {
                 </form>
               )}
 
+              {/* Tab: Beauty Profile */}
+              {activeTab === 'beauty-profile' && (
+                <div className="space-y-6 animate-fade-in">
+                  
+                  {/* If profile doesn't exist AND we are not analyzing/previewing */}
+                  {!beautyProfile && !selfiePreview && (
+                    <div className="flex flex-col items-center justify-center p-10 border border-dashed border-rosegold-300 dark:border-charcoal-800 rounded-2xl bg-rosegold-50/5 dark:bg-charcoal-950/5 text-center space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-rosegold-100/40 dark:bg-charcoal-850/60 flex items-center justify-center text-rosegold-600 dark:text-rosegold-400">
+                        <Camera className="w-8 h-8" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-base font-bold text-charcoal-900 dark:text-white font-playfair">Upload Your Selfie</h4>
+                        <p className="text-xs text-charcoal-400 max-w-sm">
+                          Let Aura analyze your face shape, hair type, and skin tone to build your personalized luxury beauty profile.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-xs shadow-xs hover:scale-102 hover:shadow-md transition-all cursor-pointer">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Select Photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleSelfieChange}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* If previewing / analyzing */}
+                  {!beautyProfile && selfiePreview && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                      <div className="relative aspect-square w-full max-w-xs mx-auto rounded-2xl overflow-hidden border border-rosegold-300 dark:border-charcoal-800 bg-charcoal-100 dark:bg-charcoal-950/45">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={selfiePreview} alt="Selfie preview" className="w-full h-full object-cover" />
+                        
+                        {isAnalyzing && (
+                          <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center p-4">
+                            {/* Scanning Animation */}
+                            <div className="animate-scan"></div>
+                            
+                            <div className="text-center space-y-3 pt-6">
+                              <RefreshCw className="w-8 h-8 text-gold-metallic animate-spin mx-auto" />
+                              <div className="space-y-1">
+                                <span className="block text-[10px] font-bold uppercase tracking-widest text-gold-light">Aura Scanning</span>
+                                <p className="text-xs text-white font-medium animate-pulse">{scanStep}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <h4 className="text-base font-bold text-charcoal-900 dark:text-white font-playfair">Ready for Analysis</h4>
+                          <p className="text-xs text-charcoal-400">
+                            Our AI will evaluate your facial geometry, melanin scale, and hair structure to deliver custom recommendations.
+                          </p>
+                        </div>
+
+                        {errorMsg && (
+                          <div className="p-3 bg-rose-500/10 border border-rose-500/25 rounded-xl text-xs text-rose-500 flex items-center gap-2">
+                            <XCircle className="w-4 h-4 shrink-0" />
+                            <span>{errorMsg}</span>
+                          </div>
+                        )}
+
+                        {!isAnalyzing && (
+                          <div className="flex gap-3">
+                            <button
+                              onClick={handleAnalyzeProfile}
+                              className="px-5 py-2.5 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-xs shadow-xs hover:scale-102 transition-all cursor-pointer flex items-center gap-1.5"
+                            >
+                              <Sparkles className="w-4 h-4" />
+                              Analyze Profile
+                            </button>
+                            <label className="px-4 py-2.5 rounded-xl border border-rosegold-200 dark:border-charcoal-800 text-charcoal-700 dark:text-rosegold-200 text-xs font-semibold hover:bg-rosegold-50 dark:hover:bg-charcoal-900 transition-colors flex items-center justify-center cursor-pointer">
+                              Change Photo
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleSelfieChange}
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* If profile exists */}
+                  {beautyProfile && (
+                    <div className="space-y-6 animate-fade-in">
+                      
+                      {/* Top Header details */}
+                      <div className="flex justify-between items-center pb-2 border-b border-rosegold-100 dark:border-charcoal-800">
+                        <div>
+                          <h3 className="font-bold text-charcoal-900 dark:text-white text-base font-playfair">Your Custom Beauty DNA</h3>
+                          <span className="text-[10px] text-charcoal-400 font-mono">Last updated: {new Date(beautyProfile.lastUpdated).toLocaleDateString()}</span>
+                        </div>
+                        
+                        <label className="px-3.5 py-1.5 rounded-lg border border-rosegold-200 dark:border-charcoal-800 text-charcoal-700 dark:text-rosegold-200 text-[10px] uppercase font-bold tracking-wider hover:bg-rosegold-50 dark:hover:bg-charcoal-900 transition-colors cursor-pointer flex items-center gap-1.5">
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          Re-Analyze
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              handleSelfieChange(e);
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
+                      {/* Display Results */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        {/* Summary & Core Metrics */}
+                        <div className="lg:col-span-3 space-y-4">
+                          
+                          {/* Summary Card */}
+                          <div className="p-5 rounded-2xl bg-linear-to-r from-rosegold-500/10 to-gold-metallic/5 dark:from-charcoal-905 border border-rosegold-200/50 dark:border-charcoal-800/80">
+                            <h4 className="text-xs font-bold text-rosegold-600 dark:text-gold-light uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-rosegold-500" />
+                              Beauty Profile Summary
+                            </h4>
+                            <p className="text-sm leading-relaxed text-charcoal-800 dark:text-rosegold-50 italic">
+                              &ldquo;{beautyProfile.beautySummary}&rdquo;
+                            </p>
+                          </div>
+
+                          {/* 4 Core Dimensions */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                            <div className="p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80 flex flex-col justify-between h-20">
+                              <span className="text-charcoal-400 uppercase tracking-wider text-[10px]">Face Shape</span>
+                              <span className="font-bold text-sm text-charcoal-950 dark:text-white font-playfair">{beautyProfile.faceShape}</span>
+                            </div>
+                            <div className="p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80 flex flex-col justify-between h-20">
+                              <span className="text-charcoal-400 uppercase tracking-wider text-[10px]">Hair Type</span>
+                              <span className="font-bold text-sm text-charcoal-950 dark:text-white font-playfair">{beautyProfile.hairType}</span>
+                            </div>
+                            <div className="p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80 flex flex-col justify-between h-20">
+                              <span className="text-charcoal-400 uppercase tracking-wider text-[10px]">Skin Tone</span>
+                              <span className="font-bold text-sm text-charcoal-950 dark:text-white font-playfair">{beautyProfile.skinTone}</span>
+                            </div>
+                            <div className="p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80 flex flex-col justify-between h-20">
+                              <span className="text-charcoal-400 uppercase tracking-wider text-[10px]">Hair Length</span>
+                              <span className="font-bold text-sm text-charcoal-950 dark:text-white font-playfair">{beautyProfile.hairLength}</span>
+                            </div>
+                          </div>
+
+                        </div>
+
+                        {/* Recommendations */}
+                        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                          
+                          {/* Hairstyles Card */}
+                          <div className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/5 space-y-3">
+                            <h4 className="font-bold text-xs uppercase tracking-wider text-charcoal-950 dark:text-white flex items-center gap-1.5 pb-2 border-b border-rosegold-100 dark:border-charcoal-800 font-playfair">
+                              <Sparkles className="w-3.5 h-3.5 text-rosegold-550" />
+                              Recommended Hairstyles
+                            </h4>
+                            <ul className="space-y-2 text-xs">
+                              {beautyProfile.recommendedHairstyles?.map((h, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-charcoal-700 dark:text-rosegold-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rosegold-500 mt-1.5 shrink-0" />
+                                  <span>{h}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Treatments Card */}
+                          <div className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/5 space-y-3">
+                            <h4 className="font-bold text-xs uppercase tracking-wider text-charcoal-950 dark:text-white flex items-center gap-1.5 pb-2 border-b border-rosegold-100 dark:border-charcoal-800 font-playfair">
+                              <Sparkles className="w-3.5 h-3.5 text-rosegold-550" />
+                              Recommended Treatments
+                            </h4>
+                            <ul className="space-y-2 text-xs">
+                              {beautyProfile.recommendedTreatments?.map((t, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-charcoal-700 dark:text-rosegold-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rosegold-500 mt-1.5 shrink-0" />
+                                  <span>{t}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Makeup Styles Card */}
+                          <div className="p-4 rounded-xl border border-rosegold-150 dark:border-charcoal-800 bg-rosegold-50/5 dark:bg-charcoal-950/5 space-y-3">
+                            <h4 className="font-bold text-xs uppercase tracking-wider text-charcoal-950 dark:text-white flex items-center gap-1.5 pb-2 border-b border-rosegold-100 dark:border-charcoal-800 font-playfair">
+                              <Sparkles className="w-3.5 h-3.5 text-rosegold-550" />
+                              Makeup Look Suggestions
+                            </h4>
+                            <ul className="space-y-2 text-xs">
+                              {beautyProfile.recommendedMakeupStyles?.map((m, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-charcoal-700 dark:text-rosegold-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rosegold-500 mt-1.5 shrink-0" />
+                                  <span>{m}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+                  )}
+
+                </div>
+              )}
+
               {/* Tab 3: Booking History */}
               {activeTab === 'bookings' && (
                 <div className="space-y-4 animate-fade-in">
@@ -419,13 +768,13 @@ export default function ProfilePage() {
                               {rev.rating} / 5
                             </div>
                           </div>
-                          <p className="text-xs text-charcoal-650 dark:text-rosegold-200 italic font-light">"{rev.comment}"</p>
+                          <p className="text-xs text-charcoal-650 dark:text-rosegold-200 italic font-light">&ldquo;{rev.comment}&rdquo;</p>
                         </div>
                       ))
                     ) : (
                       <div className="text-center py-8 text-charcoal-400 text-xs font-light">
                         <MessageSquare className="w-8 h-8 mx-auto text-charcoal-300 mb-2" />
-                        You haven't written any reviews yet. Share your feedback below.
+                        You haven&apos;t written any reviews yet. Share your feedback below.
                       </div>
                     )}
                   </div>
