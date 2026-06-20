@@ -35,6 +35,27 @@ export interface ChatMessage {
     reasons?: string[];
     memoryIndicator?: string;
   }[];
+  comparison?: {
+    feature1Comparison: {
+      salonName: string;
+      rating: number;
+      priceRange: string;
+      reviewScore: string;
+      popularServices: string[];
+      aiRecommendationBadge: string;
+    }[];
+    feature2ReviewIntelligence: {
+      salonName: string;
+      overallSentiment: string;
+      topStrengths: string[];
+      commonComplaints: string[];
+      mostMentionedServices: string[];
+    }[];
+    recommendation: {
+      recommendedSalonName: string;
+      reasonText: string;
+    };
+  };
 }
 
 export interface JourneyStep {

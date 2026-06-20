@@ -14,7 +14,8 @@ import {
   Star,
   Tag,
   CheckCircle,
-  History
+  History,
+  XCircle
 } from 'lucide-react';
 
 export default function AiConcierge() {
@@ -109,7 +110,8 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
           sender: 'aura',
           text: data.response,
           timestamp: data.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          recommendations: data.recommendations
+          recommendations: data.recommendations,
+          comparison: data.comparison
         };
         
         setMessages(prev => [...prev, auraMsg]);
@@ -289,7 +291,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                     </div>
 
                     {/* V2 Recommended Cards with reasoning list */}
-                    {isAura && msg.recommendations && msg.recommendations.length > 0 && (
+                    {isAura && msg.recommendations && msg.recommendations.length > 0 && !msg.comparison && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                         {msg.recommendations.map((rec, idx) => {
                           const salonId = rec.type === 'salon' ? rec.id : rec.salonId;
@@ -387,6 +389,147 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+
+                    {/* V2 Comparison Cards directly inside chat stream */}
+                    {isAura && msg.comparison && (
+                      <div className="space-y-6 pt-2 max-w-3xl">
+                        {/* 1. AI Recommendation Banner */}
+                        <div className="bg-linear-to-r from-rosegold-500 to-gold-metallic rounded-2xl p-5 shadow-xs text-white relative overflow-hidden">
+                          <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                          <div className="relative z-10 flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0">
+                              <Star className="w-5 h-5 fill-white text-white" />
+                            </div>
+                            <div>
+                              <h5 className="text-[9px] uppercase tracking-widest font-bold text-white/80 mb-0.5">Aura Recommendation</h5>
+                              <h4 className="text-sm font-bold font-playfair mb-1">{msg.comparison.recommendation.recommendedSalonName}</h4>
+                              <p className="text-xs text-white/90 leading-relaxed">
+                                {msg.comparison.recommendation.reasonText}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 2. Side-by-Side Comparison Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {msg.comparison.feature1Comparison.map((salon, cIdx) => {
+                            const salonObj = salons.find(s => s.name === salon.salonName);
+                            return (
+                              <div key={cIdx} className="bg-white dark:bg-charcoal-900 rounded-2xl border border-rosegold-200 dark:border-charcoal-800 shadow-2xs hover:shadow-xs transition-shadow overflow-hidden flex flex-col justify-between">
+                                <div className="p-4 space-y-4">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h5 className="text-sm font-bold text-charcoal-950 dark:text-white font-playfair">{salon.salonName}</h5>
+                                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rosegold-50 dark:bg-charcoal-800 border border-rosegold-100 dark:border-charcoal-700 mt-1">
+                                        <Sparkles className="w-3 h-3 text-rosegold-500" />
+                                        <span className="text-[8px] font-bold text-charcoal-800 dark:text-rosegold-200 uppercase tracking-wider">{salon.aiRecommendationBadge}</span>
+                                      </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                      <div className="flex items-center justify-end text-rosegold-550 font-bold text-sm">
+                                        <Star className="w-3.5 h-3.5 fill-rosegold-500 mr-0.5" />
+                                        {salon.rating}
+                                      </div>
+                                      <span className="text-[10px] text-charcoal-450 block">{salon.priceRange}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-2 pt-3 border-t border-rosegold-100 dark:border-charcoal-800 text-xs">
+                                    <div>
+                                      <span className="text-[9px] text-charcoal-400 block mb-0.5 uppercase tracking-wider">Review Consensus</span>
+                                      <p className="font-medium text-charcoal-800 dark:text-white">{salon.reviewScore}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-[9px] text-charcoal-400 block mb-1 uppercase tracking-wider font-semibold">Popular Treatments</span>
+                                      <div className="flex flex-wrap gap-1">
+                                        {salon.popularServices.map((srv, sIdx) => (
+                                          <span key={sIdx} className="text-[8px] px-1.5 py-0.5 rounded bg-charcoal-50 dark:bg-charcoal-950 border border-charcoal-100 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-200">
+                                            {srv}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                {salonObj && (
+                                  <div className="px-4 py-2.5 bg-rosegold-50/50 dark:bg-charcoal-950 border-t border-rosegold-100 dark:border-charcoal-800">
+                                    <Link 
+                                      href={`/booking?salon=${salonObj.id}`}
+                                      className="text-[10px] font-bold text-rosegold-600 dark:text-gold-medium hover:text-rosegold-700 dark:hover:text-gold-light flex items-center gap-1 w-fit"
+                                    >
+                                      Book Now <Compass className="w-3 h-3" />
+                                    </Link>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* 3. Review Intelligence Panel */}
+                        <div className="space-y-4">
+                          <h5 className="text-xs font-bold text-charcoal-950 dark:text-white flex items-center gap-1.5 border-b border-rosegold-100 dark:border-charcoal-800 pb-2">
+                            <Star className="w-4 h-4 text-rosegold-500" />
+                            Review Intelligence Insights
+                          </h5>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {msg.comparison.feature2ReviewIntelligence.map((intel, intelIdx) => {
+                              const isPositive = intel.overallSentiment.toLowerCase() === 'positive';
+                              const isNegative = intel.overallSentiment.toLowerCase() === 'negative';
+                              return (
+                                <div key={intelIdx} className="bg-white dark:bg-charcoal-900 rounded-2xl border border-rosegold-200 dark:border-charcoal-800 p-4 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <h6 className="text-xs font-bold text-charcoal-900 dark:text-white truncate">{intel.salonName}</h6>
+                                    <span className={`text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                                      isPositive
+                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400'
+                                        : isNegative
+                                          ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400'
+                                          : 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400'
+                                    }`}>
+                                      {intel.overallSentiment} Sentiment
+                                    </span>
+                                  </div>
+
+                                  <div className="space-y-2.5 pt-1">
+                                    {/* Strengths */}
+                                    <div className="space-y-1">
+                                      <span className="text-[9px] text-charcoal-400 font-bold uppercase tracking-wider block">Key Strengths</span>
+                                      <div className="space-y-1">
+                                        {intel.topStrengths.map((str, sIdx) => (
+                                          <p key={sIdx} className="text-[10px] text-charcoal-600 dark:text-rosegold-200 flex items-start gap-1">
+                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                            <span>{str}</span>
+                                          </p>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Complaints */}
+                                    <div className="space-y-1">
+                                      <span className="text-[9px] text-charcoal-400 font-bold uppercase tracking-wider block">Complaints / Cons</span>
+                                      <div className="space-y-1">
+                                        {intel.commonComplaints && intel.commonComplaints.length > 0 && intel.commonComplaints[0] !== '' ? (
+                                          intel.commonComplaints.map((comp, cIdx) => (
+                                            <p key={cIdx} className="text-[10px] text-charcoal-550 dark:text-rosegold-300 flex items-start gap-1">
+                                              <XCircle className="w-3.5 h-3.5 text-red-350 shrink-0" />
+                                              <span>{comp}</span>
+                                            </p>
+                                          ))
+                                        ) : (
+                                          <p className="text-[10px] text-charcoal-400 italic">No significant complaints found.</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
                       </div>
                     )}
                   </div>

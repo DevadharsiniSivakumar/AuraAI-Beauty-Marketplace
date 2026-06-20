@@ -57,6 +57,7 @@ export async function POST(request: Request) {
       lowerQuery.includes('fee') ||
       lowerQuery.includes('comparison') ||
       lowerQuery.includes('versus') ||
+      lowerQuery.includes('compare') ||
       lowerQuery.includes(' vs ');
 
     const isRecommendationRequested = 
@@ -69,6 +70,55 @@ export async function POST(request: Request) {
     const recommendations = isRecommendationRequested
       ? await searchAndRank(parsedQuery, clientProfile, clientBookings)
       : [];
+
+    // Check if comparison is requested
+    const isComparisonDetected = 
+      parsedQuery.intent === 'salon_comparison' || 
+      lowerQuery.includes('compare') || 
+      lowerQuery.includes('versus') || 
+      lowerQuery.includes(' vs ');
+
+    let comparison = undefined;
+    if (isComparisonDetected) {
+      try {
+        const { getSalonsAndServices } = await import('../../../lib/searchEngine');
+        const { generateComparisonMetrics } = await import('../../../lib/analyticsEngine');
+        
+        // Retrieve salons to compare
+        const allSalons = await getSalonsAndServices();
+        let targetSalons = allSalons;
+        
+        if (parsedQuery.queriedSalons.length > 0) {
+          targetSalons = allSalons.filter(s => parsedQuery.queriedSalons.includes(s.id));
+        } else if (recommendations.length > 0) {
+          const recIds = recommendations.map(r => r.salonId || r.id);
+          targetSalons = allSalons.filter(s => recIds.includes(s.id));
+        }
+        
+        // If targetSalons has less than 2, default to top-rated ones for comparison
+        if (targetSalons.length < 2) {
+          targetSalons = allSalons.slice(0, 2);
+        }
+        
+        const metrics = generateComparisonMetrics(targetSalons);
+        const hasApiKey = !!process.env.GROQ_API_KEY;
+        
+        if (hasApiKey) {
+          try {
+            const { generateSalonComparison } = await import('../../../lib/groq');
+            const compResponseStr = await generateSalonComparison(message, metrics, memoryContext);
+            comparison = JSON.parse(compResponseStr);
+          } catch (apiErr) {
+            console.error('Groq comparison failed, falling back to local fallback:', apiErr);
+            comparison = generateLocalComparisonFallback(targetSalons, message);
+          }
+        } else {
+          comparison = generateLocalComparisonFallback(targetSalons, message);
+        }
+      } catch (err) {
+        console.error('Error generating comparison in concierge route:', err);
+      }
+    }
 
     // 3. Generate Groq Narrative Explanation
     let aiResponse = '';
@@ -95,6 +145,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       intent: parsedQuery.intent,
       recommendations,
+      comparison,
       response: aiResponse,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
@@ -123,144 +174,145 @@ function generateLocalExplanation(
   const bp = beautyProfile;
   const lowerQuery = userQuery ? userQuery.toLowerCase().trim() : '';
 
-  // Check if the user is asking about performing a treatment at home, or expresses reluctance to visit a salon
-  const isHomeQuery = lowerQuery.includes('home') || lowerQuery.includes('diy') || lowerQuery.includes('self') || lowerQuery.includes('myself') || lowerQuery.includes('remed');
+  // 1. Basic greetings & how-it-works responses (non-beauty/non-treatment queries)
+  const isGreeting = lowerQuery.includes('hello') || lowerQuery.includes('hi ') || lowerQuery.includes('hey') || lowerQuery === 'hi' || lowerQuery === 'hello';
+  const isInfoQuery = lowerQuery.includes('how do you work') || lowerQuery.includes('what can you do') || lowerQuery.includes('who are you');
 
-  if (isHomeQuery) {
-    let remedyText = '';
-    let category = 'skin';
-    if (lowerQuery.includes('hair') || lowerQuery.includes('scalp') || lowerQuery.includes('cut')) {
-      category = 'hair';
-    }
-
-    if (category === 'hair') {
-      remedyText = `You can certainly try some natural DIY alternatives at home for your hair, such as applying a warm coconut oil or argan oil mask, or using a mixture of fresh aloe vera gel and organic yogurt to soothe the scalp and smooth down hair cuticles.`;
-    } else {
-      remedyText = `You can certainly try some gentle, natural home remedies for your skin, such as applying a raw honey and organic yogurt mask to hydrate and soothe the epidermis, or using a warm oatmeal compress to calm minor redness.`;
-    }
-
-    const challengesText = category === 'hair'
-      ? `However, achieving deep hair restructuring, structural damage repair, or precision styling at home is incredibly challenging. Without professional-grade bond builders (like Olaplex), localized steam rehydration hoods, and the experienced technique of a stylist, DIY attempts often fail to deliver long-term results and can lead to product buildup or uneven texture.`
-      : `However, performing professional-grade facials or deep exfoliation at home is difficult and carries risks. Without specialized tools like clinical vortex suction, high-efficacy active ingredient serums, and sterile extraction techniques, DIY facial attempts can lead to skin barrier irritation, clogged pores, or even micro-tears in the skin.`;
-
-    let recsText = '';
-    if (recommendations.length > 0) {
-      recsText = `To give your ${category === 'hair' ? 'hair' : 'skin'} the safe, expert treatment it deserves, I highly recommend considering these curated salon options:\n\n` + 
-        recommendations.map((rec) => {
-          if (rec.type === 'service') {
-            return `• **${rec.name}** at *${rec.details}* (₹${rec.price}): Matches because it is ${rec.reasons.join(' & ').toLowerCase()}.`;
-          } else {
-            return `• **${rec.name}** in *${rec.details}* (${rec.matchScore}% match): Matches because it offers ${rec.reasons.join(' & ').toLowerCase()}.`;
-          }
-        }).join('\n') + `\n\nDid you know? Outlets like **Bodycraft Salon & Spa** offer premium doorstep home services, meaning you can get professional treatment in the comfort of your own home!`;
-    } else {
-      recsText = `For optimal safety and satisfying results, I suggest looking into professional salon treatments like a professional Hydra Facial or a scalp recovery spa, where experts can tailor the care to your specific hair/skin profile.`;
-    }
-
-    return `Hello ${nameFirst}! 
-
-${remedyText}
-
-${challengesText}
-
-${recsText}
-
-Let me know if you would like me to help you schedule a booking or compare these options!`;
+  if (isGreeting) {
+    return `Hello ${nameFirst}! I'm Aura, your personal AI Beauty & Wellness Concierge. How can I assist you with your beauty journey today? I can guide you on hairstyles, suggest skincare routines tailored to your profile, or help you find the best luxury salons in Bangalore.`;
+  }
+  if (isInfoQuery) {
+    return `Hello ${nameFirst}! I am Aura, your sophisticated AI Beauty Advisor. I analyze your unique Beauty Profile (such as your face shape, hair type, and skin tone) to recommend the most optimal treatments. I also scan premium wellness salons in Bangalore to match your budget and locality preferences. Simply ask me for style advice, salon recommendations, or to compare treatments!`;
   }
 
-  // Custom personalization prefix based on userMemory & beautyProfile
+  // 2. Identify Category: Hair vs. Skin vs. Wedding Prep vs. General
+  let category: 'hair' | 'skin' | 'wedding' | 'general' = 'general';
+  if (lowerQuery.includes('hair') || lowerQuery.includes('scalp') || lowerQuery.includes('cut') || lowerQuery.includes('dandruff') || lowerQuery.includes('frizz') || lowerQuery.includes('bald') || lowerQuery.includes('fall') || lowerQuery.includes('styling') || lowerQuery.includes('shag') || lowerQuery.includes('wave') || lowerQuery.includes('curl') || lowerQuery.includes('colour') || lowerQuery.includes('color')) {
+    category = 'hair';
+  } else if (lowerQuery.includes('skin') || lowerQuery.includes('acne') || lowerQuery.includes('glow') || lowerQuery.includes('facial') || lowerQuery.includes('tan') || lowerQuery.includes('blackhead') || lowerQuery.includes('pore') || lowerQuery.includes('peel') || lowerQuery.includes('face') || lowerQuery.includes('undertone')) {
+    category = 'skin';
+  } else if (lowerQuery.includes('wed') || lowerQuery.includes('marri') || lowerQuery.includes('brid') || lowerQuery.includes('groom') || lowerQuery.includes('event') || lowerQuery.includes('party')) {
+    category = 'wedding';
+  }
+
+  // Build Personalized Prefix context based on Beauty Profile/Memory
   let personalizationPrefix = '';
   if (bp) {
     const densityText = bp.hairDensity ? `, ${bp.hairDensity.toLowerCase()}-density` : '';
     const undertoneText = bp.undertone ? `, with a ${bp.undertone.toLowerCase()} undertone` : '';
-    personalizationPrefix += `considering your ${bp.faceShape.toLowerCase()} face contour${undertoneText} and ${bp.hairType.toLowerCase()}${densityText} hair type, `;
+    personalizationPrefix += `Considering your ${bp.faceShape.toLowerCase()} face contour${undertoneText} and ${bp.hairType.toLowerCase()}${densityText} hair type, `;
   } else if (userMemory) {
     const prefersSkincare = userMemory.preferredServices?.some((s: string) => 
       s.toLowerCase().includes('facial') || s.toLowerCase().includes('skin')
     );
     if (prefersSkincare) {
-      personalizationPrefix += `since you highly rate skincare treatments like Hydra Facials, `;
+      personalizationPrefix += `Since you highly rate skincare treatments like Hydra Facials, `;
     } else if (userMemory.preferredServices && userMemory.preferredServices.length > 0) {
-      personalizationPrefix += `based on your previous bookings for ${userMemory.preferredServices[0]} treatments, `;
+      personalizationPrefix += `Based on your previous bookings for ${userMemory.preferredServices[0]} treatments, `;
     }
   }
-  
+
   if (userMemory && userMemory.averageBudget > 0) {
-    const conjunction = personalizationPrefix ? 'and considering ' : 'considering ';
+    const conjunction = personalizationPrefix ? 'and considering ' : 'Considering ';
     personalizationPrefix += `${conjunction}your typical budget range of around ₹${userMemory.averageBudget}, `;
   }
-  
-  if (personalizationPrefix) {
-    personalizationPrefix = personalizationPrefix.trim();
-    if (!personalizationPrefix.endsWith(',')) {
-      personalizationPrefix += ',';
-    }
-    personalizationPrefix = personalizationPrefix.charAt(0).toUpperCase() + personalizationPrefix.slice(1) + ' ';
+
+  // 3. Define Sequence Steps: Home Remedies -> Limitations/Challenges -> Suggest Salon
+  let remedyText = '';
+  let challengesText = '';
+  let salonSuggestionHeading = '';
+
+  if (category === 'hair') {
+    remedyText = `You can certainly try some gentle, natural DIY alternatives at home to soothe your hair and scalp. Applying a lukewarm mask of organic coconut oil blended with argan oil works well to coat the hair shaft, while a paste of fresh aloe vera gel and unsweetened yogurt can help calm scalp dryness and smoothen cuticle flyaways.`;
+    challengesText = `However, achieving deep structural repair (like restructuring split bonds), professional moisture replenishment, or precision styling at home is incredibly challenging. Without professional-grade bond builders, specialized steam rehydration hoods, and the experienced technique of a master stylist, home-based DIY treatments often result in heavy product buildup, scalp clogging, or uneven hair texture rather than structural rejuvenation.`;
+    salonSuggestionHeading = `To give your hair the safe, expert rehydration and care it needs, I highly recommend exploring professional treatments:`;
+  } else if (category === 'skin') {
+    remedyText = `You can start with some safe, calming home remedies to support your skin's surface. Applying a thin layer of raw honey combined with organic yogurt is excellent for light hydration and soothing minor redness, while a cool, finely ground oatmeal compress can help calm skin irritation.`;
+    challengesText = `However, performing professional-grade facials, deep pore extractions, or advanced exfoliation at home is difficult and carries significant risks. Without specialized clinical tools like vortex suction, sterile extraction loops, and professional-strength active serums, DIY attempts can lead to skin barrier disruption, increased bacterial spread, acne inflammation, or even permanent micro-tearing of the skin tissue.`;
+    salonSuggestionHeading = `To achieve a deep, safe, and truly radiant transformation for your skin, professional care is the safest and most effective path:`;
+  } else if (category === 'wedding') {
+    remedyText = `For wedding or event preparation, you can begin with gentle home care. Consuming plenty of water, performing light herbal steam inhalation, and using mild, home-made nourishing face packs (like chickpea flour and turmeric) are great ways to keep your skin naturally refreshed in the weeks leading up to the event.`;
+    challengesText = `However, achieving flawless all-day makeup longevity, perfect high-definition contouring, and advanced hairstyling that holds under professional event lighting is extremely difficult to do on your own at home. Professional-grade styling requires calibrated HD airbrushing, specialist primers, lighting-adjusted color matching, and meticulous bridal artistry that standard over-the-counter cosmetics simply cannot replicate.`;
+    salonSuggestionHeading = `To ensure you look absolutely radiant and stress-free on your special day, relying on professional stylist support is highly recommended:`;
+  } else {
+    // General category
+    remedyText = `You can start with natural, home-based self-care routines. Maintaining a consistent gentle cleansing routine, keeping your skin and hair well-moisturized with pure aloe vera, and protecting your skin barrier are wonderful daily habits to keep yourself glowing.`;
+    challengesText = `However, standard over-the-counter home care lacks the targeted strength and clinical customization required to address deep beauty goals. Without professional diagnosis, high-efficacy concentrated serums, and custom wellness equipment, generic at-home routines are often slow to show results and cannot be calibrated to your exact physical beauty profile characteristics.`;
+    salonSuggestionHeading = `For optimal, personalized results that are scientifically tailored to your exact profile, professional salon consultations are exceptionally effective:`;
   }
 
-  if (recommendations.length === 0) {
-    if (lowerQuery.includes('hello') || lowerQuery.includes('hi ') || lowerQuery.includes('hey')) {
-      return `Hello ${nameFirst}! I'm Aura, your personal AI Beauty & Wellness Concierge. How can I assist you with your beauty journey today? I can guide you on hairstyles, suggest skincare routines tailored to your profile, or help you find the best luxury salons in Bangalore.`;
-    }
-    if (lowerQuery.includes('how do you work') || lowerQuery.includes('what can you do') || lowerQuery.includes('who are you')) {
-      return `Hello ${nameFirst}! I am Aura, your sophisticated AI Beauty Advisor. I analyze your unique Beauty Profile (such as your face shape, hair type, and skin tone) to recommend the most optimal treatments. I also scan premium wellness salons in Bangalore to match your budget and locality preferences. Simply ask me for style advice, salon recommendations, or to compare treatments!`;
-    }
-    if (lowerQuery.includes('dry skin') || lowerQuery.includes('acne') || lowerQuery.includes('glow') || lowerQuery.includes('facial')) {
-      return `Hello ${nameFirst}! For glowing and healthy skin, maintaining your skin barrier is essential. I suggest focusing on hydrating ingredients like hyaluronic acid, niacinamide, and ceramides. Professional facials (like a Hydra Facial) are highly effective because they use advanced vortex suction and serum infusion that cannot be replicated at home. Let me know if you'd like me to find top-rated skincare treatments in your area!`;
-    }
-    if (lowerQuery.includes('hair') || lowerQuery.includes('dandruff') || lowerQuery.includes('frizz')) {
-      return `Hello ${nameFirst}! Healthy hair starts with scalp care and structural hydration. If you are experiencing frizz or damage, treatments like Keratin infusions or deep conditioning bond builders work wonders. Since home styling can sometimes lead to heat damage, professional stylists can safely restore your hair's natural strength. Let me know if you would like me to recommend a specialist salon in Bangalore!`;
-    }
-
-    if (intent === 'style_advice' || intent === 'beauty_planning') {
-      const bpData = bp || {
-        faceShape: 'Oval',
-        hairType: '2C Wavy',
-        hairDensity: 'High',
-        skinTone: 'Warm Honey / Olive',
-        undertone: 'Warm',
-        hairLength: 'Medium',
-        recommendedHairstyles: ['Soft Shag Cut with Curtain Bangs', 'Long Layered Beach Waves'],
-        recommendedTreatments: ['Advanced Hydra Facial', 'Kérastase Fusio-Dose Ritual'],
-        recommendedMakeupStyles: ['Sun-kissed Golden Glow', 'Monochromatic Peach Look']
-      };
-
-      const densityText = bpData.hairDensity ? `, ${bpData.hairDensity.toLowerCase()}-density` : '';
-      const undertoneText = bpData.undertone ? `, ${bpData.undertone.toLowerCase()} undertone` : '';
-      let responseText = `Hello ${nameFirst}! Based on your ${bpData.faceShape.toLowerCase()} face shape${undertoneText}${densityText} and ${bpData.hairType.toLowerCase()} hair, I've compiled some specialized beauty insights for you:`;
-
-      if (intent === 'style_advice') {
-        responseText += `\n\n**Hairstyle Advice:**\nConsidering your ${bpData.hairLength.toLowerCase()} hair, styles like **${bpData.recommendedHairstyles.join(', ')}** would suit you beautifully by complementing your ${bpData.faceShape.toLowerCase()} facial contour.
-        
-**Makeup Look Suggestions:**\nFor your ${bpData.skinTone.toLowerCase()} skin tone, I suggest a **${bpData.recommendedMakeupStyles.join(' or ')}** look to highlight your natural undertones.`;
+  // 4. Format the final recommendations list or suggest general professional options
+  let recsText = '';
+  if (recommendations.length > 0) {
+    recsText = recommendations.map((rec) => {
+      if (rec.type === 'service') {
+        return `• **${rec.name}** at *${rec.details}* (₹${rec.price}): Matches because it is ${rec.reasons.join(' & ').toLowerCase()}.`;
       } else {
-        responseText += `\n\n**Wedding & Event Preparation:**\nTo prep for a major event, we want to focus on high-performance hair and skin prep. Since you have a ${bpData.skinTone.toLowerCase()} tone and ${bpData.hairType.toLowerCase()} hair texture, I highly recommend starting with treatments like **${bpData.recommendedTreatments.join(' and ')}** about 2-4 weeks prior to ensure your skin barrier is perfectly hydrated and your hair has maximum shine.`;
+        return `• **${rec.name}** in *${rec.details}* (${rec.matchScore}% match): Matches because it offers ${rec.reasons.join(' & ').toLowerCase()}.`;
       }
-
-      responseText += `\n\nLet me know if you would like me to find specific local salons or treatments in Bangalore that offer these services!`;
-      return responseText;
+    }).join('\n');
+    recsText += `\n\nDid you know? Outlets like **Bodycraft Salon & Spa** also offer premium doorstep home services, allowing you to enjoy elite salon treatments in the comfort and privacy of your own home!`;
+  } else {
+    if (category === 'hair') {
+      recsText = `I suggest looking into professional salon treatments like a Kérastase deep conditioning ritual, a scalp recovery spa, or custom styling at top-rated Bangalore outlets like **Bounce Salon** or **Play Salon**.`;
+    } else if (category === 'skin') {
+      recsText = `I recommend considering professional treatments like an Advanced Hydra Facial, a deep cleansing clean-up, or a skin barrier therapy at wellness clinics like **Bodycraft Salon & Spa** or **Mirror & Within**.`;
+    } else if (category === 'wedding') {
+      recsText = `I recommend booking a professional bridal/groom trial or scheduling event styling packages at premium outlets like **Play Salon Vittal Mallya** or **Bodycraft Indiranagar** for a flawless look.`;
+    } else {
+      recsText = `I suggest exploring top-rated salons near Koramangala or Indiranagar where expert estheticians can design a customized regimen just for you.`;
     }
-
-    return `Hello ${nameFirst}, ${personalizationPrefix || 'I scanned our beauty catalog for treatments matching your request, '}but could not find matching results. 
- 
-Try broadening your search term or neighborhood preference, and I'll find alternative wellness outlets for you.`;
   }
 
-  const recsBrief = recommendations.map((rec) => {
-    if (rec.type === 'service') {
-      return `• **${rec.name}** at *${rec.details}* (₹${rec.price}): Matches because it is ${rec.reasons.join(' & ').toLowerCase()}.`;
-    } else {
-      return `• **${rec.name}** in *${rec.details}* (${rec.matchScore}% match): Matches because it offers ${rec.reasons.join(' & ').toLowerCase()}.`;
+  // Combine into a pleasing, sophisticated, convincing luxury narrative response
+  const bodyText = `${personalizationPrefix ? `*${personalizationPrefix.trim()}*\n\n` : ''}${remedyText}\n\n${challengesText}\n\n${salonSuggestionHeading}\n\n${recsText}`;
+
+  return `Hello ${nameFirst}! 
+
+${bodyText}
+
+Please let me know if you would like me to help you compare these salons, check prices, or schedule an online booking!`;
+}
+
+function generateLocalComparisonFallback(salonsToCompare: any[], queryText: string): any {
+  const feature1Comparison = salonsToCompare.map(salon => {
+    const startPrice = salon.services && salon.services.length > 0
+      ? Math.min(...salon.services.map((s: any) => s.price))
+      : 1500;
+    return {
+      salonName: salon.name,
+      rating: salon.rating,
+      priceRange: `Starts at ₹${startPrice}`,
+      reviewScore: `Excellent (${Math.round(salon.rating * 20)}% Positive)`,
+      popularServices: salon.services && salon.services.length > 0 
+        ? salon.services.slice(0, 3).map((s: any) => s.name || s.serviceName) 
+        : ['Facial', 'Haircut', 'Spa Treatment'],
+      aiRecommendationBadge: salon.rating >= 4.8 ? 'Top Rated' : 'Highly Recommended'
+    };
+  });
+
+  const feature2ReviewIntelligence = salonsToCompare.map(salon => {
+    return {
+      salonName: salon.name,
+      overallSentiment: salon.rating >= 4.7 ? 'Positive' : 'Neutral',
+      topStrengths: salon.aiReviewSummary?.pros?.slice(0, 3) || ['Professional staff', 'Excellent services', 'Clean environment'],
+      commonComplaints: salon.aiReviewSummary?.cons?.slice(0, 1) || ['Weekend waiting times'],
+      mostMentionedServices: salon.services && salon.services.length > 0
+        ? salon.services.slice(0, 2).map((s: any) => s.name || s.serviceName)
+        : ['Facial']
+    };
+  });
+
+  // Recommend the one with higher rating
+  const sorted = [...salonsToCompare].sort((a, b) => b.rating - a.rating);
+  const recommended = sorted[0] || { name: 'Bodycraft Salon & Spa', rating: 4.8 };
+
+  return {
+    feature1Comparison,
+    feature2ReviewIntelligence,
+    recommendation: {
+      recommendedSalonName: recommended.name,
+      reasonText: `Based on your request "${queryText}" and analysis of user reviews, ${recommended.name} is highly recommended. It stands out with a satisfaction rating of ${recommended.rating}★ and matches your preferences perfectly.`
     }
-  }).join('\n');
-
-  const greeting = personalizationPrefix 
-    ? `Hello ${nameFirst}! ${personalizationPrefix}here are the personalized recommendation highlights I compiled for you:`
-    : `Hello ${nameFirst}! Here are the personalized recommendation highlights I compiled for you:`;
-
-  return `${greeting}
-
-${recsBrief}
-
-We recommend reserving a slot through our online scheduler to secure premium timing. Let me know if you would like me to compare rates or look in other locations!`;
+  };
 }
