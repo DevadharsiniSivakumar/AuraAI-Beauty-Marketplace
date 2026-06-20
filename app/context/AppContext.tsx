@@ -156,6 +156,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             } else {
               setBeautyProfile(null);
             }
+          }, (err) => {
+            console.error('Beauty profile snapshot listener error:', err);
           });
         } catch (error) {
           console.error('Failed to listen to beauty profile:', error);
@@ -190,6 +192,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             } else {
               setActiveJourney(null);
             }
+          }, (err) => {
+            console.error('Beauty journey snapshot listener error:', err);
           });
         } catch (error) {
           console.error('Failed to listen to beauty journey:', error);
@@ -305,128 +309,146 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
           // 1. Salons collection listener
           unsubSalons = onSnapshot(collection(db, 'salons'), async (snapshot) => {
-            if (snapshot.empty) {
-              console.log('Seeding initial salons...');
-              for (const salon of MOCK_SALONS) {
-                // Strip services from salon seeding document
-                const { services, ...salonData } = salon;
-                await setDoc(doc(db, 'salons', salon.id), {
-                  salonId: salon.id,
-                  name: salonData.name,
-                  category: salonData.isLuxury ? 'Luxury' : salonData.offersHomeService ? 'Home Service' : 'Budget',
-                  location: salonData.locality,
-                  address: salonData.address,
-                  phone: salonData.phone,
-                  description: salonData.description,
-                  rating: salonData.rating,
-                  reviewsCount: salonData.reviewsCount,
-                  imageUrls: [salonData.image, ...salonData.gallery],
-                  createdAt: new Date(),
-                  reviews: salonData.reviews,
-                  aiReviewSummary: salonData.aiReviewSummary,
-                  matchScore: salonData.matchScore,
-                  badges: salonData.badges
+            try {
+              if (snapshot.empty) {
+                console.log('Seeding initial salons...');
+                for (const salon of MOCK_SALONS) {
+                  // Strip services from salon seeding document
+                  const { services, ...salonData } = salon;
+                  await setDoc(doc(db, 'salons', salon.id), {
+                    salonId: salon.id,
+                    name: salonData.name,
+                    category: salonData.isLuxury ? 'Luxury' : salonData.offersHomeService ? 'Home Service' : 'Budget',
+                    location: salonData.locality,
+                    address: salonData.address,
+                    phone: salonData.phone,
+                    description: salonData.description,
+                    rating: salonData.rating,
+                    reviewsCount: salonData.reviewsCount,
+                    imageUrls: [salonData.image, ...salonData.gallery],
+                    createdAt: new Date(),
+                    reviews: salonData.reviews,
+                    aiReviewSummary: salonData.aiReviewSummary,
+                    matchScore: salonData.matchScore,
+                    badges: salonData.badges
+                  });
+                }
+              } else {
+                const fetched = snapshot.docs.map(d => {
+                  const data = d.data();
+                  return {
+                    id: d.id || data.salonId,
+                    name: data.name || '',
+                    rating: Number(data.rating) || 5.0,
+                    reviewsCount: data.reviewsCount || data.reviews?.length || 0,
+                    location: data.location || '',
+                    locality: data.locality || data.location?.split(',')[0]?.trim() || 'Indiranagar',
+                    address: data.address || '',
+                    image: data.imageUrls?.[0] || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
+                    gallery: data.imageUrls || [],
+                    description: data.description || '',
+                    isLuxury: data.category === 'Luxury',
+                    offersHomeService: data.category === 'Home Service',
+                    phone: data.phone || '',
+                    reviews: data.reviews || [],
+                    aiReviewSummary: data.aiReviewSummary || { pros: [], cons: [], summary: '' },
+                    matchScore: data.matchScore || 95,
+                    badges: data.badges || [],
+                    status: data.status || 'Open'
+                  };
                 });
+                setDbSalons(fetched);
               }
-            } else {
-              const fetched = snapshot.docs.map(d => {
-                const data = d.data();
-                return {
-                  id: d.id || data.salonId,
-                  name: data.name || '',
-                  rating: Number(data.rating) || 5.0,
-                  reviewsCount: data.reviewsCount || data.reviews?.length || 0,
-                  location: data.location || '',
-                  locality: data.locality || data.location?.split(',')[0]?.trim() || 'Indiranagar',
-                  address: data.address || '',
-                  image: data.imageUrls?.[0] || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
-                  gallery: data.imageUrls || [],
-                  description: data.description || '',
-                  isLuxury: data.category === 'Luxury',
-                  offersHomeService: data.category === 'Home Service',
-                  phone: data.phone || '',
-                  reviews: data.reviews || [],
-                  aiReviewSummary: data.aiReviewSummary || { pros: [], cons: [], summary: '' },
-                  matchScore: data.matchScore || 95,
-                  badges: data.badges || [],
-                  status: data.status || 'Open'
-                };
-              });
-              setDbSalons(fetched);
+            } catch (err) {
+              console.error('Error handling salons snapshot:', err);
             }
+          }, (err) => {
+            console.error('Salons snapshot listener error:', err);
           });
 
           // 2. Services collection listener
           unsubServices = onSnapshot(collection(db, 'services'), async (snapshot) => {
-            if (snapshot.empty) {
-              console.log('Seeding initial services...');
-              MOCK_SALONS.forEach(async (salon) => {
-                for (const s of salon.services) {
-                  await setDoc(doc(db, 'services', s.id), {
-                    serviceId: s.id,
-                    salonId: salon.id,
-                    serviceName: s.name,
-                    price: s.price,
-                    duration: s.duration,
-                    category: s.category,
-                    isActive: true,
-                    createdAt: new Date()
-                  });
-                }
-              });
-            } else {
-              const fetched = snapshot.docs.map(d => {
-                const data = d.data();
-                return {
-                  id: d.id || data.serviceId,
-                  salonId: data.salonId,
-                  name: data.serviceName,
-                  price: Number(data.price),
-                  duration: data.duration,
-                  category: data.category,
-                  isActive: data.isActive !== false,
-                  createdAt: data.createdAt
-                };
-              });
-              setDbServices(fetched);
+            try {
+              if (snapshot.empty) {
+                console.log('Seeding initial services...');
+                MOCK_SALONS.forEach(async (salon) => {
+                  for (const s of salon.services) {
+                    await setDoc(doc(db, 'services', s.id), {
+                      serviceId: s.id,
+                      salonId: salon.id,
+                      serviceName: s.name,
+                      price: s.price,
+                      duration: s.duration,
+                      category: s.category,
+                      isActive: true,
+                      createdAt: new Date()
+                    });
+                  }
+                });
+              } else {
+                const fetched = snapshot.docs.map(d => {
+                  const data = d.data();
+                  return {
+                    id: d.id || data.serviceId,
+                    salonId: data.salonId,
+                    name: data.serviceName,
+                    price: Number(data.price),
+                    duration: data.duration,
+                    category: data.category,
+                    isActive: data.isActive !== false,
+                    createdAt: data.createdAt
+                  };
+                });
+                setDbServices(fetched);
+              }
+            } catch (err) {
+              console.error('Error handling services snapshot:', err);
             }
+          }, (err) => {
+            console.error('Services snapshot listener error:', err);
           });
 
           // 3. Bookings collection listener
           unsubBookings = onSnapshot(collection(db, 'bookings'), async (snapshot) => {
-            if (snapshot.empty) {
-              console.log('Seeding initial bookings...');
-              const initialId = 'mock-b-1';
-              await setDoc(doc(db, 'bookings', initialId), {
-                id: initialId,
-                salonId: 'bodycraft-indiranagar',
-                salonName: 'Bodycraft Salon & Spa',
-                serviceId: 'bc-facial-1',
-                serviceName: 'Advanced Hydra Facial',
-                price: 4500,
-                date: '2026-06-18',
-                time: '11:00 AM',
-                status: 'Confirmed',
-                createdAt: new Date().toISOString()
-              });
-            } else {
-              const fetched = snapshot.docs.map(d => {
-                const data = d.data();
-                return {
-                  id: d.id,
-                  salonId: data.salonId,
-                  salonName: data.salonName,
-                  serviceId: data.serviceId,
-                  serviceName: data.serviceName,
-                  price: Number(data.price),
-                  date: data.date,
-                  time: data.time,
-                  status: data.status,
-                  createdAt: data.createdAt
-                };
-              }) as Booking[];
-              setBookings(fetched);
+            try {
+              if (snapshot.empty) {
+                console.log('Seeding initial bookings...');
+                const initialId = 'mock-b-1';
+                await setDoc(doc(db, 'bookings', initialId), {
+                  id: initialId,
+                  salonId: 'bodycraft-indiranagar',
+                  salonName: 'Bodycraft Salon & Spa',
+                  serviceId: 'bc-facial-1',
+                  serviceName: 'Advanced Hydra Facial',
+                  price: 4500,
+                  date: '2026-06-18',
+                  time: '11:00 AM',
+                  status: 'Confirmed',
+                  createdAt: new Date().toISOString()
+                });
+              } else {
+                const fetched = snapshot.docs.map(d => {
+                  const data = d.data();
+                  return {
+                    id: d.id,
+                    salonId: data.salonId,
+                    salonName: data.salonName,
+                    serviceId: data.serviceId,
+                    serviceName: data.serviceName,
+                    price: Number(data.price),
+                    date: data.date,
+                    time: data.time,
+                    status: data.status,
+                    createdAt: data.createdAt
+                  };
+                }) as Booking[];
+                setBookings(fetched);
+              }
+            } catch (err) {
+              console.error('Error handling bookings snapshot:', err);
             }
+          }, (err) => {
+            console.error('Bookings snapshot listener error:', err);
           });
 
         } catch (error) {
@@ -495,9 +517,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setActiveJourney(newJourney);
       localStorage.setItem(`aura_journey_${email}`, JSON.stringify(newJourney));
     } else {
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await setDoc(doc(db, 'beauty_journeys', email), newJourney);
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await setDoc(doc(db, 'beauty_journeys', email), newJourney);
+      } catch (error: any) {
+        console.error('Failed to save beauty journey to Firestore, falling back to local storage:', error);
+        setActiveJourney(newJourney);
+        localStorage.setItem(`aura_journey_${email}`, JSON.stringify(newJourney));
+        alert('Could not save journey to cloud. It has been saved locally on your device.');
+      }
     }
   };
 
@@ -525,12 +554,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setActiveJourney(updatedJourney);
       localStorage.setItem(`aura_journey_${email}`, JSON.stringify(updatedJourney));
     } else {
-      const { doc, updateDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await updateDoc(doc(db, 'beauty_journeys', email), {
-        steps: updatedSteps,
-        progressPercent
-      });
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await updateDoc(doc(db, 'beauty_journeys', email), {
+          steps: updatedSteps,
+          progressPercent
+        });
+      } catch (error: any) {
+        console.error('Failed to update journey step status in Firestore, falling back to local storage:', error);
+        setActiveJourney(updatedJourney);
+        localStorage.setItem(`aura_journey_${email}`, JSON.stringify(updatedJourney));
+        alert('Could not update journey status in cloud. It has been saved locally on your device.');
+      }
     }
   };
 
@@ -541,10 +577,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setActiveJourney(null);
       localStorage.removeItem(`aura_journey_${email}`);
     } else {
-      const { doc, deleteDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await deleteDoc(doc(db, 'beauty_journeys', email));
-      setActiveJourney(null);
+      try {
+        const { doc, deleteDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await deleteDoc(doc(db, 'beauty_journeys', email));
+        setActiveJourney(null);
+      } catch (error: any) {
+        console.error('Failed to delete beauty journey from Firestore, falling back to local storage:', error);
+        setActiveJourney(null);
+        localStorage.removeItem(`aura_journey_${email}`);
+        alert('Could not delete journey from cloud. It has been removed locally on your device.');
+      }
     }
   };
 
@@ -573,20 +616,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setBookings(updated);
       localStorage.setItem('aura_bookings', JSON.stringify(updated));
     } else {
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await setDoc(doc(db, 'bookings', bookingId), {
-        id: bookingId,
-        salonId,
-        salonName: newBooking.salonName,
-        serviceId,
-        serviceName: newBooking.serviceName,
-        price: newBooking.price,
-        date,
-        time,
-        status: newBooking.status,
-        createdAt: newBooking.createdAt
-      });
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await setDoc(doc(db, 'bookings', bookingId), {
+          id: bookingId,
+          salonId,
+          salonName: newBooking.salonName,
+          serviceId,
+          serviceName: newBooking.serviceName,
+          price: newBooking.price,
+          date,
+          time,
+          status: newBooking.status,
+          createdAt: newBooking.createdAt
+        });
+      } catch (error: any) {
+        console.error('Failed to add booking to Firestore, falling back to local storage:', error);
+        const updated = [newBooking, ...bookings];
+        setBookings(updated);
+        localStorage.setItem('aura_bookings', JSON.stringify(updated));
+        alert('Could not confirm booking in cloud. It has been saved locally on your device.');
+      }
     }
   };
 
@@ -599,11 +650,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setBookings(updated);
       localStorage.setItem('aura_bookings', JSON.stringify(updated));
     } else {
-      const { doc, updateDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await updateDoc(doc(db, 'bookings', bookingId), {
-        status: 'Cancelled'
-      });
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await updateDoc(doc(db, 'bookings', bookingId), {
+          status: 'Cancelled'
+        });
+      } catch (error: any) {
+        console.error('Failed to cancel booking in Firestore, falling back to local storage:', error);
+        const updated = bookings.map(b => 
+          b.id === bookingId ? { ...b, status: 'Cancelled' as const } : b
+        );
+        setBookings(updated);
+        localStorage.setItem('aura_bookings', JSON.stringify(updated));
+        alert('Could not cancel booking in cloud. The change has been saved locally on your device.');
+      }
     }
   };
 
@@ -616,11 +677,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setBookings(updated);
       localStorage.setItem('aura_bookings', JSON.stringify(updated));
     } else {
-      const { doc, updateDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await updateDoc(doc(db, 'bookings', bookingId), {
-        status
-      });
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await updateDoc(doc(db, 'bookings', bookingId), {
+          status
+        });
+      } catch (error: any) {
+        console.error('Failed to update booking status in Firestore, falling back to local storage:', error);
+        const updated = bookings.map(b => 
+          b.id === bookingId ? { ...b, status } : b
+        );
+        setBookings(updated);
+        localStorage.setItem('aura_bookings', JSON.stringify(updated));
+        alert('Could not update booking status in cloud. The change has been saved locally on your device.');
+      }
     }
   };
 
@@ -659,13 +730,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setDbSalons(updatedSalons);
       localStorage.setItem('aura_salons', JSON.stringify(updatedSalons));
     } else {
-      const { doc, updateDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await updateDoc(doc(db, 'salons', salonId), {
-        reviews: updatedReviews,
-        rating: newRating,
-        reviewsCount: updatedReviews.length
-      });
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await updateDoc(doc(db, 'salons', salonId), {
+          reviews: updatedReviews,
+          rating: newRating,
+          reviewsCount: updatedReviews.length
+        });
+      } catch (error: any) {
+        console.error('Failed to add review to Firestore, falling back to local storage:', error);
+        const updatedSalons = dbSalons.map(s => {
+          if (s.id === salonId) {
+            return {
+              ...s,
+              reviews: updatedReviews,
+              rating: newRating,
+              reviewsCount: updatedReviews.length
+            };
+          }
+          return s;
+        });
+        setDbSalons(updatedSalons);
+        localStorage.setItem('aura_salons', JSON.stringify(updatedSalons));
+        alert('Could not submit review to cloud. It has been saved locally on your device.');
+      }
     }
   };
 
@@ -755,11 +844,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           reader.readAsDataURL(imageFile);
         });
       } else {
-        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-        const { storage } = await import('../../lib/firebase');
-        const storageRef = ref(storage, `salons/${salonId}/${imageFile.name}`);
-        const uploadResult = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(uploadResult.ref);
+        try {
+          const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+          const { storage } = await import('../../lib/firebase');
+          const storageRef = ref(storage, `salons/${salonId}/${imageFile.name}`);
+          const uploadResult = await uploadBytes(storageRef, imageFile);
+          imageUrl = await getDownloadURL(uploadResult.ref);
+        } catch (storageErr: any) {
+          console.error('Firebase Storage failed, falling back to data URL:', storageErr);
+          imageUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(imageFile);
+          });
+        }
       }
     }
 
@@ -789,26 +887,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setDbSalons(updated);
       localStorage.setItem('aura_salons', JSON.stringify(updated));
     } else {
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await setDoc(doc(db, 'salons', salonId), {
-        salonId,
-        name: newSalon.name,
-        category: salonData.category,
-        location: newSalon.location,
-        address: newSalon.address,
-        phone: newSalon.phone,
-        description: newSalon.description,
-        rating: newSalon.rating,
-        reviewsCount: newSalon.reviewsCount,
-        imageUrls: newSalon.gallery,
-        createdAt: new Date(),
-        reviews: newSalon.reviews,
-        aiReviewSummary: newSalon.aiReviewSummary,
-        matchScore: newSalon.matchScore,
-        badges: newSalon.badges,
-        status: newSalon.status
-      });
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await setDoc(doc(db, 'salons', salonId), {
+          salonId,
+          name: newSalon.name,
+          category: salonData.category,
+          location: newSalon.location,
+          address: newSalon.address,
+          phone: newSalon.phone,
+          description: newSalon.description,
+          rating: newSalon.rating,
+          reviewsCount: newSalon.reviewsCount,
+          imageUrls: newSalon.gallery,
+          createdAt: new Date(),
+          reviews: newSalon.reviews,
+          aiReviewSummary: newSalon.aiReviewSummary,
+          matchScore: newSalon.matchScore,
+          badges: newSalon.badges,
+          status: newSalon.status
+        });
+      } catch (error: any) {
+        console.error('Failed to add salon to Firestore, falling back to local storage:', error);
+        const updated = [...dbSalons, newSalon];
+        setDbSalons(updated);
+        localStorage.setItem('aura_salons', JSON.stringify(updated));
+        alert('Could not save salon to cloud. It has been saved locally on your device.');
+      }
     }
   };
 
@@ -824,11 +930,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           reader.readAsDataURL(imageFile);
         });
       } else {
-        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-        const { storage } = await import('../../lib/firebase');
-        const storageRef = ref(storage, `salons/${salonId}/${imageFile.name}`);
-        const uploadResult = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(uploadResult.ref);
+        try {
+          const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+          const { storage } = await import('../../lib/firebase');
+          const storageRef = ref(storage, `salons/${salonId}/${imageFile.name}`);
+          const uploadResult = await uploadBytes(storageRef, imageFile);
+          imageUrl = await getDownloadURL(uploadResult.ref);
+        } catch (storageErr: any) {
+          console.error('Firebase Storage failed, falling back to data URL:', storageErr);
+          imageUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(imageFile);
+          });
+        }
       }
     }
 
@@ -855,19 +970,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setDbSalons(updated);
       localStorage.setItem('aura_salons', JSON.stringify(updated));
     } else {
-      const { doc, updateDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await updateDoc(doc(db, 'salons', salonId), {
-        name: updatedSalon.name,
-        category: salonData.category,
-        location: updatedSalon.location,
-        address: updatedSalon.address,
-        phone: updatedSalon.phone,
-        description: updatedSalon.description,
-        imageUrls: updatedSalon.gallery,
-        badges: updatedSalon.badges,
-        status: updatedSalon.status
-      });
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await updateDoc(doc(db, 'salons', salonId), {
+          name: updatedSalon.name,
+          category: salonData.category,
+          location: updatedSalon.location,
+          address: updatedSalon.address,
+          phone: updatedSalon.phone,
+          description: updatedSalon.description,
+          imageUrls: updatedSalon.gallery,
+          badges: updatedSalon.badges,
+          status: updatedSalon.status
+        });
+      } catch (error: any) {
+        console.error('Failed to update salon in Firestore, falling back to local storage:', error);
+        const updated = dbSalons.map(s => s.id === salonId ? updatedSalon : s);
+        setDbSalons(updated);
+        localStorage.setItem('aura_salons', JSON.stringify(updated));
+        alert('Could not update salon in cloud. The changes have been saved locally on your device.');
+      }
     }
   };
 
@@ -883,18 +1006,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setDbServices(filteredServices);
       localStorage.setItem('aura_services', JSON.stringify(filteredServices));
     } else {
-      const { doc, deleteDoc, collection, query, where, getDocs, writeBatch } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await deleteDoc(doc(db, 'salons', salonId));
+      try {
+        const { doc, deleteDoc, collection, query, where, getDocs, writeBatch } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await deleteDoc(doc(db, 'salons', salonId));
 
-      // Cascade delete services in Firestore
-      const q = query(collection(db, 'services'), where('salonId', '==', salonId));
-      const snap = await getDocs(q);
-      const batch = writeBatch(db);
-      snap.docs.forEach((docRef) => {
-        batch.delete(docRef.ref);
-      });
-      await batch.commit();
+        // Cascade delete services in Firestore
+        const q = query(collection(db, 'services'), where('salonId', '==', salonId));
+        const snap = await getDocs(q);
+        const batch = writeBatch(db);
+        snap.docs.forEach((docRef) => {
+          batch.delete(docRef.ref);
+        });
+        await batch.commit();
+      } catch (error: any) {
+        console.error('Failed to delete salon from Firestore, falling back to local storage:', error);
+        const updated = dbSalons.filter(s => s.id !== salonId);
+        setDbSalons(updated);
+        localStorage.setItem('aura_salons', JSON.stringify(updated));
+
+        const filteredServices = dbServices.filter(s => s.salonId !== salonId);
+        setDbServices(filteredServices);
+        localStorage.setItem('aura_services', JSON.stringify(filteredServices));
+        alert('Could not delete salon from cloud. It has been removed locally on your device.');
+      }
     }
   };
 
@@ -917,9 +1052,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setDbServices(updated);
       localStorage.setItem('aura_services', JSON.stringify(updated));
     } else {
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await setDoc(doc(db, 'services', serviceId), newService);
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await setDoc(doc(db, 'services', serviceId), newService);
+      } catch (error: any) {
+        console.error('Failed to add service to Firestore, falling back to local storage:', error);
+        const updated = [...dbServices, newService];
+        setDbServices(updated);
+        localStorage.setItem('aura_services', JSON.stringify(updated));
+        alert('Could not add service to cloud. It has been saved locally on your device.');
+      }
     }
   };
 
@@ -942,15 +1085,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setDbServices(updated);
       localStorage.setItem('aura_services', JSON.stringify(updated));
     } else {
-      const { doc, updateDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await updateDoc(doc(db, 'services', serviceId), {
-        serviceName: serviceData.name,
-        price: Number(serviceData.price),
-        duration: serviceData.duration,
-        category: serviceData.category,
-        isActive: serviceData.isActive !== false
-      });
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await updateDoc(doc(db, 'services', serviceId), {
+          serviceName: serviceData.name,
+          price: Number(serviceData.price),
+          duration: serviceData.duration,
+          category: serviceData.category,
+          isActive: serviceData.isActive !== false
+        });
+      } catch (error: any) {
+        console.error('Failed to update service in Firestore, falling back to local storage:', error);
+        const updated = dbServices.map(s => {
+          if (s.serviceId === serviceId) {
+            return {
+              ...s,
+              serviceName: serviceData.name,
+              price: Number(serviceData.price),
+              duration: serviceData.duration,
+              category: serviceData.category,
+              isActive: serviceData.isActive !== false
+            };
+          }
+          return s;
+        });
+        setDbServices(updated);
+        localStorage.setItem('aura_services', JSON.stringify(updated));
+        alert('Could not update service in cloud. The changes have been saved locally on your device.');
+      }
     }
   };
 
@@ -961,9 +1124,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setDbServices(updated);
       localStorage.setItem('aura_services', JSON.stringify(updated));
     } else {
-      const { doc, deleteDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await deleteDoc(doc(db, 'services', serviceId));
+      try {
+        const { doc, deleteDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await deleteDoc(doc(db, 'services', serviceId));
+      } catch (error: any) {
+        console.error('Failed to delete service from Firestore, falling back to local storage:', error);
+        const updated = dbServices.filter(s => s.serviceId !== serviceId);
+        setDbServices(updated);
+        localStorage.setItem('aura_services', JSON.stringify(updated));
+        alert('Could not delete service from cloud. It has been removed locally on your device.');
+      }
     }
   };
 
@@ -1027,9 +1198,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setBeautyProfile(newProfile);
       localStorage.setItem(`aura_beauty_profile_${email}`, JSON.stringify(newProfile));
     } else {
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../../lib/firebase');
-      await setDoc(doc(db, 'beauty_profiles', email), newProfile);
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await setDoc(doc(db, 'beauty_profiles', email), newProfile);
+      } catch (error: any) {
+        console.error('Failed to save beauty profile to Firestore, falling back to local storage:', error);
+        setBeautyProfile(newProfile);
+        localStorage.setItem(`aura_beauty_profile_${email}`, JSON.stringify(newProfile));
+        alert('Could not save beauty profile to cloud. It has been saved locally on your device.');
+      }
     }
 
     // Sync changes back to the main user profile
