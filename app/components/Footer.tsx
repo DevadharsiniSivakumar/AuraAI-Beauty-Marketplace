@@ -45,12 +45,17 @@ export default function Footer() {
           
           {/* Brand Column */}
           <div className="space-y-4 md:col-span-1">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-linear-to-tr from-rosegold-550 to-gold-metallic flex items-center justify-center text-white">
-                <Sparkles className="w-4 h-4" />
+            <Link href="/" className="flex items-center space-x-3 group">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-[#0c051a] flex items-center justify-center shadow-md border border-rosegold-300/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="/logo.jpg" 
+                  alt="Aura Logo" 
+                  className="w-full h-full object-cover scale-[1.7] transform" 
+                />
               </div>
               <span className="text-xl font-semibold tracking-wide bg-linear-to-r from-charcoal-900 to-rosegold-700 dark:from-rosegold-100 dark:to-gold-medium bg-clip-text text-transparent font-playfair">
-                AuraAI
+                Aura
               </span>
             </Link>
             <p className="text-xs sm:text-sm text-charcoal-550 dark:text-rosegold-300 leading-relaxed font-light">

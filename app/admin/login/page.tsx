@@ -35,12 +35,17 @@ export default function AdminLoginPage() {
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full bg-linear-to-tr from-charcoal-800/10 to-gold-metallic/20 blur-3xl -z-10 animate-pulse-slow"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-          <div className="w-9 h-9 rounded-full bg-charcoal-900 dark:bg-charcoal-800 flex items-center justify-center text-white border border-rosegold-500/30 shadow-xs">
-            <ShieldAlert className="w-5 h-5 text-rosegold-500" />
+        <Link href="/" className="inline-flex items-center space-x-3 mb-6">
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-[#0c051a] flex items-center justify-center shadow-md border border-rosegold-300/30">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="/logo.jpg" 
+              alt="Aura Logo" 
+              className="w-full h-full object-cover scale-[1.7] transform" 
+            />
           </div>
-          <span className="text-2xl font-semibold tracking-wide bg-linear-to-r from-charcoal-900 to-rosegold-700 dark:from-rosegold-100 dark:to-gold-medium bg-clip-text text-transparent">
-            AuraAI Admin
+          <span className="text-2xl font-semibold tracking-wide bg-linear-to-r from-charcoal-900 to-rosegold-700 dark:from-rosegold-100 dark:to-gold-medium bg-clip-text text-transparent font-playfair">
+            Aura Admin
           </span>
         </Link>
         <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair">

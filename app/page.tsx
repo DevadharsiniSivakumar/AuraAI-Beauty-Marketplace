@@ -194,7 +194,19 @@ export default function LandingPage() {
         {/* Glow Effects */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[600px] sm:h-[600px] rounded-full bg-linear-to-tr from-rosegold-300/30 to-gold-light/40 blur-3xl -z-10 animate-pulse-slow"></div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+          {/* Featured Brand Logo Accent */}
+          <div className="flex justify-center">
+            <div className="relative w-20 h-20 rounded-full overflow-hidden bg-[#0c051a] flex items-center justify-center shadow-lg border border-rosegold-300/30 hover:scale-105 transition-all duration-300">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/logo.jpg" 
+                alt="Aura Logo" 
+                className="w-full h-full object-cover scale-[1.7] transform" 
+              />
+            </div>
+          </div>
+
           <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-rosegold-300 bg-white/60 dark:bg-charcoal-900/60 backdrop-blur-xs shadow-xs text-xs font-semibold text-charcoal-800 dark:text-rosegold-200">
             <Sparkles className="w-3.5 h-3.5 text-rosegold-500 animate-spin" />
             <span>Your Personal AI Beauty Concierge Platform</span>
@@ -509,6 +521,17 @@ export default function LandingPage() {
       {/* CTA Bottom banner */}
       <section className="py-16 bg-linear-to-r from-rosegold-100/40 via-gold-light/40 to-rosegold-100/40 dark:from-charcoal-950 dark:to-charcoal-900 border-t border-b border-rosegold-200/50 dark:border-charcoal-800">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
+          {/* Logo Brand Icon */}
+          <div className="flex justify-center">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-[#0c051a] flex items-center justify-center shadow-md border border-rosegold-300/30">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/logo.jpg" 
+                alt="Aura Logo" 
+                className="w-full h-full object-cover scale-[1.7] transform" 
+              />
+            </div>
+          </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white">
             Ready to upgrade your beauty regime?
           </h2>

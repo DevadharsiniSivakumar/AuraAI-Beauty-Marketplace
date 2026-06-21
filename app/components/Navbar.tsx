@@ -54,12 +54,17 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex items-center space-x-2 group">
-              <div className="w-9 h-9 rounded-full bg-linear-to-tr from-rosegold-500 to-gold-metallic flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform duration-300">
-                <Sparkles className="w-5 h-5" />
+            <Link href="/" className="flex items-center space-x-3 group">
+              <div className="w-9 h-9 rounded-full overflow-hidden bg-[#0c051a] flex items-center justify-center shadow-md group-hover:scale-105 transition-all duration-300 border border-rosegold-300/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="/logo.jpg" 
+                  alt="Aura Logo" 
+                  className="w-full h-full object-cover scale-[1.7] transform" 
+                />
               </div>
-              <span className="text-2xl font-semibold tracking-wide bg-linear-to-r from-charcoal-900 to-rosegold-700 dark:from-rosegold-100 dark:to-gold-medium bg-clip-text text-transparent">
-                AuraAI
+              <span className="text-2xl font-semibold tracking-wide bg-linear-to-r from-charcoal-900 to-rosegold-700 dark:from-rosegold-100 dark:to-gold-medium bg-clip-text text-transparent font-playfair">
+                Aura
               </span>
             </Link>
           </div>

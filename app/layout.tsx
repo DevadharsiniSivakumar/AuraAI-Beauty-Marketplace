@@ -18,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AuraAI | Your Personal AI Beauty Concierge",
+  title: "Aura | Your Personal AI Beauty Concierge",
   description: "Discover luxury beauty services, find trusted salons, receive personalized style recommendations, and book appointments with confidence.",
 };
 

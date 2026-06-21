@@ -100,11 +100,21 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-linear-to-tr from-rosegold-200/25 to-gold-light/40 blur-3xl -z-10 animate-pulse-slow"></div>
           
           <div className="flex flex-col items-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-linear-to-tr from-rosegold-500 to-gold-metallic flex items-center justify-center text-white shadow-xl animate-spin duration-3000">
-              <Sparkles className="w-8 h-8" />
+            <div className="relative w-16 h-16">
+              {/* Outer spinning gradient ring */}
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-rosegold-500 to-gold-metallic animate-spin duration-3000"></div>
+              {/* Inner container shielding the logo from rotation */}
+              <div className="absolute inset-[3px] rounded-full overflow-hidden bg-[#0c051a] flex items-center justify-center border border-rosegold-300/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="/logo.jpg" 
+                  alt="Aura Logo" 
+                  className="w-full h-full object-cover scale-[1.7] transform" 
+                />
+              </div>
             </div>
             <h1 className="text-xl font-semibold bg-linear-to-r from-charcoal-900 to-rosegold-700 dark:from-rosegold-100 dark:to-gold-medium bg-clip-text text-transparent tracking-wide font-playfair animate-pulse">
-              AuraAI
+              Aura
             </h1>
             <p className="text-xs text-charcoal-550 dark:text-rosegold-350 tracking-widest uppercase font-light">
               Securing your salon concierge...
