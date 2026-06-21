@@ -109,7 +109,7 @@ function ExploreSalonsContent() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-rosegold-200/40 pb-6">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-charcoal-955 dark:text-white font-playfair font-playfair">Discover Salons</h1>
-            <p className="text-sm text-charcoal-550 dark:text-rosegold-200">Personalized beauty planning matched to your active profile in Bangalore.</p>
+            <p className="text-sm text-charcoal-550 dark:text-rosegold-200">Personalized beauty planning matched to your active profile across the platform.</p>
           </div>
 
           <div className="relative w-full md:w-72">

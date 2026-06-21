@@ -179,10 +179,10 @@ function generateLocalExplanation(
   const isInfoQuery = lowerQuery.includes('how do you work') || lowerQuery.includes('what can you do') || lowerQuery.includes('who are you');
 
   if (isGreeting) {
-    return `Hello ${nameFirst}! I'm Aura, your personal AI Beauty & Wellness Concierge. How can I assist you with your beauty journey today? I can guide you on hairstyles, suggest skincare routines tailored to your profile, or help you find the best luxury salons in Bangalore.`;
+    return `Hello ${nameFirst}! I'm Aura, your personal AI Beauty & Wellness Concierge. How can I assist you with your beauty journey today? I can guide you on hairstyles, suggest skincare routines tailored to your profile, or help you find the best luxury salons.`;
   }
   if (isInfoQuery) {
-    return `Hello ${nameFirst}! I am Aura, your sophisticated AI Beauty Advisor. I analyze your unique Beauty Profile (such as your face shape, hair type, and skin tone) to recommend the most optimal treatments. I also scan premium wellness salons in Bangalore to match your budget and locality preferences. Simply ask me for style advice, salon recommendations, or to compare treatments!`;
+    return `Hello ${nameFirst}! I am Aura, your sophisticated AI Beauty Advisor. I analyze your unique Beauty Profile (such as your face shape, hair type, and skin tone) to recommend the most optimal treatments. I also scan premium wellness salons to match your budget and locality preferences. Simply ask me for style advice, salon recommendations, or to compare treatments!`;
   }
 
   // 2. Identify Category: Hair vs. Skin vs. Wedding Prep vs. General
@@ -254,7 +254,7 @@ function generateLocalExplanation(
     recsText += `\n\nDid you know? Outlets like **Bodycraft Salon & Spa** also offer premium doorstep home services, allowing you to enjoy elite salon treatments in the comfort and privacy of your own home!`;
   } else {
     if (category === 'hair') {
-      recsText = `I suggest looking into professional salon treatments like a Kérastase deep conditioning ritual, a scalp recovery spa, or custom styling at top-rated Bangalore outlets like **Bounce Salon** or **Play Salon**.`;
+      recsText = `I suggest looking into professional salon treatments like a Kérastase deep conditioning ritual, a scalp recovery spa, or custom styling at top-rated outlets like **Bounce Salon** or **Play Salon**.`;
     } else if (category === 'skin') {
       recsText = `I recommend considering professional treatments like an Advanced Hydra Facial, a deep cleansing clean-up, or a skin barrier therapy at wellness clinics like **Bodycraft Salon & Spa** or **Mirror & Within**.`;
     } else if (category === 'wedding') {

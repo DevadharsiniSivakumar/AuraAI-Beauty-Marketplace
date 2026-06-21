@@ -19,7 +19,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "AuraAI | Your Personal AI Beauty Concierge",
-  description: "Discover luxury beauty services, find trusted salons in Bangalore, receive personalized style recommendations, and book appointments with confidence.",
+  description: "Discover luxury beauty services, find trusted salons, receive personalized style recommendations, and book appointments with confidence.",
 };
 
 export default function RootLayout({

@@ -815,7 +815,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
     }
     return {
-      text: "I can help you locate the best salons in Bangalore for haircuts, organic facials, bridal packages, and spa massages. Just tell me what neighborhood or budget limitations you have."
+      text: "I can help you locate the best salons for haircuts, organic facials, bridal packages, and spa massages. Just tell me what neighborhood or budget limitations you have."
     };
   };
 

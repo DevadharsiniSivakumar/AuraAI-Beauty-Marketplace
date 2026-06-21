@@ -70,7 +70,7 @@ export default function LandingPage() {
     {
       icon: Search,
       title: 'Salon Discovery',
-      desc: 'Browse and search Bangalore wellness clinics matching your exact neighborhood, budget range, and doorstep home-service preferences.'
+      desc: 'Browse and search premier wellness clinics matching your exact neighborhood, budget range, and doorstep home-service preferences.'
     },
     {
       icon: ShieldCheck,
@@ -149,7 +149,7 @@ export default function LandingPage() {
   const conversationShowcases = {
     budget: {
       user: "I need a hydra facial under ₹3000",
-      aura: "Here are 3 highly rated options near you in Bangalore matching your budget:",
+      aura: "Here are 3 highly rated options near you matching your budget:",
       details: [
         { name: "Bodycraft Salon & Spa", price: "Starts at ₹2,500", match: "94% Match", note: "Indiranagar (Offers Doorstep Home Service)" },
         { name: "Play Salon", price: "Starts at ₹2,800", match: "91% Match", note: "Vittal Mallya Rd (Luxury Option)" },
@@ -197,7 +197,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
           <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-rosegold-300 bg-white/60 dark:bg-charcoal-900/60 backdrop-blur-xs shadow-xs text-xs font-semibold text-charcoal-800 dark:text-rosegold-200">
             <Sparkles className="w-3.5 h-3.5 text-rosegold-500 animate-spin" />
-            <span>Your Personal AI Beauty Concierge for Bangalore</span>
+            <span>Your Personal AI Beauty Concierge Platform</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-charcoal-950 dark:text-white max-w-4xl mx-auto leading-[1.15]">
@@ -472,7 +472,7 @@ export default function LandingPage() {
               Grounded in Real Customer Experience
             </h2>
             <p className="text-sm text-charcoal-550 dark:text-rosegold-200">
-              Read how Bangalore’s wellness clients use AuraAI to discover grooming treatments and manage booking schedules.
+              Read how our wellness clients use AuraAI to discover grooming treatments and manage booking schedules.
             </p>
           </div>
 
