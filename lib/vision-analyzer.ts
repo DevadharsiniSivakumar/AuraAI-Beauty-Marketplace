@@ -12,6 +12,63 @@ export interface BeautyProfileAnalysis {
 }
 
 /**
+ * Sanitizes and parses the JSON response from vision models.
+ * Handles edge cases like duplicate outer braces, markdown blocks, and unclosed quotes.
+ */
+function parseVisionResponse(text: string): BeautyProfileAnalysis {
+  let cleaned = text.trim();
+
+  // Remove markdown code block wraps if they exist
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(json)?\s*/i, '').replace(/\s*```$/, '');
+    cleaned = cleaned.trim();
+  }
+
+  // Handle double opening/closing braces (e.g., {{ ... }})
+  if (cleaned.startsWith('{{') && cleaned.endsWith('}}')) {
+    cleaned = cleaned.substring(1, cleaned.length - 1).trim();
+  } else if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+    // If it has multiple duplicate braces at the edges (e.g. {\n{\n ... \n}\n})
+    const doubleBraceMatch = cleaned.match(/^\{\s*\{([\s\S]*)\}\s*\}$/);
+    if (doubleBraceMatch) {
+      cleaned = `{${doubleBraceMatch[1]}}`.trim();
+    }
+  }
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.warn("Primary JSON.parse failed. Attempting sanitization of output string...", err);
+  }
+
+  // Sanitization: Fix missing closing quotes before commas or properties.
+  try {
+    let patched = cleaned;
+    const lines = patched.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      // Match a property line: "key": "value (without closing quote)
+      // e.g. "skinTone": "Medium,
+      const match = line.match(/^"([^"]+)":\s*"([^"]*)$/);
+      if (match) {
+        lines[i] = `"${match[1]}": "${match[2].replace(/,$/, '')}",`;
+      } else {
+        // Also check if it ends with a comma but the quote is not closed: e.g. "skinTone": "Medium,
+        const matchWithComma = line.match(/^"([^"]+)":\s*"([^"]+),$/);
+        if (matchWithComma && !line.endsWith('",')) {
+          lines[i] = `"${matchWithComma[1]}": "${matchWithComma[2]}",`;
+        }
+      }
+    }
+    patched = lines.join('\n');
+    return JSON.parse(patched);
+  } catch (err2) {
+    console.error("Sanitization parsing failed. Original response:", text);
+    throw new Error(`Failed to parse vision model response as JSON: ${err2 instanceof Error ? err2.message : String(err2)}`);
+  }
+}
+
+/**
  * Multi-provider vision analyzer.
  * Checks for API keys: GEMINI_API_KEY/GOOGLE_API_KEY, GROQ_API_KEY, OPENAI_API_KEY.
  * Falls back to Groq Llama-3.2 Vision since GROQ_API_KEY is available.
@@ -50,18 +107,17 @@ Before returning analysis results, perform these checks:
 - If there are zero faces, multiple faces, if the image is extremely blurry, or if the upload is not a human portrait, you must return a JSON response with ONLY an "error" field explaining the issue (e.g., {"error": "No face detected in the image. Please upload a clear selfie."} or {"error": "Multiple faces detected. Please upload a portrait with only one face."}).
 
 You MUST respond with a single, valid JSON object. Do not wrap the JSON in markdown code blocks like \`\`\`json.
-Your JSON response MUST follow this exact schema structure:
+Your JSON response MUST follow this exact structure:
 {
-  "faceShape": string,
-  "hairType": string,
-  "hairDensity": string,
-  "skinTone": string,
-  "undertone": string,
-  "beautySummary": string,
-  "recommendedHairstyles": string[],
-  "recommendedTreatments": string[],
-  "recommendedMakeupStyles": string[],
-  "error": string (optional, ONLY if validation fails)
+  "faceShape": "Oval",
+  "hairType": "2C Wavy",
+  "hairDensity": "Medium",
+  "skinTone": "Fair",
+  "undertone": "Neutral",
+  "beautySummary": "A description of the user's features...",
+  "recommendedHairstyles": ["Hairstyle A", "Hairstyle B", "Hairstyle C"],
+  "recommendedTreatments": ["Treatment A", "Treatment B", "Treatment C"],
+  "recommendedMakeupStyles": ["Makeup A", "Makeup B", "Makeup C"]
 }`;
 
   if (geminiKey) {
@@ -99,7 +155,7 @@ Your JSON response MUST follow this exact schema structure:
 
       const data = await response.json();
       const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      return JSON.parse(contentText.trim());
+      return parseVisionResponse(contentText);
     } catch (err) {
       console.error('Gemini Vision Provider failed, trying next provider:', err);
     }
@@ -145,7 +201,7 @@ Your JSON response MUST follow this exact schema structure:
 
       const data = await response.json();
       const contentText = data.choices?.[0]?.message?.content || '';
-      return JSON.parse(contentText.trim());
+      return parseVisionResponse(contentText);
     } catch (err) {
       console.error('Groq Vision Provider failed, trying next provider:', err);
     }
@@ -191,7 +247,7 @@ Your JSON response MUST follow this exact schema structure:
 
       const data = await response.json();
       const contentText = data.choices?.[0]?.message?.content || '';
-      return JSON.parse(contentText.trim());
+      return parseVisionResponse(contentText);
     } catch (err) {
       console.error('OpenAI Vision Provider failed:', err);
     }
