@@ -9,6 +9,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Image data is required.' }, { status: 400 });
     }
 
+    const useFastApi = process.env.ENABLE_FASTAPI_BACKEND === 'true';
+    const fastApiUrl = process.env.FASTAPI_BACKEND_URL || 'http://localhost:8000';
+
+    if (useFastApi) {
+      try {
+        const response = await fetch(`${fastApiUrl}/api/beauty/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image })
+        });
+        if (response.ok) {
+          const result = await response.json();
+          return NextResponse.json(result);
+        } else {
+          console.warn(`FastAPI returned status ${response.status} for selfie analysis. Falling back.`);
+        }
+      } catch (err) {
+        console.error('FastAPI connection error during selfie analysis. Falling back:', err);
+      }
+    }
+
     const hasApiKey = !!(process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.OPENAI_API_KEY);
 
     // Pre-curated, premium luxury beauty profiles for simulated fallbacks

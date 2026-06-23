@@ -10,6 +10,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User goal is required.' }, { status: 400 });
     }
 
+    const useFastApi = process.env.ENABLE_FASTAPI_BACKEND === 'true';
+    const fastApiUrl = process.env.FASTAPI_BACKEND_URL || 'http://localhost:8000';
+
+    if (useFastApi) {
+      try {
+        const response = await fetch(`${fastApiUrl}/api/journey/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userGoal, userProfile, userMemory })
+        });
+        if (response.ok) {
+          const result = await response.json();
+          return NextResponse.json(result);
+        } else {
+          console.warn(`FastAPI returned status ${response.status} for journey generation. Falling back.`);
+        }
+      } catch (err) {
+        console.error('FastAPI connection error during journey generation. Falling back:', err);
+      }
+    }
+
     const userName = userProfile?.name || 'Guest';
     const memoryContext = userMemory ? buildUserMemoryContext(userMemory) : '';
 

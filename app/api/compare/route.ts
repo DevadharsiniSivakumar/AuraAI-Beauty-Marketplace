@@ -14,6 +14,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Salons data is required for comparison' }, { status: 400 });
     }
 
+    const useFastApi = process.env.ENABLE_FASTAPI_BACKEND === 'true';
+    const fastApiUrl = process.env.FASTAPI_BACKEND_URL || 'http://localhost:8000';
+
+    if (useFastApi) {
+      try {
+        const response = await fetch(`${fastApiUrl}/api/compare`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, salons, memoryContext })
+        });
+        if (response.ok) {
+          const result = await response.json();
+          return NextResponse.json(result);
+        } else {
+          console.warn(`FastAPI returned status ${response.status} for compare. Falling back.`);
+        }
+      } catch (err) {
+        console.error('FastAPI connection error during salon comparison. Falling back:', err);
+      }
+    }
+
     // Process raw salon data into optimized analytics metrics
     const metrics = generateComparisonMetrics(salons);
 
