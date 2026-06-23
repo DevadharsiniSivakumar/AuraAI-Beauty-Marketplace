@@ -129,9 +129,9 @@ export const MOCK_SALONS: Salon[] = [
     location: 'Koramangala, Bangalore',
     locality: 'Koramangala',
     address: 'No. 36, 1st Main Rd, Koramangala 5th Block, Bengaluru, 560095',
-    image: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d151?q=80&w=600&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=600&auto=format&fit=crop',
     gallery: [
-      'https://images.unsplash.com/photo-1600948836101-f9ffda59d151?q=80&w=600&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=600&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?q=80&w=600&auto=format&fit=crop'
     ],
     description: 'Young, vibrant, and always keeping up with globally trending styles. Bounce Koramangala is a hotspot for youth seeking creative hair coloring, organic scalp therapy, and high-fashion nail makeovers.',
