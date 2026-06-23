@@ -48,7 +48,7 @@ const DEFAULT_SIMULATED_USERS = [
     uid: 'user-uid-456',
     email: 'user@auraai.com',
     password: 'password',
-    name: 'Rhea Sharma',
+    name: 'Aura User',
     role: 'user' as const,
     createdAt: new Date().toISOString()
   }

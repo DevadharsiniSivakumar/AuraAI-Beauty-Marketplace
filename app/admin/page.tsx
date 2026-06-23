@@ -529,7 +529,7 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                         <tbody className="divide-y divide-rosegold-100/30 dark:divide-charcoal-800/30 text-charcoal-700 dark:text-rosegold-200 font-light">
                           {[...bookings].slice(0, 5).map((b) => (
                             <tr key={b.id}>
-                              <td className="py-2 font-semibold">Rhea Sharma</td>
+                              <td className="py-2 font-semibold">{b.userName || 'Aura User'}</td>
                               <td className="py-2">
                                 <p className="font-semibold text-charcoal-900 dark:text-white">{b.serviceName}</p>
                                 <p className="text-[10px] text-charcoal-400">{b.salonName}</p>
@@ -603,7 +603,7 @@ export default function AdminDashboard({ defaultTab = 'bookings' }: AdminDashboa
                         {bookings.map((b) => (
                           <tr key={b.id} className="hover:bg-rosegold-50/20 dark:hover:bg-charcoal-950/20 transition-colors">
                             <td className="py-3 px-4 font-mono font-bold text-rosegold-500">{b.id.substring(0, 12)}</td>
-                            <td className="py-3 px-4 font-semibold text-charcoal-900 dark:text-white">Rhea Sharma</td>
+                            <td className="py-3 px-4 font-semibold text-charcoal-900 dark:text-white">{b.userName || 'Aura User'}</td>
                             <td className="py-3 px-4">{b.salonName}</td>
                             <td className="py-3 px-4">{b.serviceName}</td>
                             <td className="py-3 px-4">{b.date}</td>

@@ -15,6 +15,7 @@ export interface Review {
   date: string;
   comment: string;
   tags?: string[];
+  authorEmail?: string;
 }
 
 export interface Salon {
@@ -276,14 +277,14 @@ export interface UserProfile {
 }
 
 export const MOCK_USER: UserProfile = {
-  name: 'Rhea Sen',
-  email: 'rhea.sen@auraai.in',
-  phone: '+91 98450 12345',
-  location: 'Indiranagar, Bangalore',
-  faceShape: 'Oval',
-  hairType: '2C Wavy',
-  skinTone: 'Warm Beige / Olive',
-  preferredBudget: '₹₹ - ₹₹₹',
-  favoriteServices: ['Advanced Hydra Facial', 'Kérastase Fusio-Dose Ritual'],
-  favoriteSalons: ['bodycraft-indiranagar', 'mirror-within-lavelle']
+  name: 'Guest User',
+  email: '',
+  phone: '',
+  location: 'Bangalore',
+  faceShape: '',
+  hairType: '',
+  skinTone: '',
+  preferredBudget: '',
+  favoriteServices: [],
+  favoriteSalons: []
 };

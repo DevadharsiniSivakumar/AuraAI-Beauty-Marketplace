@@ -46,16 +46,32 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
     { label: "Wedding next month", text: "I have a wedding next month, help me plan my skin routine" }
   ];
 
-  const historicalConversations = [
-    { title: 'Hydra facial recommendation', date: 'Yesterday' },
-    { title: 'Hairstyle options for oval face', date: '3 days ago' },
-    { title: 'Waxing packages comparison', date: 'June 02' }
-  ];
+  const historicalConversations: any[] = [];
 
   // Auto scroll to chat end
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isAiTyping]);
+
+  // Update welcome message dynamically with actual username when authenticated profile loads
+  useEffect(() => {
+    if (userProfile && userProfile.name) {
+      const firstName = userProfile.name.split(' ')[0];
+      setMessages(prev => {
+        if (prev.length > 0 && prev[0].id === 'welcome-msg') {
+          const updated = [...prev];
+          updated[0] = {
+            ...updated[0],
+            text: `Hello ${firstName}! I'm Aura, your personal AI Beauty & Wellness Concierge.
+
+Whether you're looking for a relaxing facial under a specific budget, a premium stylist in Indiranagar, or matching recommendations for your skin/hair type, tell me what you need and I'll find it!`
+          };
+          return updated;
+        }
+        return prev;
+      });
+    }
+  }, [userProfile.name]);
 
   const handleSubmit = async (textToSend: string) => {
     if (!textToSend.trim()) return;
@@ -129,7 +145,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
         const errorMsg: ChatMessage = {
           id: `msg-${Date.now()}-aura-error`,
           sender: 'aura',
-          text: `I apologize, Rhea. I'm currently unable to retrieve our salon databases. Please check your connection or try again shortly.`,
+          text: `I apologize, ${userProfile.name.split(' ')[0]}. I'm currently unable to retrieve our salon databases. Please check your connection or try again shortly.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           recommendations: []
         };
@@ -163,16 +179,20 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
               Recent Consults
             </h3>
             <div className="space-y-2">
-              {historicalConversations.map((hist, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => handleSubmit(hist.title)}
-                  className="w-full text-left p-2.5 rounded-xl text-xs hover:bg-rosegold-50 dark:hover:bg-charcoal-800 transition-colors block border border-transparent hover:border-rosegold-100/60 cursor-pointer"
-                >
-                  <p className="font-semibold text-charcoal-800 dark:text-white line-clamp-1">{hist.title}</p>
-                  <span className="text-charcoal-400 block text-[10px] pt-0.5">{hist.date}</span>
-                </button>
-              ))}
+              {historicalConversations.length > 0 ? (
+                historicalConversations.map((hist, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => handleSubmit(hist.title)}
+                    className="w-full text-left p-2.5 rounded-xl text-xs hover:bg-rosegold-50 dark:hover:bg-charcoal-800 transition-colors block border border-transparent hover:border-rosegold-100/60 cursor-pointer"
+                  >
+                    <p className="font-semibold text-charcoal-800 dark:text-white line-clamp-1">{hist.title}</p>
+                    <span className="text-charcoal-400 block text-[10px] pt-0.5">{hist.date}</span>
+                  </button>
+                ))
+              ) : (
+                <p className="text-xs text-charcoal-400 dark:text-rosegold-350 italic pl-1">No recent consultations found.</p>
+              )}
             </div>
           </div>
 

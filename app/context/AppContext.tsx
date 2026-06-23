@@ -149,6 +149,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }));
     }
   }, [user]);
+
+  // Load and sync Chat History per user
+  useEffect(() => {
+    const email = userProfile.email || 'guest';
+    const savedChat = localStorage.getItem(`aura_chat_${email}`);
+    if (savedChat) {
+      setChatHistory(JSON.parse(savedChat));
+    } else {
+      const firstName = userProfile.name ? userProfile.name.split(' ')[0] : 'Guest';
+      const initialChat: ChatMessage[] = [
+        {
+          id: 'welcome-msg',
+          sender: 'aura',
+          text: `Hello ${firstName}! I'm Aura, your personal AI Beauty Concierge. Whether you're looking for a relaxing hydra facial, top-tier styling in Indiranagar, or preparing for an upcoming wedding, tell me what you need and I'll find the perfect options for you.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ];
+      setChatHistory(initialChat);
+      localStorage.setItem(`aura_chat_${email}`, JSON.stringify(initialChat));
+    }
+  }, [userProfile.email, userProfile.name]);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [userMemory, setUserMemory] = useState<UserMemory | null>(null);
@@ -157,7 +178,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Load and sync Beauty Profile
   useEffect(() => {
-    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const email = userProfile.email;
+    if (!email) {
+      setBeautyProfile(null);
+      return;
+    }
     if (IS_MOCK) {
       const savedProfile = localStorage.getItem(`aura_beauty_profile_${email}`);
       if (savedProfile) {
@@ -193,7 +218,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Load and sync active Beauty Journey
   useEffect(() => {
-    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const email = userProfile.email;
+    if (!email) {
+      setActiveJourney(null);
+      return;
+    }
     if (IS_MOCK) {
       const savedJourney = localStorage.getItem(`aura_journey_${email}`);
       if (savedJourney) {
@@ -242,21 +271,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(JSON.parse(savedProfile));
     }
 
-    const savedChat = localStorage.getItem('aura_chat');
-    if (savedChat) {
-      setChatHistory(JSON.parse(savedChat));
-    } else {
-      const initialChat: ChatMessage[] = [
-        {
-          id: 'welcome-msg',
-          sender: 'aura',
-          text: `Hello ${MOCK_USER.name.split(' ')[0]}! I'm Aura, your personal AI Beauty Concierge. Whether you're looking for a relaxing hydra facial, top-tier styling in Indiranagar, or preparing for an upcoming wedding, tell me what you need and I'll find the perfect options for you.`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ];
-      setChatHistory(initialChat);
-      localStorage.setItem('aura_chat', JSON.stringify(initialChat));
-    }
+    // Chat history is loaded reactively below per authenticated user profile email
 
     // Load Salons, Services, and Bookings
     if (IS_MOCK) {
@@ -311,7 +326,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             date: '2026-06-18',
             time: '11:00 AM',
             status: 'Confirmed',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            userName: 'Aura User',
+            userEmail: 'user@auraai.com',
+            userId: 'user@auraai.com'
           }
         ];
         setBookings(initial);
@@ -445,7 +463,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                   date: '2026-06-18',
                   time: '11:00 AM',
                   status: 'Confirmed',
-                  createdAt: new Date().toISOString()
+                  createdAt: new Date().toISOString(),
+                  userName: 'Aura User',
+                  userEmail: 'user@auraai.com',
+                  userId: 'user@auraai.com'
                 });
               } else {
                 const fetched = snapshot.docs.map(d => {
@@ -460,7 +481,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     date: data.date,
                     time: data.time,
                     status: data.status,
-                    createdAt: data.createdAt
+                    createdAt: data.createdAt,
+                    userName: data.userName || 'Aura User',
+                    userEmail: data.userEmail || '',
+                    userId: data.userId || ''
                   };
                 }) as Booking[];
                 setBookings(fetched);
@@ -520,7 +544,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Save Journey
   const saveJourney = async (journeyData: Omit<BeautyJourney, 'id' | 'userId' | 'progressPercent' | 'createdAt'>) => {
-    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const email = userProfile.email;
+    if (!email) return;
     const completedCount = journeyData.steps.filter(s => s.status === 'Completed').length;
     const progressPercent = journeyData.steps.length > 0 
       ? Math.round((completedCount / journeyData.steps.length) * 100) 
@@ -554,7 +579,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Update step status
   const updateJourneyStepStatus = async (stepNumber: number, status: JourneyStep['status']) => {
     if (!activeJourney) return;
-    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const email = userProfile.email;
+    if (!email) return;
 
     const updatedSteps = activeJourney.steps.map(s => 
       s.stepNumber === stepNumber ? { ...s, status } : s
@@ -593,7 +619,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Delete active journey
   const deleteActiveJourney = async () => {
-    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const email = userProfile.email;
+    if (!email) return;
     if (IS_MOCK) {
       setActiveJourney(null);
       localStorage.removeItem(`aura_journey_${email}`);
@@ -629,7 +656,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       date,
       time,
       status: 'Confirmed',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      userName: userProfile.name || 'Aura User',
+      userEmail: userProfile.email || '',
+      userId: userProfile.email || ''
     };
 
     if (IS_MOCK) {
@@ -650,7 +680,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           date,
           time,
           status: newBooking.status,
-          createdAt: newBooking.createdAt
+          createdAt: newBooking.createdAt,
+          userName: newBooking.userName,
+          userEmail: newBooking.userEmail,
+          userId: newBooking.userId
         });
       } catch (error: any) {
         console.error('Failed to add booking to Firestore, falling back to local storage:', error);
@@ -724,6 +757,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newReview: Review = {
       id: `rev-${Date.now()}`,
       author: userProfile.name,
+      authorEmail: userProfile.email || '',
       rating,
       date: new Date().toISOString().split('T')[0],
       comment,
@@ -1163,8 +1197,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (salons.length === 0) return;
 
-    const email = userProfile.email || 'rhea.sen@auraai.in';
-    const computedMemory = recalculateUserMemory(bookings, reviews, salons, email);
+    const email = userProfile.email;
+    if (!email) {
+      setUserMemory(null);
+      return;
+    }
+
+    // Filter bookings and reviews for this specific user
+    const userBookings = bookings.filter(b => b.userEmail === email);
+    const userReviews = reviews.filter((r: any) => r.authorEmail === email);
+
+    const computedMemory = recalculateUserMemory(userBookings, userReviews, salons, email);
 
     // Sync favorite salons from userProfile
     computedMemory.favoriteSalons = userProfile.favoriteSalons || [];
@@ -1173,7 +1216,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const persistMemory = async () => {
       if (IS_MOCK) {
-        localStorage.setItem('aura_user_memory', JSON.stringify(computedMemory));
+        localStorage.setItem(`aura_user_memory_${email}`, JSON.stringify(computedMemory));
       } else {
         try {
           const { doc, setDoc } = await import('firebase/firestore');
@@ -1190,7 +1233,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Save Beauty Profile to Firestore / localStorage and update userProfile fields
   const saveBeautyProfile = async (profileData: Omit<BeautyProfile, 'userId' | 'lastUpdated'>) => {
-    const email = userProfile.email || 'rhea.sen@auraai.in';
+    const email = userProfile.email;
+    if (!email) return;
     const nowIso = new Date().toISOString();
     let finalImageUrl = profileData.imageUrl;
 
