@@ -158,4 +158,49 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes slideInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-down {
+  animation: slideInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  body > * {
+    display: none !important;
+  }
+  /* Show only the main container and the digital receipt */
+  main, #digital-receipt-card, #digital-receipt-card * {
+    display: block !important;
+    visibility: visible !important;
+  }
+  #digital-receipt-card {
+    position: absolute;
+    left: 50%;
+    top: 50px;
+    transform: translateX(-50%);
+    width: 400px;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    border-radius: 16px !important;
+  }
+  /* Hide buttons, headers and other content during print */
+  #digital-receipt-card ~ *, main > *:not(#digital-receipt-card) {
+    display: none !important;
+  }
+}
+
+
 

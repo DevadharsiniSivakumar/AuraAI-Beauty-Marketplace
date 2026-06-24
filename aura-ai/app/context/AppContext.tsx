@@ -106,7 +106,7 @@ interface AppContextType {
   userMemory: UserMemory | null;
   beautyProfile: BeautyProfile | null;
   isDarkMode: boolean;
-  addBooking: (salonId: string, serviceId: string, date: string, time: string) => Promise<void>;
+  addBooking: (salonId: string, serviceId: string, date: string, time: string) => Promise<Booking | undefined>;
   cancelBooking: (bookingId: string) => Promise<void>;
   updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
   addReview: (salonId: string, rating: number, comment: string, tags?: string[]) => Promise<void>;
@@ -640,7 +640,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Create Booking
-  const addBooking = async (salonId: string, serviceId: string, date: string, time: string) => {
+  const addBooking = async (salonId: string, serviceId: string, date: string, time: string): Promise<Booking | undefined> => {
     const salon = salons.find((s: any) => s.id === salonId);
     const service = salon?.services.find((s: any) => s.id === serviceId);
     if (!salon || !service) return;
@@ -693,6 +693,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         alert('Could not confirm booking in cloud. It has been saved locally on your device.');
       }
     }
+    return newBooking;
   };
 
   // Cancel Booking
