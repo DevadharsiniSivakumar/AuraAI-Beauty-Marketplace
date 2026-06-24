@@ -113,6 +113,32 @@ function BookingFormContent() {
       setRandomQuote(quote);
       setIsConfirmed(true);
 
+      // Trigger actual email send asynchronously
+      try {
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerName: result.userName,
+            bookingId: result.id,
+            salonName: result.salonName,
+            serviceName: result.serviceName,
+            date: result.date,
+            time: result.time,
+            bookingStatus: 'Confirmed',
+            userEmail: result.userEmail
+          })
+        }).then(res => {
+          if (!res.ok) {
+            console.warn("Real email not sent, likely credentials not configured yet.");
+          } else {
+            console.log("Real confirmation email sent successfully!");
+          }
+        });
+      } catch (err) {
+        console.error("Error triggering real email send:", err);
+      }
+
       // Slide down email notification toast after 1.5 seconds
       setTimeout(() => {
         setShowEmailToast(true);
