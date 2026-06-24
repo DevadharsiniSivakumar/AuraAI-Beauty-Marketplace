@@ -528,7 +528,7 @@ export default function ProfilePage() {
                         <div className="space-y-1.5">
                           <h4 className="text-base font-bold text-charcoal-900 dark:text-white font-playfair">Ready for Analysis</h4>
                           <p className="text-xs text-charcoal-400">
-                            Our AI will evaluate your facial geometry, melanin scale, and hair structure to deliver custom recommendations.
+                            We will evaluate your facial geometry, melanin scale, and hair structure to deliver custom recommendations.
                           </p>
                         </div>
 
@@ -566,17 +566,16 @@ export default function ProfilePage() {
                   {/* If profile exists */}
                   {beautyProfile && (
                     <div className="space-y-6 animate-fade-in">
-                      
                       {/* Top Header details */}
-                      <div className="flex justify-between items-center pb-2 border-b border-rosegold-100 dark:border-charcoal-800">
+                      <div className="flex justify-between items-center pb-2 border-b border-rosegold-200/40">
                         <div>
-                          <h3 className="font-bold text-charcoal-900 dark:text-white text-base font-playfair">Your Custom Beauty DNA</h3>
+                          <h3 className="font-bold text-charcoal-950 dark:text-white text-lg font-playfair">Beauty Profile Summary</h3>
                           <span className="text-[10px] text-charcoal-400 font-mono">Last updated: {new Date(beautyProfile.lastUpdated).toLocaleDateString()}</span>
                         </div>
                         
                         <label className="px-3.5 py-1.5 rounded-lg border border-rosegold-200 dark:border-charcoal-800 text-charcoal-700 dark:text-rosegold-200 text-[10px] uppercase font-bold tracking-wider hover:bg-rosegold-50 dark:hover:bg-charcoal-900 transition-colors cursor-pointer flex items-center gap-1.5">
                           <RefreshCw className="w-3.5 h-3.5" />
-                          Re-Analyze
+                          Update Profile
                           <input
                             type="file"
                             accept="image/*"
@@ -592,39 +591,38 @@ export default function ProfilePage() {
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         
                         {/* Summary & Core Metrics */}
-                        <div className="lg:col-span-3 space-y-4">
+                        <div className="lg:col-span-3 space-y-6">
                           
                           {/* Summary Card */}
-                          <div className="p-5 rounded-2xl bg-linear-to-r from-rosegold-500/10 to-gold-metallic/5 dark:from-charcoal-905 border border-rosegold-200/50 dark:border-charcoal-800/80">
-                            <h4 className="text-xs font-bold text-rosegold-600 dark:text-gold-light uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                              <Sparkles className="w-3.5 h-3.5 text-rosegold-500" />
-                              Beauty Profile Summary
+                          <div className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-955 shadow-2xs">
+                            <h4 className="text-xs font-semibold text-rosegold-550 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5" />
+                              Active Diagnostics
                             </h4>
-                            <p className="text-sm leading-relaxed text-charcoal-800 dark:text-rosegold-50 italic">
+                            <p className="text-sm leading-relaxed text-charcoal-850 dark:text-rosegold-100 font-light italic">
                               &ldquo;{beautyProfile.beautySummary}&rdquo;
                             </p>
                           </div>
 
-                          {/* 4 Core Dimensions */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                            <div className="p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80 flex flex-col justify-between h-20">
-                              <span className="text-charcoal-400 uppercase tracking-wider text-[10px]">Face Shape</span>
+                          {/* Elegant Divider Row instead of boxes */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-t border-b border-rosegold-200/40">
+                            <div className="space-y-1">
+                              <span className="text-charcoal-400 uppercase tracking-wider text-[9px] font-semibold block">Face Shape</span>
                               <span className="font-bold text-sm text-charcoal-950 dark:text-white font-playfair">{beautyProfile.faceShape}</span>
                             </div>
-                            <div className="p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80 flex flex-col justify-between h-20">
-                              <span className="text-charcoal-400 uppercase tracking-wider text-[10px]">Hair Type</span>
+                            <div className="space-y-1">
+                              <span className="text-charcoal-400 uppercase tracking-wider text-[9px] font-semibold block">Hair Type</span>
                               <span className="font-bold text-sm text-charcoal-950 dark:text-white font-playfair">{beautyProfile.hairType}</span>
                             </div>
-                            <div className="p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80 flex flex-col justify-between h-20">
-                              <span className="text-charcoal-400 uppercase tracking-wider text-[10px]">Skin Tone</span>
+                            <div className="space-y-1">
+                              <span className="text-charcoal-400 uppercase tracking-wider text-[9px] font-semibold block">Skin Tone</span>
                               <span className="font-bold text-sm text-charcoal-950 dark:text-white font-playfair">{beautyProfile.skinTone}</span>
                             </div>
-                            <div className="p-3 bg-white dark:bg-charcoal-950/40 rounded-xl border border-rosegold-100/60 dark:border-charcoal-800/80 flex flex-col justify-between h-20">
-                              <span className="text-charcoal-400 uppercase tracking-wider text-[10px]">Hair Length</span>
-                              <span className="font-bold text-sm text-charcoal-950 dark:text-white font-playfair">{beautyProfile.hairLength}</span>
+                            <div className="space-y-1">
+                              <span className="text-charcoal-400 uppercase tracking-wider text-[9px] font-semibold block">Hair Length</span>
+                              <span className="font-bold text-sm text-charcoal-955 dark:text-white font-playfair">{beautyProfile.hairLength}</span>
                             </div>
                           </div>
-
                         </div>
 
                         {/* Recommendations */}

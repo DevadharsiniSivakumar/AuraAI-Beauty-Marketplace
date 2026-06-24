@@ -36,7 +36,8 @@ export default function Navbar() {
     if (role === 'user') {
       navLinks = [
         { name: 'Dashboard', href: '/dashboard' },
-        { name: 'AI Concierge', href: '/concierge' },
+        { name: 'Concierge', href: '/concierge' },
+        { name: 'Style Advisor', href: '/advisor' },
         { name: 'Explore Salons', href: '/salons' },
         { name: 'Reviews', href: '/reviews' },
         { name: 'Profile', href: '/profile' },

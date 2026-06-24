@@ -129,13 +129,13 @@ export default function UserDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         
         {/* Top Section: Welcome & Global Search */}
-        <section className="relative rounded-3xl overflow-hidden border border-rosegold-200 dark:border-charcoal-800 bg-linear-to-b from-rosegold-100/30 to-white dark:from-charcoal-900 dark:to-charcoal-950 p-6 sm:p-8 flex flex-col gap-6 shadow-xs">
+        <section className="relative rounded-3xl overflow-hidden border border-rosegold-200/40 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 p-6 sm:p-8 flex flex-col gap-6 shadow-2xs">
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-charcoal-950 dark:text-white font-playfair">
               Welcome back, {userProfile.name.split(' ')[0]}
             </h1>
             <p className="text-sm text-charcoal-550 dark:text-rosegold-200">
-              Your Beauty DNA profile is synchronized. Discover bespoke luxury treatments matching your skin and location.
+              Your profile is synchronized. Discover bespoke luxury treatments matching your skin and location.
             </p>
           </div>
           
@@ -195,7 +195,7 @@ export default function UserDashboard() {
                 <Sparkles className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-base font-bold text-charcoal-900 dark:text-white">AI Concierge</p>
+                <p className="text-base font-bold text-charcoal-900 dark:text-white">Concierge</p>
                 <p className="text-xs text-charcoal-400 font-light">Consult beauty agent</p>
               </div>
             </Link>
@@ -216,9 +216,9 @@ export default function UserDashboard() {
         </section>
 
         {/* Upcoming Bookings Section */}
-        <section className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-4 shadow-xs">
-          <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
-            <Calendar className="w-5 h-5 text-rosegold-500 mr-2" />
+        <section className="space-y-4">
+          <h3 className="text-xl font-semibold text-charcoal-950 dark:text-white flex items-center font-playfair border-b border-rosegold-200/30 pb-2">
+            <Calendar className="w-5 h-5 text-rosegold-550 mr-2" />
             Upcoming Bookings
           </h3>
 
@@ -227,7 +227,7 @@ export default function UserDashboard() {
               {upcomingBookings.map((b) => (
                 <div 
                   key={b.id}
-                  className="p-4 rounded-xl border border-rosegold-100 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 transition-colors"
+                  className="p-4 rounded-xl border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-rosegold-300 transition-colors shadow-2xs"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -285,18 +285,18 @@ export default function UserDashboard() {
         </section>
 
         {/* Recommended Salons Section */}
-        <section className="p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-6 shadow-2xs">
-          <div className="flex justify-between items-end">
+        <section className="space-y-4">
+          <div className="flex justify-between items-end border-b border-rosegold-200/40 pb-2">
             <div className="space-y-1">
-              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center">
-                <Sparkles className="w-5 h-5 text-rosegold-550 mr-2 animate-pulse" />
+              <h3 className="text-xl font-semibold text-charcoal-955 dark:text-white flex items-center font-playfair">
+                <Sparkles className="w-5 h-5 text-rosegold-550 mr-2" />
                 Recommended Salons
               </h3>
-              <p className="text-xs text-charcoal-550 dark:text-rosegold-200">High-matching selections generated dynamically based on your skin type (Warm Beige) and location.</p>
+              <p className="text-xs text-charcoal-500">Selections generated dynamically based on your skin type (Warm Beige) and location.</p>
             </div>
             <Link 
               href="/salons"
-              className="text-xs font-bold text-rosegold-500 hover:text-rosegold-650 flex items-center gap-0.5 hover:underline cursor-pointer"
+              className="text-xs font-bold text-rosegold-550 hover:text-rosegold-650 flex items-center gap-0.5 hover:underline cursor-pointer font-sans"
             >
               View All
               <ArrowRight className="w-3.5 h-3.5" />
@@ -309,11 +309,11 @@ export default function UserDashboard() {
               return (
                 <div 
                   key={salon.id}
-                  className="rounded-xl border border-rosegold-200/50 dark:border-charcoal-850 bg-rosegold-50/10 dark:bg-charcoal-950/20 p-4 flex flex-col justify-between space-y-4 hover:border-rosegold-350 transition-colors shadow-2xs group"
+                  className="rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 p-4.5 flex flex-col justify-between space-y-4 hover:border-rosegold-350 transition-colors shadow-2xs group"
                 >
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white">
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-linear-to-r from-rosegold-500 to-rosegold-600 text-white">
                         {salon.matchScore}% Match
                       </span>
                       <div className="flex text-rosegold-550 text-xs items-center font-bold">
@@ -325,24 +325,30 @@ export default function UserDashboard() {
                     <h4 className="font-bold text-sm text-charcoal-900 dark:text-white line-clamp-1">{salon.name}</h4>
                     <p className="text-xs text-charcoal-400">{salon.locality}</p>
                     
-                    {/* Reasoning list preview */}
-                    <div className="space-y-1.5 pt-1.5 border-t border-rosegold-200/40">
-                      {salon.badges.slice(0, 2).map((badge, bIdx) => (
-                        <p key={bIdx} className="text-[10px] text-charcoal-550 dark:text-rosegold-200 flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />
-                          {badge}
+                    {/* Why Aura Recommended This */}
+                    <div className="space-y-1.5 pt-2.5 border-t border-rosegold-200/30">
+                      <p className="text-[9px] font-semibold text-charcoal-450 dark:text-rosegold-300 uppercase tracking-wider">Why Aura Recommended This</p>
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-charcoal-600 dark:text-rosegold-200 flex items-center gap-1">
+                          <span className="text-emerald-500 font-bold">✓</span> Matches {salon.locality} location
                         </p>
-                      ))}
+                        <p className="text-[10px] text-charcoal-600 dark:text-rosegold-200 flex items-center gap-1">
+                          <span className="text-emerald-500 font-bold">✓</span> Fits your budget preferences
+                        </p>
+                        <p className="text-[10px] text-charcoal-600 dark:text-rosegold-200 flex items-center gap-1">
+                          <span className="text-emerald-500 font-bold">✓</span> Tailored to warm olive skin tone
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-2 border-t border-rosegold-100 dark:border-charcoal-800">
-                    <span className="text-xs text-charcoal-550">From ₹{startingPrice}</span>
+                  <div className="flex justify-between items-center pt-2 border-t border-rosegold-200/30">
+                    <span className="text-xs text-charcoal-550 font-mono">From ₹{startingPrice}</span>
                     <Link
                       href={`/salons/${salon.id}`}
                       className="text-xs font-semibold text-rosegold-500 hover:text-rosegold-650 flex items-center gap-0.5 cursor-pointer"
                     >
-                      Book Agent
+                      Book Salon
                     </Link>
                   </div>
                 </div>
@@ -411,11 +417,11 @@ export default function UserDashboard() {
             /* Detailed view (Detailed when needed) */
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
               {/* Interactive Timeline */}
-              <div className="lg:col-span-2 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-6 shadow-2xs">
-                <div className="space-y-1">
-                  <h4 className="font-bold text-charcoal-900 dark:text-white flex items-center text-sm uppercase tracking-wider">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="space-y-1 pb-2 border-b border-rosegold-200/30">
+                  <h4 className="font-bold text-charcoal-950 dark:text-white flex items-center text-base font-playfair uppercase tracking-wider">
                     <TrendingUp className="w-4 h-4 text-rosegold-500 mr-2" />
-                    Personal Beauty Journey Timeline
+                    Beauty Journey Timeline
                   </h4>
                   <p className="text-[11px] text-charcoal-400">Track and schedule treatments mapped directly to your beauty cycles. Update step status below to recalculate progress.</p>
                 </div>
@@ -429,10 +435,10 @@ export default function UserDashboard() {
                     return (
                       <div 
                         key={step.stepNumber} 
-                        className={`p-4 rounded-xl border relative transition-all text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
-                          isStepCompleted ? 'border-emerald-250 bg-emerald-50/10 dark:bg-emerald-950/10' :
-                          isStepInProgress ? 'border-rosegold-400 bg-rosegold-50/10 dark:bg-charcoal-950/20' :
-                          'border-rosegold-100 dark:border-charcoal-800 bg-white dark:bg-charcoal-900'
+                        className={`p-4.5 rounded-2xl border relative transition-all text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
+                          isStepCompleted ? 'border-emerald-250 bg-emerald-50/5 dark:bg-emerald-950/10' :
+                          isStepInProgress ? 'border-rosegold-300 bg-white dark:bg-charcoal-900' :
+                          'border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 shadow-2xs'
                         }`}
                       >
                         <div className="space-y-1 flex-1">
@@ -549,11 +555,11 @@ export default function UserDashboard() {
                 </div>
 
                 {/* Concierge Insights */}
-                <div className="p-6 rounded-2xl border border-rosegold-300 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 space-y-4 shadow-sm flex flex-col justify-between">
+                <div className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 space-y-4 shadow-2xs flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2 text-rosegold-600 dark:text-gold-medium border-b border-rosegold-200/40 pb-2">
                       <Sparkles className="w-4 h-4" />
-                      <h4 className="font-bold tracking-wide text-xs uppercase">Aura Concierge Insights</h4>
+                      <h4 className="font-bold tracking-wide text-xs uppercase">Insights</h4>
                     </div>
                     <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
                       {proactiveInsights.slice(0, isInsightsExpanded ? 5 : 2).map((insight) => (

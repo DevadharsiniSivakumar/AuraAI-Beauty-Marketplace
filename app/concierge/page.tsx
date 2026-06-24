@@ -26,7 +26,7 @@ export default function AiConcierge() {
     {
       id: 'welcome-msg',
       sender: 'aura',
-      text: `Hello ${userProfile.name.split(' ')[0]}! I'm Aura, your personal AI Beauty & Wellness Concierge.
+      text: `Hello ${userProfile.name.split(' ')[0]}! I'm Aura, your personal concierge.
 
 Whether you're looking for a relaxing facial under a specific budget, a premium stylist in Indiranagar, or matching recommendations for your skin/hair type, tell me what you need and I'll find it!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -62,7 +62,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
           const updated = [...prev];
           updated[0] = {
             ...updated[0],
-            text: `Hello ${firstName}! I'm Aura, your personal AI Beauty & Wellness Concierge.
+            text: `Hello ${firstName}! I'm Aura, your personal concierge.
 
 Whether you're looking for a relaxing facial under a specific budget, a premium stylist in Indiranagar, or matching recommendations for your skin/hair type, tell me what you need and I'll find it!`
           };
@@ -254,17 +254,16 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
         <section className="flex-1 flex flex-col rounded-3xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 shadow-lg overflow-hidden h-full">
           
           {/* Chat Header */}
-          <div className="px-6 py-4 border-b border-rosegold-100 dark:border-charcoal-800 flex items-center justify-between bg-linear-to-r from-rosegold-100/10 to-white dark:from-charcoal-905 shrink-0">
+          <div className="px-6 py-4 border-b border-rosegold-100 dark:border-charcoal-800 flex items-center justify-between bg-white dark:bg-charcoal-900 shrink-0">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-linear-to-tr from-rosegold-500 to-gold-metallic flex items-center justify-center text-white shadow-xs">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-full bg-charcoal-900 text-white dark:bg-white dark:text-charcoal-950 flex items-center justify-center shadow-2xs font-mono font-bold">
+                A
               </div>
               <div>
-                <h2 className="text-base font-bold text-charcoal-950 dark:text-white flex items-center font-playfair">
-                  Aura Beauty AI
-                  <span className="ml-2 w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-ping"></span>
+                <h2 className="text-base font-semibold text-charcoal-950 dark:text-white flex items-center font-playfair">
+                  Aura
                 </h2>
-                <p className="text-xs text-charcoal-450 dark:text-rosegold-300">Consulting for {userProfile.name} • Active DNA Profile</p>
+                <p className="text-xs text-charcoal-450 dark:text-rosegold-300">Consulting for {userProfile.name} • Profile Active</p>
               </div>
             </div>
           </div>
@@ -364,13 +363,13 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                                   </p>
                                 </div>
 
-                                {/* Why AuraAI Recommends This */}
+                                {/* Why Aura Recommends This */}
                                 <div className="pt-2.5 border-t border-rosegold-100/60 dark:border-charcoal-850 space-y-1.5">
                                   <span className="text-[9px] font-bold uppercase tracking-wider text-charcoal-450 block">Why Aura Recommends This</span>
                                   <div className="space-y-1">
                                     {reasons.map((reason, rIdx) => (
                                       <p key={rIdx} className="text-[10px] text-charcoal-600 dark:text-rosegold-200 flex items-start gap-1 leading-relaxed">
-                                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                        <span className="text-emerald-500 font-bold shrink-0">✓</span>
                                         <span>{reason}</span>
                                       </p>
                                     ))}
@@ -609,7 +608,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Ask AuraAI (e.g. Find hair coloring packages or facials near Koramangala)..."
+                placeholder="Ask Aura (e.g. Find hair coloring packages or facials near Koramangala)..."
                 className="flex-1 text-sm bg-transparent border-0 focus:outline-hidden focus:ring-0 px-3 py-2 text-charcoal-900 dark:text-white placeholder-charcoal-400"
               />
               <button

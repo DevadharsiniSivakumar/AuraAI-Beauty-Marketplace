@@ -59,7 +59,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-xs sm:text-sm text-charcoal-550 dark:text-rosegold-300 leading-relaxed font-light">
-              A scalable AI Beauty Concierge Platform providing personalized style advice, automated review analysis, beauty journey planning, and salon booking management.
+              A concierge platform providing personalized style advice, review analysis, beauty journey planning, and salon booking management.
             </p>
           </div>
 
@@ -68,23 +68,23 @@ export default function Footer() {
             <h4 className="text-xs font-semibold text-charcoal-800 dark:text-rosegold-200 uppercase tracking-widest mb-4">Platform</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/concierge" className="text-sm text-charcoal-600 dark:text-rosegold-350 hover:text-rosegold-500 transition-colors">
-                  AI Concierge Chat
+                <Link href="/concierge" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
+                  Concierge
                 </Link>
               </li>
               <li>
-                <Link href="/advisor" className="text-sm text-charcoal-600 dark:text-rosegold-350 hover:text-rosegold-500 transition-colors">
-                  Style & Selfie Advisor
+                <Link href="/advisor" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
+                  Style Advisor
                 </Link>
               </li>
               <li>
-                <Link href="/salons" className="text-sm text-charcoal-600 dark:text-rosegold-350 hover:text-rosegold-500 transition-colors">
-                  Discover Salons
+                <Link href="/salons" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
+                  Explore Salons
                 </Link>
               </li>
               <li>
-                <Link href="/reviews" className="text-sm text-charcoal-600 dark:text-rosegold-350 hover:text-rosegold-500 transition-colors">
-                  Review Intelligence
+                <Link href="/reviews" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
+                  Reviews
                 </Link>
               </li>
             </ul>
@@ -105,14 +105,14 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <span className="text-sm text-charcoal-400 dark:text-charcoal-500 cursor-not-allowed">
+                <Link href="#" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
                   Privacy Policy
-                </span>
+                </Link>
               </li>
               <li>
-                <span className="text-sm text-charcoal-400 dark:text-charcoal-500 cursor-not-allowed">
+                <Link href="#" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
                   Terms of Service
-                </span>
+                </Link>
               </li>
             </ul>
           </div>
@@ -160,9 +160,9 @@ export default function Footer() {
 
         {/* Divider and Copyright */}
         <div className="border-t border-rosegold-200/30 dark:border-charcoal-800/30 mt-12 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-charcoal-400 dark:text-charcoal-500">
-          <p>&copy; {new Date().getFullYear()} AuraAI Technologies Pvt Ltd. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Aura Technologies Pvt Ltd. All rights reserved.</p>
           <p className="flex items-center mt-2 md:mt-0">
-            Handcrafted with <Heart className="w-3.5 h-3.5 text-rosegold-500 mx-1 fill-rosegold-500 animate-pulse" /> by AuraAI
+            Handcrafted with <Heart className="w-3.5 h-3.5 text-rosegold-500 mx-1 fill-rosegold-500 animate-pulse" /> by Aura
           </p>
         </div>
       </div>

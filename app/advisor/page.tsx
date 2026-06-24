@@ -393,15 +393,15 @@ export default function StyleAdvisor() {
         
         {/* Banner */}
         <section className="space-y-4 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-rosegold-300 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 shadow-2xs text-xs font-semibold text-rosegold-550">
-            <Sparkles className="w-3.5 h-3.5 text-rosegold-500 animate-pulse" />
-            <span>AuraAI Style & Planning Hub</span>
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-rosegold-300/40 bg-white dark:bg-charcoal-900 shadow-2xs text-xs font-semibold text-rosegold-550">
+            <Sparkles className="w-3.5 h-3.5 text-rosegold-550" />
+            <span>Style Advisor</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-charcoal-950 dark:text-white">
-            AI Style Advisor & Beauty Planner
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-charcoal-955 dark:text-white font-playfair">
+            Style Advisor
           </h1>
-          <p className="text-sm sm:text-base text-charcoal-550 dark:text-rosegold-200">
-            Get personalized consultations, scan your Beauty DNA, or build automated step-by-step beauty goal journeys.
+          <p className="text-sm sm:text-base text-charcoal-550 dark:text-rosegold-200 max-w-xl mx-auto">
+            Get personalized consultations, update your Beauty Profile, or build step-by-step beauty goal journeys.
           </p>
 
           {/* Tab Selector */}
@@ -410,21 +410,21 @@ export default function StyleAdvisor() {
               onClick={() => setActiveTab('scanner')}
               className={`flex-grow py-2 px-6 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'scanner' 
-                  ? 'bg-linear-to-r from-rosegold-600 to-rosegold-800 text-white shadow-md font-bold' 
+                  ? 'bg-charcoal-900 text-white dark:bg-white dark:text-charcoal-950 shadow-xs font-bold' 
                   : 'text-charcoal-600 dark:text-rosegold-200 hover:text-rosegold-700'
               }`}
             >
-              Style Scanner
+              Beauty Profile
             </button>
             <button 
               onClick={() => setActiveTab('planner')}
               className={`flex-grow py-2 px-6 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'planner' 
-                  ? 'bg-linear-to-r from-rosegold-600 to-rosegold-800 text-white shadow-md font-bold' 
+                  ? 'bg-charcoal-900 text-white dark:bg-white dark:text-charcoal-950 shadow-xs font-bold' 
                   : 'text-charcoal-600 dark:text-rosegold-200 hover:text-rosegold-700'
               }`}
             >
-              AI Journey Planner
+              Journey
             </button>
           </div>
         </section>
@@ -438,9 +438,9 @@ export default function StyleAdvisor() {
                 {/* Selfie Upload Area */}
                 <div className="p-8 border-b md:border-b-0 md:border-r border-rosegold-200/50 dark:border-charcoal-800 flex flex-col justify-between space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold text-charcoal-950 dark:text-white mb-2">Selfie Upload Scanner</h3>
+                    <h3 className="text-lg font-bold text-charcoal-950 dark:text-white mb-2 font-playfair">Beauty Profile Scanner</h3>
                     <p className="text-xs text-charcoal-450 dark:text-rosegold-350">
-                      Upload your portrait to analyze face mapping coordinates and load custom wellness advice.
+                      Upload your portrait to analyze and construct your personalized beauty profile.
                     </p>
                   </div>
 
@@ -526,41 +526,35 @@ export default function StyleAdvisor() {
                   {hasResults ? (
                     <div className="space-y-6">
                       <div>
-                        <span className="text-[10px] font-bold text-rosegold-500 uppercase tracking-widest">AuraAI Diagnostic</span>
-                        <h3 className="text-xl font-bold text-charcoal-950 dark:text-white mt-1">Beauty DNA Profile</h3>
-                        <p className="text-xs text-charcoal-450 mt-1">Your permanent AI beauty identity token.</p>
+                        <span className="text-[10px] font-bold text-rosegold-500 uppercase tracking-widest font-mono">Aura Summary</span>
+                        <h3 className="text-xl font-bold text-charcoal-955 dark:text-white mt-1 font-playfair">Beauty Profile</h3>
+                        <p className="text-xs text-charcoal-450 mt-1">Your personalized style parameters.</p>
                       </div>
 
-                      {/* Beauty DNA Profile */}
-                      <div className="space-y-3 border border-rosegold-300 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 p-4 rounded-2xl shadow-xs">
-                        <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
-                          <span className="text-charcoal-400">Face Shape:</span>
-                          <span className="font-bold text-charcoal-900 dark:text-white">
-                            {beautyProfile?.faceShape || 'Oval Contour'}
+                      {/* Beauty Profile Summary card */}
+                      <div className="space-y-4 border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 p-5 rounded-2xl shadow-2xs text-xs">
+                        <div className="flex justify-between items-center py-1.5 border-b border-rosegold-100 dark:border-charcoal-800">
+                          <span className="text-charcoal-450">Face Contour</span>
+                          <span className="font-bold text-charcoal-900 dark:text-white font-mono">
+                            {beautyProfile?.faceShape || 'Oval'}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
-                          <span className="text-charcoal-400">Hair Type:</span>
-                          <span className="font-bold text-charcoal-900 dark:text-white">
-                            {beautyProfile?.hairType || '2C Wavy'} {beautyProfile?.hairDensity ? `(${beautyProfile.hairDensity} Density)` : ''}
+                        <div className="flex justify-between items-center py-1.5 border-b border-rosegold-100 dark:border-charcoal-800">
+                          <span className="text-charcoal-450">Hair Texture</span>
+                          <span className="font-bold text-charcoal-900 dark:text-white font-mono">
+                            {beautyProfile?.hairType || '2C Wavy'} {beautyProfile?.hairDensity ? `(${beautyProfile.hairDensity})` : ''}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
-                          <span className="text-charcoal-400">Skin Tone:</span>
-                          <span className="font-bold text-charcoal-900 dark:text-white">
-                            {beautyProfile?.skinTone || 'Warm Beige / Olive'} {beautyProfile?.undertone ? `(${beautyProfile.undertone} Undertone)` : ''}
+                        <div className="flex justify-between items-center py-1.5 border-b border-rosegold-100 dark:border-charcoal-800">
+                          <span className="text-charcoal-450">Skin Undertone</span>
+                          <span className="font-bold text-charcoal-900 dark:text-white font-mono">
+                            {beautyProfile?.skinTone || 'Warm Olive'} {beautyProfile?.undertone ? `(${beautyProfile.undertone})` : ''}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-xs py-1 border-b border-rosegold-100 dark:border-charcoal-800">
-                          <span className="text-charcoal-400">Preferences:</span>
-                          <span className="font-bold text-charcoal-900 dark:text-white text-right">
-                            {userProfile.preferredBudget || 'Luxury'} / {userProfile.location || 'Indiranagar'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs py-1">
-                          <span className="text-charcoal-400">Category:</span>
-                          <span className="font-bold text-rosegold-500">
-                            {beautyProfile?.hairType?.toLowerCase()?.includes('straight') ? 'Sleek & Hydrate' : 'Skincare & Texture Cuts'}
+                        <div className="flex justify-between items-center py-1.5">
+                          <span className="text-charcoal-450">Preferred Care</span>
+                          <span className="font-bold text-rosegold-500 font-mono">
+                            {beautyProfile?.hairType?.toLowerCase()?.includes('straight') ? 'Sleek & Hydrate' : 'Texture Cuts & Skincare'}
                           </span>
                         </div>
                       </div>
@@ -676,11 +670,11 @@ export default function StyleAdvisor() {
             </div>
 
             {/* SECTION 4: Recommended Salons */}
-            <div className="p-6 rounded-2xl border border-rosegold-350 dark:border-charcoal-800 bg-linear-to-r from-rosegold-100/35 via-white to-white dark:from-charcoal-900 dark:to-charcoal-950/60 space-y-5">
+            <div className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 space-y-5">
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-charcoal-950 dark:text-white">Recommended Salons</h3>
-                <p className="text-xs text-charcoal-500 dark:text-rosegold-250">
-                  AuraAI vision algorithms recommend the following Bangalore salons based on your Beauty DNA profile.
+                <h3 className="text-xl font-bold text-charcoal-955 dark:text-white font-playfair">Recommended Salons</h3>
+                <p className="text-xs text-charcoal-550 dark:text-rosegold-250">
+                  Salons matching your active style profile and preferences.
                 </p>
               </div>
               
@@ -840,7 +834,7 @@ export default function StyleAdvisor() {
                   ) : (
                     <button
                       onClick={handleSaveJourney}
-                      className="px-5 py-2.5 bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-purple-700 hover:to-indigo-800 text-white rounded-xl font-semibold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="px-5 py-2.5 bg-charcoal-900 hover:bg-charcoal-800 text-white rounded-xl font-semibold text-xs shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer dark:bg-white dark:text-charcoal-950 dark:hover:bg-charcoal-100"
                     >
                       Save Journey to Profile
                     </button>

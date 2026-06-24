@@ -97,8 +97,8 @@ export default function LandingPage() {
   const steps = [
     {
       num: '01',
-      title: 'Tell AuraAI Your Goal',
-      desc: 'Ask our AI concierge for a treatment, style advice, or an event preparation timeline in plain English.'
+      title: 'Tell Aura Your Goal',
+      desc: 'Ask our concierge for a treatment, style advice, or an event preparation timeline in plain English.'
     },
     {
       num: '02',
@@ -118,7 +118,7 @@ export default function LandingPage() {
     {
       num: '05',
       title: 'Receive Smarter Suggestions',
-      desc: 'Future AI recommendations dynamically improve as Aura learns your booking preferences and rating history.'
+      desc: 'Future recommendations dynamically improve as Aura learns your booking preferences and rating history.'
     }
   ];
 
@@ -126,7 +126,7 @@ export default function LandingPage() {
     {
       name: 'Neha Sen',
       role: 'Bridal Prep Client, Indiranagar',
-      quote: 'I used AuraAI to plan my bridal beauty appointments. It helped me organize my timeline and booking schedules without visiting multiple websites. The event calendar made tracking progress so simple!',
+      quote: 'I used Aura to plan my bridal beauty appointments. It helped me organize my timeline and booking schedules without visiting multiple websites. The event calendar made tracking progress so simple!',
       rating: 5,
       avatarBg: 'bg-rosegold-500'
     },
@@ -190,9 +190,9 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-24 md:pt-28 md:pb-32 bg-linear-to-b from-rosegold-100/30 via-transparent to-transparent">
+      <section className="relative overflow-hidden pt-20 pb-24 md:pt-28 md:pb-32 bg-linear-to-b from-rosegold-100/10 via-transparent to-transparent">
         {/* Glow Effects */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[600px] sm:h-[600px] rounded-full bg-linear-to-tr from-rosegold-300/30 to-gold-light/40 blur-3xl -z-10 animate-pulse-slow"></div>
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[600px] sm:h-[600px] rounded-full bg-linear-to-tr from-rosegold-200/10 to-rosegold-300/10 blur-3xl -z-10"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           {/* Featured Brand Logo Accent */}
@@ -207,26 +207,26 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-rosegold-300 bg-white/60 dark:bg-charcoal-900/60 backdrop-blur-xs shadow-xs text-xs font-semibold text-charcoal-800 dark:text-rosegold-200">
-            <Sparkles className="w-3.5 h-3.5 text-rosegold-500 animate-spin" />
-            <span>Your Personal AI Beauty Concierge Platform</span>
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-rosegold-300/40 bg-white/60 dark:bg-charcoal-900/60 backdrop-blur-xs shadow-xs text-xs font-semibold text-charcoal-800 dark:text-rosegold-200">
+            <Sparkles className="w-3.5 h-3.5 text-rosegold-500" />
+            <span>Beauty decisions made simpler.</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-charcoal-950 dark:text-white max-w-4xl mx-auto leading-[1.15]">
-            Your Personal <br className="hidden sm:inline" />
-            <span className="bg-linear-to-r from-rosegold-600 via-gold-metallic to-rosegold-500 bg-clip-text text-transparent">
-              AI Beauty Concierge
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-charcoal-950 dark:text-white max-w-4xl mx-auto leading-[1.15] font-playfair">
+            Find the right salon. <br className="hidden sm:inline" />
+            <span className="bg-linear-to-r from-rosegold-600 to-rosegold-500 bg-clip-text text-transparent">
+              Not just the nearest one.
             </span>
           </h1>
 
           <p className="text-lg sm:text-xl text-charcoal-600 dark:text-rosegold-200 max-w-2xl mx-auto font-light leading-relaxed">
-            Get beauty guidance, salon recommendations, and personalized planning in one place.
+            Personalized beauty guidance, tailored to you.
           </p>
 
           {/* Prompt simulator container */}
-          <div className="max-w-xl mx-auto rounded-2xl border border-rosegold-200 dark:border-charcoal-800 bg-white/70 dark:bg-charcoal-900/70 p-4 shadow-xl backdrop-blur-md flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-rosegold-100 dark:bg-charcoal-800 flex items-center justify-center text-rosegold-500">
-              <Brain className="w-4 h-4 animate-bounce" />
+          <div className="max-w-xl mx-auto rounded-2xl border border-rosegold-200/40 dark:border-charcoal-800/80 bg-white dark:bg-charcoal-900/80 p-3.5 shadow-sm flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-full bg-rosegold-50 dark:bg-charcoal-800 flex items-center justify-center text-rosegold-550">
+              <Compass className="w-4 h-4" />
             </div>
             <div className="flex-1 text-left font-mono text-xs sm:text-sm text-charcoal-700 dark:text-rosegold-100">
               <span>{typedText}</span>
@@ -236,7 +236,7 @@ export default function LandingPage() {
               href="/concierge" 
               className="p-2 rounded-lg bg-rosegold-500 text-white hover:bg-rosegold-600 transition-colors"
             >
-              <Search className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -244,16 +244,16 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link
               href="/dashboard"
-              className="w-full sm:w-auto flex items-center justify-center px-8 py-3 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-medium shadow-md hover:shadow-lg hover:scale-102 transition-all group"
+              className="w-full sm:w-auto flex items-center justify-center px-8 py-3 rounded-full bg-charcoal-900 hover:bg-charcoal-800 dark:bg-white dark:hover:bg-charcoal-100 dark:text-charcoal-950 text-white font-medium shadow-xs hover:scale-102 transition-all group"
             >
               Get Started
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/concierge"
-              className="w-full sm:w-auto flex items-center justify-center px-8 py-3 rounded-full border border-rosegold-300 dark:border-charcoal-850 hover:bg-rosegold-100/40 dark:hover:bg-charcoal-900 font-medium transition-all"
+              className="w-full sm:w-auto flex items-center justify-center px-8 py-3 rounded-full border border-rosegold-300/60 dark:border-charcoal-800 text-charcoal-800 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-900 font-medium transition-all"
             >
-              Try AuraAI
+              Chat with Aura
             </Link>
           </div>
         </div>
@@ -264,8 +264,8 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-rosegold-500">Live Simulation</span>
-            <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white">Conversations with AuraAI</h2>
-            <p className="text-sm text-charcoal-550 dark:text-rosegold-200 font-light">See how our AI Beauty Concierge immediately addresses your styling, budgeting, and planning queries.</p>
+            <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair">Conversations with Aura</h2>
+            <p className="text-sm text-charcoal-550 dark:text-rosegold-200 font-light">See how our concierge immediately addresses your styling, budgeting, and planning queries.</p>
           </div>
 
           {/* Tabs header */}
@@ -320,8 +320,8 @@ export default function LandingPage() {
             <div className="flex items-start gap-3 justify-end">
               <div className="bg-linear-to-br from-rosegold-550 to-gold-metallic text-white rounded-2xl rounded-tr-none p-4 shadow-md max-w-[85%] space-y-4">
                 <div className="flex items-center space-x-2">
-                  <Brain className="w-3.5 h-3.5 animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-90">Aura AI Concierge</span>
+                  <Compass className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-90 font-mono">Aura Concierge</span>
                 </div>
                 <p className="text-sm leading-relaxed">
                   {conversationShowcases[activeShowcaseTab].aura}
@@ -357,11 +357,11 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <span className="text-[10px] font-bold uppercase tracking-widest text-rosegold-500">Outcome Oriented</span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white leading-tight">
-                How AuraAI Helps You
+              <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white leading-tight font-playfair">
+                How Aura Helps You
               </h2>
               <p className="text-charcoal-600 dark:text-rosegold-200 leading-relaxed font-light">
-                We built AuraAI to solve a simple problem: finding and organizing premium beauty care should not feel like research. We focus on practical, stress-free outcomes so you can book with confidence.
+                We built Aura to solve a simple problem: finding and organizing premium beauty care should not feel like research. We focus on practical, stress-free outcomes so you can book with confidence.
               </p>
               
               {/* Checklist */}
@@ -379,29 +379,29 @@ export default function LandingPage() {
 
             {/* Credibility graphic or investor pitch points */}
             <div className="bg-white dark:bg-charcoal-900 border border-rosegold-200 dark:border-charcoal-850 rounded-3xl p-8 shadow-xl space-y-6">
-              <h4 className="text-lg font-bold text-charcoal-950 dark:text-white border-b border-rosegold-100 dark:border-charcoal-800 pb-3">
-                Why AuraAI is Different
+              <h4 className="text-lg font-bold text-charcoal-950 dark:text-white border-b border-rosegold-100 dark:border-charcoal-800 pb-3 font-playfair">
+                Why Aura is Different
               </h4>
 
               <div className="space-y-4">
                 <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wide text-rosegold-500">Flat Advertisements vs. AI Personalization</h5>
-                  <p className="text-xs text-charcoal-500 dark:text-rosegold-250 mt-1 leading-relaxed">
-                    Standard search directories prioritize listings that pay for advertisements. AuraAI runs a persistent preference profile in the background, matching and ranking wellness services using actual compatibility scores.
+                  <h5 className="text-xs font-bold uppercase tracking-wide text-rosegold-500">Personalization</h5>
+                  <p className="text-xs text-charcoal-550 dark:text-rosegold-250 mt-1 leading-relaxed font-light">
+                    Standard search directories prioritize sponsored advertisements. Aura runs a preference profile in the background, matching wellness services using actual compatibility scores.
                   </p>
                 </div>
 
                 <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wide text-rosegold-500">Unbiased Review Intelligence</h5>
-                  <p className="text-xs text-charcoal-500 dark:text-rosegold-250 mt-1 leading-relaxed">
+                  <h5 className="text-xs font-bold uppercase tracking-wide text-rosegold-500">Review Analysis</h5>
+                  <p className="text-xs text-charcoal-550 dark:text-rosegold-250 mt-1 leading-relaxed font-light">
                     Instead of scanning hundreds of comments, our intelligence system analyzes historical sentiment metrics, presenting a transparent summary of positive strengths and complaints for each partner salon.
                   </p>
                 </div>
 
                 <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wide text-rosegold-500">Persistent Beauty DNA</h5>
-                  <p className="text-xs text-charcoal-500 dark:text-rosegold-250 mt-1 leading-relaxed">
-                    A single selfie analysis records your skin tone and hair density parameters. This persistent profile is integrated with the concierge, allowing Aura to offer highly specialized style advice on the fly.
+                  <h5 className="text-xs font-bold uppercase tracking-wide text-rosegold-500">Beauty Profile</h5>
+                  <p className="text-xs text-charcoal-550 dark:text-rosegold-250 mt-1 leading-relaxed font-light">
+                    A single selfie analysis records your skin tone and hair density parameters. This profile is integrated with the concierge, allowing Aura to offer highly specialized style advice on the fly.
                   </p>
                 </div>
               </div>
@@ -415,11 +415,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
             <span className="text-[10px] font-bold uppercase tracking-widest text-rosegold-500">Core Features</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white">
-              What AuraAI Can Do
+            <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white font-playfair">
+              What Aura Can Do
             </h2>
             <p className="text-sm text-charcoal-550 dark:text-rosegold-200 font-light">
-              Explore the actual working features built into AuraAI designed to simplify your wellness bookings.
+              Explore the actual working features built into Aura designed to simplify your wellness bookings.
             </p>
           </div>
 
@@ -452,8 +452,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-rosegold-500">Timeline Workflow</span>
-            <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white">Understand Your Journey</h2>
-            <p className="text-sm text-charcoal-550 dark:text-rosegold-200 font-light">The simplified loop demonstrating how Aura guides you from initial goal to smarter future suggestions.</p>
+            <h2 className="text-3xl font-bold text-charcoal-950 dark:text-white font-playfair">Understand Your Journey</h2>
+            <p className="text-sm text-charcoal-550 dark:text-rosegold-200 font-light">How Aura guides you from initial goal to smarter future suggestions.</p>
           </div>
 
           <div className="relative">
@@ -480,11 +480,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
             <span className="text-[10px] font-bold uppercase tracking-widest text-rosegold-500">Customer Proof</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white font-playfair">
               Grounded in Real Customer Experience
             </h2>
             <p className="text-sm text-charcoal-550 dark:text-rosegold-200">
-              Read how our wellness clients use AuraAI to discover grooming treatments and manage booking schedules.
+              Read how our clients use Aura to discover grooming treatments and manage booking schedules.
             </p>
           </div>
 
@@ -510,16 +510,16 @@ export default function LandingPage() {
                     {[...Array(test.rating)].map((_, i) => (
                       <Star key={i} className="w-3 h-3 text-rosegold-500 fill-rosegold-500" />
                     ))}
-                  </div>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
           </div>
         </div>
       </section>
 
       {/* CTA Bottom banner */}
-      <section className="py-16 bg-linear-to-r from-rosegold-100/40 via-gold-light/40 to-rosegold-100/40 dark:from-charcoal-950 dark:to-charcoal-900 border-t border-b border-rosegold-200/50 dark:border-charcoal-800">
+      <section className="py-16 bg-rosegold-50/20 dark:bg-charcoal-950/20 border-t border-b border-rosegold-200/20 dark:border-charcoal-800/40">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
           {/* Logo Brand Icon */}
           <div className="flex justify-center">
@@ -532,18 +532,18 @@ export default function LandingPage() {
               />
             </div>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white">
+          <h2 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white font-playfair">
             Ready to upgrade your beauty regime?
           </h2>
           <p className="text-sm sm:text-base text-charcoal-550 dark:text-rosegold-250 max-w-xl mx-auto">
-            Book appointments dynamically, analyze styles using your persistent profile, and chat with AuraAI today.
+            Book appointments dynamically, analyze styles using your profile, and chat with Aura today.
           </p>
           <div className="pt-2">
             <Link
               href="/dashboard"
-              className="inline-flex items-center px-8 py-3 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-medium shadow-md hover:shadow-lg hover:scale-102 transition-all"
+              className="inline-flex items-center px-8 py-3 rounded-full bg-charcoal-900 hover:bg-charcoal-800 dark:bg-white dark:hover:bg-charcoal-100 dark:text-charcoal-950 text-white font-medium shadow-xs hover:scale-102 transition-all"
             >
-              Try AuraAI Now
+              Get Started
             </Link>
           </div>
         </div>
