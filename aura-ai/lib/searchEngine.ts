@@ -66,7 +66,8 @@ export async function getSalonsAndServices(): Promise<Salon[]> {
         reviews: data.reviews || [],
         aiReviewSummary: data.aiReviewSummary || { pros: [], cons: [], summary: '' },
         matchScore: data.matchScore || 95,
-        badges: data.badges || []
+        badges: data.badges || [],
+        services: salonServices
       };
     }) as Salon[];
 
