@@ -145,20 +145,26 @@ export function recalculateUserMemory(
 export function buildUserMemoryContext(memory: UserMemory): string {
   if (!memory) return '';
 
-  const preferredServicesText = memory.preferredServices.length > 0
-    ? memory.preferredServices.slice(0, 3).map(s => `* ${s}`).join('\n')
+  const preferredServices = memory.preferredServices || [];
+  const preferredCategories = memory.preferredCategories || [];
+  const preferredLocations = memory.preferredLocations || [];
+  const dislikedServices = memory.dislikedServices || [];
+  const reviewHistory = memory.reviewHistory || [];
+
+  const preferredServicesText = preferredServices.length > 0
+    ? preferredServices.slice(0, 3).map(s => `* ${s}`).join('\n')
     : '* None';
 
-  const preferredCategoriesText = memory.preferredCategories.length > 0
-    ? memory.preferredCategories.slice(0, 2).map(c => `* ${c.category} Salons`).join('\n')
+  const preferredCategoriesText = preferredCategories.length > 0
+    ? preferredCategories.slice(0, 2).map(c => `* ${c.category} Salons`).join('\n')
     : '* None';
 
-  const preferredLocationsText = memory.preferredLocations.length > 0
-    ? memory.preferredLocations.slice(0, 2).map(l => `* ${l} Area`).join('\n')
+  const preferredLocationsText = preferredLocations.length > 0
+    ? preferredLocations.slice(0, 2).map(l => `* ${l} Area`).join('\n')
     : '* None';
 
   let budgetRange = '';
-  if (memory.averageBudget > 0) {
+  if (memory.averageBudget && memory.averageBudget > 0) {
     const lower = Math.max(0, Math.floor(memory.averageBudget / 500) * 500);
     const upper = lower + 500;
     budgetRange = `₹${lower}-${upper}`;
@@ -166,12 +172,12 @@ export function buildUserMemoryContext(memory: UserMemory): string {
     budgetRange = 'No bookings recorded yet';
   }
 
-  const ratedServices = memory.reviewHistory
+  const ratedServices = reviewHistory
     .map(r => `${r.serviceName} (${r.rating}★)`)
     .join('\n');
 
-  const avoidServicesText = memory.dislikedServices.length > 0
-    ? memory.dislikedServices.map(s => `* ${s}`).join('\n')
+  const avoidServicesText = dislikedServices.length > 0
+    ? dislikedServices.map(s => `* ${s}`).join('\n')
     : '* None';
 
   return `User prefers:

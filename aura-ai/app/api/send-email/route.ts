@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import dns from 'dns';
+
+// Force DNS lookup to prefer IPv4 first. This prevents ENETUNREACH errors on systems
+// where IPv6 is enabled in the OS config but has no active internet route.
+dns.setDefaultResultOrder('ipv4first');
 
 export async function POST(req: Request) {
   try {
@@ -13,9 +18,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Credentials not configured" }, { status: 400 });
     }
 
-    // Configure transporter
+    // Configure transporter manually on port 587 to avoid IPv6/port blocks (ENETUNREACH)
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for port 465, false for other ports
       auth: {
         user: emailUser,
         pass: emailPass, // Gmail 16-character App Password

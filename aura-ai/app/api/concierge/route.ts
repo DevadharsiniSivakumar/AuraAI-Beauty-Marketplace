@@ -221,7 +221,9 @@ function generateLocalExplanation(
   if (bp) {
     const densityText = bp.hairDensity ? `, ${bp.hairDensity.toLowerCase()}-density` : '';
     const undertoneText = bp.undertone ? `, with a ${bp.undertone.toLowerCase()} undertone` : '';
-    personalizationPrefix += `Considering your ${bp.faceShape.toLowerCase()} face contour${undertoneText} and ${bp.hairType.toLowerCase()}${densityText} hair type, `;
+    const faceShapeText = bp.faceShape ? `${bp.faceShape.toLowerCase()}` : 'analyzed';
+    const hairTypeText = bp.hairType ? `${bp.hairType.toLowerCase()}` : 'matching';
+    personalizationPrefix += `Considering your ${faceShapeText} face contour${undertoneText} and ${hairTypeText}${densityText} hair type, `;
   } else if (userMemory) {
     const prefersSkincare = userMemory.preferredServices?.some((s: string) => 
       s.toLowerCase().includes('facial') || s.toLowerCase().includes('skin')
