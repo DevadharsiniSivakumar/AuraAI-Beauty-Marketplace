@@ -6,9 +6,48 @@ from models.recommendation import RecommendationResult
 class RecommendationService:
     @staticmethod
     async def get_salons_and_services() -> List[Dict[str, Any]]:
-        # In a fully deployed version, this could fetch from Firestore
-        # For now, it returns MOCK_SALONS to maintain 100% compatibility
-        return MOCK_SALONS
+        from utils.firebase import get_firestore_client, should_use_mock
+        import os
+
+        if should_use_mock():
+            return MOCK_SALONS
+
+        db = get_firestore_client()
+        try:
+            # 1. Fetch all salons
+            salons_ref = db.collection("salons")
+            salons_docs = salons_ref.get()
+            salons_list = []
+            for doc in salons_docs:
+                sdata = doc.to_dict()
+                sdata["id"] = doc.id
+                sdata["services"] = []
+                salons_list.append(sdata)
+
+            # 2. Fetch all services
+            services_ref = db.collection("services")
+            services_docs = services_ref.get()
+            services_by_salon = {}
+            for doc in services_docs:
+                serv_data = doc.to_dict()
+                serv_data["id"] = doc.id
+                salon_id = serv_data.get("salonId")
+                if salon_id:
+                    if salon_id not in services_by_salon:
+                        services_by_salon[salon_id] = []
+                    services_by_salon[salon_id].append(serv_data)
+
+            # 3. Reconstruct embedded services representation
+            for salon in salons_list:
+                sid = salon.get("id")
+                if sid in services_by_salon:
+                    salon["services"] = services_by_salon[sid]
+
+            return salons_list
+        except Exception as e:
+            if os.getenv("ALLOW_MOCK_AI_DATA_FALLBACK", "false").lower() == "true":
+                return MOCK_SALONS
+            raise
 
     @classmethod
     async def search_and_rank(
@@ -17,6 +56,9 @@ class RecommendationService:
         user_profile: Dict[str, Any],
         user_bookings: List[Dict[str, Any]] = None
     ) -> List[RecommendationResult]:
+        from utils.firebase import should_use_mock
+        data_source = "mock_fallback" if should_use_mock() else "firestore"
+
         if user_bookings is None:
             user_bookings = []
 
@@ -141,7 +183,8 @@ class RecommendationService:
                     details=salon.get("name"),
                     matchScore=min(score, 99),
                     reasons=reasons,
-                    memoryIndicator=memory_indicator
+                    memoryIndicator=memory_indicator,
+                    dataSource=data_source
                 ))
 
         # --- BRANCH 2: SALON SEARCH / COMPARISON / OTHER INTENTS ---
@@ -220,7 +263,8 @@ class RecommendationService:
                     details=salon_locality,
                     matchScore=min(score, 99),
                     reasons=reasons,
-                    memoryIndicator=memory_indicator
+                    memoryIndicator=memory_indicator,
+                    dataSource=data_source
                 ))
 
         # Sort by match score descending and return top 3

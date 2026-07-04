@@ -1,3 +1,5 @@
+import os
+os.environ["ALLOW_MOCK_AI_DATA_FALLBACK"] = "true"
 import json
 from fastapi.testclient import TestClient
 from app import app

@@ -1,7 +1,7 @@
 import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from routes import concierge, memory, beauty_profile, recommendations
+from routes import concierge, memory, beauty_profile, recommendations, ai_router
 from services.concierge_service import ConciergeService
 from services.recommendation_service import RecommendationService
 from pydantic import BaseModel
@@ -31,6 +31,7 @@ app.include_router(concierge.router)
 app.include_router(memory.router)
 app.include_router(beauty_profile.router)
 app.include_router(recommendations.router)
+app.include_router(ai_router.router)
 
 # --- ADDITIONAL COMPATIBILITY ENDPOINTS ---
 

@@ -17,9 +17,17 @@ export async function POST(request: Request) {
 
     if (useFastApi) {
       try {
+        const authHeader = request.headers.get('Authorization');
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
+        };
+        if (authHeader) {
+          headers['Authorization'] = authHeader;
+        }
+
         const response = await fetch(`${fastApiUrl}/api/concierge/chat`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: headers,
           body: JSON.stringify({ message, userProfile, bookings, userMemory, beautyProfile })
         });
         if (response.ok) {
@@ -164,7 +172,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
+      requestId: `req-fallback-${Date.now()}`,
       intent: parsedQuery.intent,
+      agentsUsed: ['intent', recommendations.length > 0 ? 'recommendation' : 'narrator'],
       recommendations,
       comparison,
       response: aiResponse,

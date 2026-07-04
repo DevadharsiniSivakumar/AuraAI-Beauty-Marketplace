@@ -10,7 +10,9 @@ class RecommendationResult(BaseModel):
     details: str
     matchScore: int
     reasons: List[str]
+    tradeoffs: Optional[List[str]] = Field(default_factory=list)
     memoryIndicator: Optional[str] = None
+    dataSource: Optional[str] = "firestore"
 
 class RecommendationRequest(BaseModel):
     userQuery: str
