@@ -17,6 +17,9 @@ export interface Booking {
   time: string;
   status: 'Pending' | 'Confirmed' | 'In Progress' | 'Completed' | 'Cancelled' | 'No Show';
   createdAt?: string;
+  userName?: string;
+  userEmail?: string;
+  userId?: string;
 }
 
 export interface ChatMessage {
