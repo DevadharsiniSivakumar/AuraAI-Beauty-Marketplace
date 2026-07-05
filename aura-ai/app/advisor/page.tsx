@@ -3,183 +3,209 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
-import { useApp, ChatMessage } from '../context/AppContext';
+import Footer from '../components/Footer';
 
-export default function StyleAdvisor() {
-  const { salons, userProfile, beautyProfile } = useApp();
-  
-  const [messages, setMessages] = useState<ChatMessage[]>([
+interface Message {
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  recommendations?: any[];
+}
+
+export default function AdvisorPage() {
+  const [messages, setMessages] = useState<Message[]>([
     {
-      id: 'welcome-msg',
-      sender: 'aura',
-      text: `Hello! I'm your Style Advisor.\n\nUpload a photo or describe your features (e.g., "I have an oval face and 2C wavy hair") and I'll suggest styles, makeup, and treatments for you.`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      recommendations: []
+      role: 'assistant',
+      text: 'Hello! I am Aura, your personal beauty advisor. Tell me what you are looking for—like "a relaxing spa day under ₹3000" or "the best bridal makeup artists in Indiranagar"—and I will find the perfect matches for you.',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
-
-  const [inputText, setInputText] = useState('');
-  const [isAiTyping, setIsAiTyping] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedPrompts = [
-    "Recommend a haircut for an oval face",
-    "What makeup suits warm olive skin?",
-    "Build a 30-day hair recovery plan",
+    "I need a haircut and coloring near Whitefield.",
+    "Show me highly-rated spas under ₹2500.",
+    "Who is the best bridal makeup artist in Koramangala?"
   ];
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isAiTyping]);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  const handleSubmit = async (textToSend: string) => {
-    if (!textToSend.trim()) return;
-    
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}-user`,
-      sender: 'user',
-      text: textToSend,
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  const handleSend = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim()) return;
+
+    const userMsg: Message = {
+      role: 'user',
+      text: input,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     setMessages(prev => [...prev, userMsg]);
-    setInputText('');
-    setIsAiTyping(true);
+    setInput('');
+    setIsTyping(true);
 
-    // Mock response for Style Advisor since it might not have a dedicated API route in this simplified version
-    setTimeout(() => {
-      const auraMsg: ChatMessage = {
-        id: `msg-${Date.now()}-aura`,
-        sender: 'aura',
-        text: `Based on your request, I recommend a layered cut to add volume, and a hydrating facial to prep your skin.\n\nHere are some salons that specialize in these services:`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        recommendations: [
-          { type: 'service', id: 'bc-hair-1', name: 'Luxury Balayage & Styling', salonId: 'bodycraft-indiranagar' },
-          { type: 'service', id: 'bc-facial-1', name: 'Advanced Hydra Facial', salonId: 'bodycraft-indiranagar' }
-        ]
-      };
+    try {
+      const response = await fetch('/api/concierge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg.text, context: "advisor" })
+      });
+
+      const data = await response.json();
       
-      setMessages(prev => [...prev, auraMsg]);
-      setIsAiTyping(false);
-    }, 800);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        text: data.reply,
+        recommendations: data.recommendations,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        text: "I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#FCFAF8]">
+    <div className="flex flex-col min-h-screen bg-cream">
       <Navbar />
 
-      <div className="flex-grow flex overflow-hidden max-w-7xl w-full mx-auto sm:px-6 lg:px-8 py-4 sm:py-6 gap-6">
-        
-        {/* Left Sidebar - History */}
-        <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-[#FFFFFF] border border-[#E5DED8] rounded-md overflow-hidden h-full">
-          <div className="p-4 border-b border-[#E5DED8] bg-[#FCFAF8]">
-            <h3 className="font-bold text-[#2D2926]">Chat History</h3>
-          </div>
-          <div className="flex-1 p-4 overflow-y-auto space-y-2 text-sm">
-            <p className="text-[#716A65] text-xs italic">No previous chats.</p>
-          </div>
-        </aside>
-
-        {/* Right Chat Container */}
-        <section className="flex-1 flex flex-col bg-[#FFFFFF] border-y sm:border border-[#E5DED8] sm:rounded-md overflow-hidden h-full relative">
+      <main className="flex-grow flex justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-3xl flex flex-col bg-white border border-border rounded-xl shadow-sm overflow-hidden h-[80vh]">
           
-          {/* Chat Header */}
-          <div className="px-6 py-4 border-b border-[#E5DED8] bg-[#FCFAF8] flex items-center shrink-0">
-            <div>
-              <h2 className="text-base font-bold text-[#2D2926]">Style Advisor</h2>
-              <p className="text-xs text-[#716A65]">Active</p>
+          {/* Header */}
+          <div className="bg-white border-b border-border p-4 flex items-center justify-between z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-plum flex items-center justify-center text-warmwhite font-serif italic text-lg shadow-sm">
+                A
+              </div>
+              <div>
+                <h1 className="font-medium text-darktext text-lg leading-tight">Aura Assistant</h1>
+                <p className="text-xs text-mutedtext">Salon suggestions and beauty planning</p>
+              </div>
             </div>
+            {isTyping && (
+              <span className="text-xs text-mutedtext animate-pulse">Aura is typing...</span>
+            )}
           </div>
 
-          {/* Conversation Feed */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-[#FCFAF8]">
-            {messages.map((msg) => {
-              const isAura = msg.sender === 'aura';
+          {/* Chat Area */}
+          <div className="flex-grow overflow-y-auto p-4 sm:p-6 space-y-6 bg-cream/30">
+            {messages.map((msg, idx) => {
+              const isAura = msg.role === 'assistant';
               return (
-                <div key={msg.id} className={`flex max-w-[85%] ${isAura ? 'mr-auto' : 'ml-auto flex-row-reverse'}`}>
-                  <div className={`p-3 rounded-lg text-sm ${
-                    isAura 
-                      ? 'bg-[#FFFFFF] border border-[#E5DED8] text-[#2D2926]' 
-                      : 'bg-[#2D2926] text-white'
-                  }`}>
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
-                    
-                    {/* Render basic recommendations if available */}
-                    {isAura && msg.recommendations && msg.recommendations.length > 0 && (
-                      <div className="mt-3 space-y-2 border-t border-[#E5DED8] pt-3">
-                        {msg.recommendations.map((rec, idx) => (
-                          <div key={idx} className="bg-[#FCFAF8] p-2 rounded border border-[#E5DED8] text-xs">
-                            <strong className="block text-[#2D2926]">{rec.name}</strong>
-                            <Link 
-                              href={rec.type === 'salon' ? `/salons/${rec.id}` : `/booking?salon=${rec.salonId}&service=${rec.id}`}
-                              className="text-[#9D5965] hover:underline mt-1 inline-block"
-                            >
-                              View &rarr;
-                            </Link>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    <span className={`block text-[10px] mt-2 text-right ${isAura ? 'text-[#716A65]' : 'text-gray-300'}`}>
+                <div key={idx} className={`flex ${isAura ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-2`}>
+                  <div className={`flex flex-col gap-1 max-w-[85%] sm:max-w-[75%] ${isAura ? 'items-start' : 'items-end'}`}>
+                    <div className={`p-4 text-sm leading-relaxed ${
+                      isAura 
+                        ? 'bg-white border border-border text-darktext rounded-2xl rounded-tl-sm shadow-sm' 
+                        : 'bg-blush text-darktext rounded-2xl rounded-tr-sm'
+                    }`}>
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                      
+                      {/* Compact Salon Cards */}
+                      {isAura && msg.recommendations && msg.recommendations.length > 0 && (
+                        <div className="mt-4 space-y-3 pt-3 border-t border-border border-dashed">
+                          <p className="text-xs font-medium text-mutedtext uppercase tracking-wider">Suggested for you</p>
+                          {msg.recommendations.map((rec, rIdx) => (
+                            <div key={rIdx} className="bg-cream p-3 rounded-lg border border-border hover:border-plum/30 transition-colors flex justify-between items-center group">
+                              <div>
+                                <strong className="block text-darktext font-medium">{rec.name}</strong>
+                                <span className="text-xs text-mutedtext">{rec.type === 'salon' ? 'Salon Profile' : 'Service Booking'}</span>
+                              </div>
+                              <Link 
+                                href={rec.type === 'salon' ? `/salons/${rec.id}` : `/booking?salon=${rec.salonId}&service=${rec.id}`}
+                                className="px-3 py-1.5 bg-white border border-border text-xs font-medium text-darktext rounded group-hover:text-plum transition-colors"
+                              >
+                                View
+                              </Link>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-mutedtext px-1">
                       {msg.timestamp}
                     </span>
                   </div>
                 </div>
               );
             })}
-
-            {isAiTyping && (
-              <div className="flex max-w-[85%] mr-auto">
-                <div className="p-3 rounded-lg bg-[#FFFFFF] border border-[#E5DED8] text-[#716A65] text-sm flex items-center gap-1">
-                  Typing...
+            
+            {isTyping && (
+              <div className="flex justify-start animate-in fade-in">
+                <div className="bg-white border border-border rounded-2xl rounded-tl-sm p-4 shadow-sm flex gap-1">
+                  <div className="w-2 h-2 bg-border-dark rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-border-dark rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-border-dark rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
               </div>
             )}
-            
-            <div ref={chatEndRef} />
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Chat input controls */}
-          <div className="p-4 border-t border-[#E5DED8] bg-[#FFFFFF] shrink-0">
-            <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
-              {suggestedPrompts.map((p, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSubmit(p)}
-                  className="whitespace-nowrap text-xs px-3 py-1.5 rounded-full border border-[#E5DED8] bg-[#FCFAF8] text-[#716A65] hover:text-[#2D2926] hover:border-[#9D5965] transition-colors"
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit(inputText);
-              }}
-              className="flex items-center gap-2"
-            >
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Ask your Style Advisor..."
-                className="flex-1 text-sm bg-[#FCFAF8] border border-[#E5DED8] rounded-full px-4 py-3 focus:outline-none focus:border-[#9D5965] text-[#2D2926]"
+          {/* Input Area */}
+          <div className="p-4 bg-white border-t border-border">
+            {messages.length === 1 && (
+              <div className="mb-4 flex flex-wrap gap-2">
+                {suggestedPrompts.map((prompt, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => {
+                      setInput(prompt);
+                    }}
+                    className="text-xs bg-cream border border-border text-mutedtext px-3 py-1.5 rounded-full hover:border-plum hover:text-darktext transition-colors text-left"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            )}
+            <form onSubmit={handleSend} className="relative flex items-end gap-2">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask Aura anything..."
+                className="w-full bg-cream border border-border text-darktext text-sm rounded-lg pl-4 pr-12 py-3 focus:outline-none focus:border-plum resize-none"
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
               />
-              <button
+              <button 
                 type="submit"
-                className="p-3 rounded-full bg-[#2D2926] text-white hover:bg-[#1a1715] transition-colors"
+                disabled={!input.trim() || isTyping}
+                className="absolute right-2 bottom-2 p-1.5 bg-plum text-warmwhite rounded-md hover:bg-plum-dark transition-colors disabled:opacity-50 disabled:bg-border-dark"
               >
-                Send
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
               </button>
             </form>
+            <p className="text-center text-[10px] text-mutedtext mt-2">
+              Aura uses AI to provide recommendations. Verify details before booking.
+            </p>
           </div>
 
-        </section>
+        </div>
+      </main>
 
-      </div>
+      <Footer />
     </div>
   );
 }

@@ -2,179 +2,171 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, User as UserIcon, LogOut } from 'lucide-react';
 
 export default function Navbar() {
-  const { user, role, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, isAdmin, logout } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isActive = (path: string) => pathname === path;
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      if (role === 'admin') {
-        router.push('/admin/login');
-      } else {
-        router.push('/login');
-      }
-    } catch (err) {
-      console.error('Logout failed:', err);
-    }
-  };
+  const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Salons', href: '/salons' },
-    { name: 'Services', href: '/salons' },
-    { name: 'Ask Aura', href: '/concierge' },
+    { name: 'Discover', href: '/salons' },
+    { name: 'Ask Aura', href: '/advisor' },
+    { name: 'My Journey', href: '/journey' },
   ];
 
   return (
-    <nav className="w-full border-b border-[#E5DED8] bg-[#FCFAF8]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Logo - Left */}
-          <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-xl font-bold tracking-tight text-[#2D2926]">
-              Aura
-            </Link>
-          </div>
-
-          {/* Desktop Navigation - Center/Right */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`text-sm transition-colors hover:text-[#9D5965] ${
-                  isActive(link.href)
-                    ? 'text-[#2D2926] font-semibold'
-                    : 'text-[#716A65] font-normal'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
-
-          {/* Right Action Icons - Far Right */}
-          <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <div className="flex items-center space-x-6">
-                {role === 'user' && (
-                  <Link href="/dashboard" className="text-sm font-medium text-[#716A65] hover:text-[#9D5965]">
-                    Bookings
-                  </Link>
-                )}
-                <div className="flex items-center space-x-4">
-                  <Link href={role === 'admin' ? '/admin/dashboard' : '/profile'} className="flex items-center space-x-2 text-sm text-[#716A65] hover:text-[#2D2926]">
-                    <UserIcon className="w-4 h-4" />
-                    <span>{user.name.split(' ')[0]}</span>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="p-1 text-[#716A65] hover:text-red-500 transition-colors"
-                    title="Logout"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-[#716A65] hover:text-[#2D2926] transition-colors"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
-                  className="px-4 py-2 rounded-md bg-[#2D2926] text-white text-sm font-medium hover:bg-[#1a1715] transition-colors"
-                >
-                  Create account
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#716A65]"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+    <header className="bg-warmwhite border-b border-border sticky top-0 z-50 transition-colors h-[72px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        {/* Left: Logo */}
+        <div className="flex-shrink-0 flex items-center">
+          <Link href="/" className="font-serif text-2xl font-bold text-darktext tracking-wide hover:opacity-80 transition-opacity">
+            Aura
+          </Link>
         </div>
-      </div>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-b border-[#E5DED8] bg-[#FFFFFF] px-4 pt-2 pb-6 space-y-3 shadow-sm">
+        {/* Center: Desktop Navigation */}
+        <nav className="hidden md:flex space-x-8">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-md text-base ${
-                isActive(link.href)
-                  ? 'bg-[#F5E9EB] text-[#9D5965] font-semibold'
-                  : 'text-[#716A65] hover:bg-gray-50'
+              className={`text-sm font-medium transition-colors hover:text-plum ${
+                isActive(link.href) ? 'text-plum border-b-2 border-plum' : 'text-mutedtext'
               }`}
+              style={{ paddingBottom: '23px', marginTop: '25px' }} // Align active border to bottom of header
             >
               {link.name}
             </Link>
           ))}
-          
-          <div className="pt-4 border-t border-[#E5DED8] flex flex-col space-y-2">
-            {user ? (
-              <>
-                {role === 'user' && (
-                  <Link href="/dashboard" className="block px-3 py-2 text-[#716A65] hover:bg-gray-50 rounded-md">Bookings</Link>
-                )}
-                <Link href={role === 'admin' ? '/admin/dashboard' : '/profile'} className="flex items-center space-x-2 px-3 py-2 text-[#716A65] hover:bg-gray-50 rounded-md">
-                  <UserIcon className="w-4 h-4" />
-                  <span>Profile ({user.name})</span>
+        </nav>
+
+        {/* Right: Actions */}
+        <div className="hidden md:flex items-center space-x-6">
+          {/* Mock Search Icon */}
+          <button className="text-mutedtext hover:text-plum transition-colors" aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+
+          {user ? (
+            <div className="flex items-center space-x-4">
+              {isAdmin ? (
+                <Link href="/admin" className={`text-sm font-medium transition-colors hover:text-plum ${isActive('/admin') ? 'text-plum' : 'text-mutedtext'}`}>
+                  Admin Console
                 </Link>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleLogout();
-                  }}
-                  className="flex items-center space-x-2 px-3 py-2 text-[#716A65] hover:bg-gray-50 rounded-md w-full text-left"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
-                </button>
-              </>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex justify-center items-center py-2 px-4 rounded-md border border-[#E5DED8] text-[#716A65] text-sm font-medium hover:bg-gray-50"
-                >
-                  Login
+              ) : (
+                <Link href="/dashboard" className={`text-sm font-medium transition-colors hover:text-plum ${isActive('/dashboard') ? 'text-plum' : 'text-mutedtext'}`}>
+                  Bookings
                 </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex justify-center items-center py-2 px-4 rounded-md bg-[#2D2926] text-white text-sm font-medium"
-                >
-                  Create account
-                </Link>
-              </div>
-            )}
+              )}
+              <Link href="/profile" className="flex items-center space-x-2 group">
+                <div className="w-8 h-8 rounded-full bg-peach flex items-center justify-center text-warmwhite font-medium text-sm group-hover:opacity-90 transition-opacity">
+                  {user.email?.[0].toUpperCase() || 'U'}
+                </div>
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link href="/login" className="text-sm font-medium text-darktext hover:text-plum transition-colors">
+                Login
+              </Link>
+              <Link href="/signup" className="text-sm font-medium bg-plum text-warmwhite px-4 py-2 rounded-md hover:bg-plum-dark transition-colors">
+                Create Account
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile menu button */}
+        <div className="md:hidden flex items-center">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="text-darktext hover:text-plum focus:outline-none"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-warmwhite border-b border-border absolute w-full left-0 shadow-lg">
+          <div className="px-4 pt-2 pb-6 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={`block px-3 py-3 rounded-md text-base font-medium ${
+                  isActive(link.href) ? 'text-plum bg-blush' : 'text-darktext hover:bg-blush hover:text-plum'
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.name}
+              </Link>
+            ))}
+            
+            <div className="border-t border-border mt-4 pt-4">
+              {user ? (
+                <>
+                  <div className="px-3 py-2 text-sm text-mutedtext mb-2">Logged in as {user.email}</div>
+                  {isAdmin ? (
+                    <Link
+                      href="/admin"
+                      className="block px-3 py-3 rounded-md text-base font-medium text-darktext hover:bg-blush hover:text-plum"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Console
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-3 rounded-md text-base font-medium text-darktext hover:bg-blush hover:text-plum"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      My Bookings
+                    </Link>
+                  )}
+                  <Link
+                    href="/profile"
+                    className="block px-3 py-3 rounded-md text-base font-medium text-darktext hover:bg-blush hover:text-plum"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Profile Settings
+                  </Link>
+                </>
+              ) : (
+                <div className="flex flex-col space-y-2 px-3 pt-2">
+                  <Link
+                    href="/login"
+                    className="block w-full text-center py-2 text-darktext border border-border rounded-md font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="block w-full text-center py-2 bg-plum text-warmwhite rounded-md font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Create Account
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
-    </nav>
+    </header>
   );
 }

@@ -2,124 +2,209 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 
-export default function UserDashboard() {
-  const router = useRouter();
-  const { userProfile, bookings, salons } = useApp();
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const { bookings, salons, favorites } = useApp();
 
-  const upcomingBookings = bookings.filter(b => ['Pending', 'Confirmed', 'In Progress'].includes(b.status));
+  const userBookings = bookings.filter(b => b.userId === user?.uid);
+  const upcomingBookings = userBookings.filter(b => new Date(`${b.date}T${b.time}`) >= new Date()).sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
+  const pastBookings = userBookings.filter(b => new Date(`${b.date}T${b.time}`) < new Date()).sort((a, b) => new Date(`${b.date}T${b.time}`).getTime() - new Date(`${a.date}T${a.time}`).getTime());
+
+  const savedSalons = salons.filter(s => favorites.includes(s.id));
+  const userName = user?.displayName || user?.email?.split('@')[0] || 'User';
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFAF8]">
+    <div className="flex flex-col min-h-screen bg-cream">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        <div className="mb-10">
+          <h1 className="font-serif text-3xl md:text-4xl text-darktext mb-2">Good morning, {userName}</h1>
+          <p className="text-mutedtext">Welcome back to your personal beauty dashboard.</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column - Profile & Nav */}
-          <aside className="w-full lg:w-64 shrink-0 space-y-6">
-            <div className="bg-[#FFFFFF] border border-[#E5DED8] p-6 rounded-md space-y-4">
-              <div className="w-16 h-16 bg-[#2D2926] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-2">
-                {userProfile.name[0]}
-              </div>
-              <div className="text-center">
-                <h2 className="font-bold text-[#2D2926] text-lg">{userProfile.name}</h2>
-                <p className="text-sm text-[#716A65]">{userProfile.email || 'user@example.com'}</p>
-              </div>
-              
-              <div className="pt-4 border-t border-[#E5DED8] flex flex-col gap-2 text-sm">
-                <Link href="/dashboard" className="font-medium text-[#2D2926] bg-[#FCFAF8] px-3 py-2 rounded">
-                  Dashboard
-                </Link>
-                <Link href="/salons" className="font-medium text-[#716A65] hover:bg-[#FCFAF8] hover:text-[#2D2926] px-3 py-2 rounded transition-colors">
-                  Explore Salons
-                </Link>
-                <Link href="/concierge" className="font-medium text-[#716A65] hover:bg-[#FCFAF8] hover:text-[#2D2926] px-3 py-2 rounded transition-colors">
-                  Ask Aura
-                </Link>
-                <Link href="/advisor" className="font-medium text-[#716A65] hover:bg-[#FCFAF8] hover:text-[#2D2926] px-3 py-2 rounded transition-colors">
-                  Style Advisor
-                </Link>
-              </div>
-            </div>
-          </aside>
-
-          {/* Right Column - Main Content */}
-          <section className="flex-1 w-full space-y-8">
+          {/* Main Column (2/3 width on desktop) */}
+          <div className="lg:col-span-2 space-y-8">
             
-            {/* Header */}
-            <div>
-              <h1 className="text-2xl font-bold text-[#2D2926]">Your Dashboard</h1>
-              <p className="text-sm text-[#716A65]">Manage your bookings and preferences.</p>
-            </div>
-
-            {/* Upcoming Bookings */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-[#2D2926]">Upcoming Bookings</h3>
+            {/* Upcoming Booking (Large Horizontal) */}
+            <section>
+              <div className="flex justify-between items-end mb-4">
+                <h2 className="text-lg font-medium text-darktext">Upcoming Appointment</h2>
+              </div>
               
               {upcomingBookings.length > 0 ? (
-                <div className="space-y-4">
-                  {upcomingBookings.map((b) => (
-                    <div key={b.id} className="bg-[#FFFFFF] border border-[#E5DED8] p-4 rounded-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#9D5965] bg-[#FCFAF8] border border-[#E5DED8] px-2 py-0.5 rounded">
-                            {b.status}
-                          </span>
-                        </div>
-                        <h4 className="font-bold text-[#2D2926]">{b.serviceName}</h4>
-                        <p className="text-sm text-[#716A65]">{b.salonName}</p>
-                        <p className="text-xs text-[#716A65] mt-1 font-mono">
-                          {b.date} · {b.time}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-bold text-[#2D2926] block mb-2">₹{b.price}</span>
-                      </div>
+                <div className="bg-white border border-border rounded-xl shadow-sm p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-2 h-full bg-plum"></div>
+                  
+                  <div className="flex-shrink-0 bg-cream p-4 rounded-lg text-center border border-border min-w-[100px]">
+                    <span className="block text-sm text-plum font-medium uppercase tracking-wider">{new Date(upcomingBookings[0].date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                    <span className="block font-serif text-3xl text-darktext">{new Date(upcomingBookings[0].date).getDate()}</span>
+                    <span className="block text-xs text-mutedtext mt-1">{upcomingBookings[0].time}</span>
+                  </div>
+                  
+                  <div className="flex-grow">
+                    <h3 className="font-medium text-xl text-darktext">{upcomingBookings[0].salonName}</h3>
+                    <p className="text-mutedtext mt-1">{upcomingBookings[0].serviceName}</p>
+                    <div className="flex gap-4 mt-4">
+                      <Link href={`/salons/${upcomingBookings[0].salonId}`} className="text-sm font-medium text-plum hover:underline">
+                        View Salon
+                      </Link>
+                      <button className="text-sm font-medium text-mutedtext hover:text-darktext">
+                        Reschedule
+                      </button>
                     </div>
-                  ))}
+                  </div>
+                  
+                  <div className="flex-shrink-0 text-right">
+                    <span className="inline-block px-3 py-1 bg-sage/10 text-sage text-xs font-medium rounded-full border border-sage/20">
+                      Confirmed
+                    </span>
+                  </div>
                 </div>
               ) : (
-                <div className="bg-[#FFFFFF] border border-[#E5DED8] p-8 text-center rounded-md">
-                  <p className="text-sm text-[#716A65] mb-4">You have no upcoming bookings.</p>
-                  <Link href="/salons" className="bg-[#2D2926] text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-[#1a1715] transition-colors inline-block">
+                <div className="bg-white border border-dashed border-border rounded-xl p-8 text-center text-mutedtext">
+                  <p className="mb-4">You don't have any upcoming appointments.</p>
+                  <Link href="/salons" className="px-6 py-2 bg-plum text-warmwhite rounded-md font-medium hover:bg-plum-dark transition-colors inline-block text-sm">
                     Find a Salon
                   </Link>
                 </div>
               )}
-            </div>
+            </section>
 
-            {/* Recommended for you */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-[#2D2926]">Recommended for you</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {salons.slice(0, 3).map((salon) => (
-                  <div key={salon.id} className="border border-[#E5DED8] rounded-md overflow-hidden bg-[#FCFAF8] flex flex-col">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={salon.image} alt={salon.name} className="w-full h-32 object-cover border-b border-[#E5DED8]" />
-                    <div className="p-4 flex flex-col flex-1 gap-1">
-                      <h4 className="font-bold text-[#2D2926] text-sm truncate">{salon.name}</h4>
-                      <p className="text-xs text-[#716A65]">{salon.locality}</p>
-                      <div className="mt-auto pt-3">
-                        <Link href={`/salons/${salon.id}`} className="text-xs font-medium text-[#9D5965] hover:underline">
-                          View salon
-                        </Link>
-                      </div>
+            {/* Beauty Journey Timeline */}
+            <section>
+              <div className="flex justify-between items-end mb-4">
+                <h2 className="text-lg font-medium text-darktext">Active Journey</h2>
+                <Link href="/journey" className="text-sm text-plum hover:underline">Planner</Link>
+              </div>
+              <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="font-medium text-darktext">Wedding Prep Timeline</h3>
+                    <p className="text-sm text-mutedtext">3 weeks remaining</p>
+                  </div>
+                  <span className="text-xs font-medium bg-cream px-2 py-1 rounded text-darktext border border-border">40% Complete</span>
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute top-1/2 left-0 w-full h-1 bg-cream -translate-y-1/2 rounded"></div>
+                  <div className="absolute top-1/2 left-0 w-[40%] h-1 bg-plum -translate-y-1/2 rounded"></div>
+                  
+                  <div className="relative flex justify-between">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-plum ring-4 ring-white z-10"></div>
+                      <span className="text-[10px] text-mutedtext font-medium uppercase">Wk 1</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-plum ring-4 ring-white z-10"></div>
+                      <span className="text-[10px] text-mutedtext font-medium uppercase">Wk 2</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-4 h-4 rounded-full border-2 border-plum bg-white ring-4 ring-white z-10"></div>
+                      <span className="text-[10px] text-plum font-bold uppercase">Wk 3</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-cream border border-border ring-4 ring-white z-10"></div>
+                      <span className="text-[10px] text-mutedtext font-medium uppercase">Event</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Recent Recommendations */}
+            <section>
+              <div className="flex justify-between items-end mb-4">
+                <h2 className="text-lg font-medium text-darktext">Aura's Recommendations</h2>
+                <Link href="/advisor" className="text-sm text-plum hover:underline">Ask Aura</Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {salons.slice(0, 2).map(salon => (
+                  <div key={salon.id} className="bg-white border border-border rounded-xl p-4 flex gap-4 items-center group shadow-sm hover:border-plum transition-colors">
+                    <div className="w-16 h-16 bg-sage/20 rounded-lg overflow-hidden flex-shrink-0 border border-border"></div>
+                    <div>
+                      <h3 className="font-medium text-darktext text-sm group-hover:text-plum transition-colors">{salon.name}</h3>
+                      <p className="text-xs text-mutedtext mt-1">{salon.location}</p>
+                      <Link href={`/salons/${salon.id}`} className="text-xs font-medium text-plum mt-2 inline-block hover:underline">View details &rarr;</Link>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
 
-          </section>
+          </div>
+
+          {/* Right Column (1/3 width on desktop) */}
+          <div className="space-y-8">
+            
+            {/* Saved Salons */}
+            <section>
+              <div className="flex justify-between items-end mb-4">
+                <h2 className="text-lg font-medium text-darktext">Saved Salons</h2>
+                <Link href="/profile" className="text-sm text-plum hover:underline">Manage</Link>
+              </div>
+              <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+                {savedSalons.length > 0 ? (
+                  <div className="divide-y divide-border">
+                    {savedSalons.slice(0, 4).map(salon => (
+                      <Link key={salon.id} href={`/salons/${salon.id}`} className="flex items-center gap-4 p-4 hover:bg-cream/50 transition-colors">
+                        <div className="w-12 h-12 bg-coral/20 rounded border border-border flex-shrink-0"></div>
+                        <div className="flex-grow">
+                          <h4 className="font-medium text-sm text-darktext">{salon.name}</h4>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className="text-gold text-[10px]">★</span>
+                            <span className="text-xs text-mutedtext">{salon.rating}</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-6 text-center text-sm text-mutedtext">
+                    You haven't saved any salons yet.
+                  </div>
+                )}
+                {savedSalons.length > 4 && (
+                  <div className="p-3 bg-cream border-t border-border text-center">
+                    <Link href="/profile" className="text-xs font-medium text-plum hover:underline">View all {savedSalons.length} saved</Link>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Past Bookings Summary */}
+            <section>
+              <h2 className="text-lg font-medium text-darktext mb-4">Past Visits</h2>
+              <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden divide-y divide-border">
+                {pastBookings.length > 0 ? (
+                  pastBookings.slice(0, 3).map(booking => (
+                    <div key={booking.id} className="p-4">
+                      <div className="flex justify-between items-start mb-1">
+                        <h4 className="font-medium text-sm text-darktext">{booking.salonName}</h4>
+                        <span className="text-xs text-mutedtext">{new Date(booking.date).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-xs text-mutedtext">{booking.serviceName}</p>
+                      <button className="text-xs font-medium text-plum mt-2 hover:underline">Book again</button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-sm text-mutedtext">
+                    No past visits recorded.
+                  </div>
+                )}
+              </div>
+            </section>
+
+          </div>
 
         </div>
-
       </main>
 
       <Footer />

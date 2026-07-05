@@ -1,17 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useApp } from '../context/AppContext';
 
-function BookingFormContent() {
+export default function BookingPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { salons, addBooking } = useApp();
 
-  // Selected parameters from query strings
   const initialSalonId = searchParams.get('salon') || '';
   const initialServiceId = searchParams.get('service') || '';
 
@@ -19,8 +19,8 @@ function BookingFormContent() {
   const [selectedServiceId, setSelectedServiceId] = useState(initialServiceId);
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
-  const [isConfirmed, setIsConfirmed] = useState(false);
-
+  
+  const [bookingState, setBookingState] = useState<'draft' | 'submitting' | 'success'>('draft');
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
 
   const activeSalon = salons.find(s => s.id === selectedSalonId);
@@ -57,7 +57,6 @@ function BookingFormContent() {
   };
 
   const datesList = getDatesList();
-
   const morningSlots = ['10:00 AM', '11:00 AM', '11:30 AM'];
   const afternoonSlots = ['12:30 PM', '1:30 PM', '3:00 PM', '4:30 PM'];
   const eveningSlots = ['5:30 PM', '6:30 PM', '7:30 PM'];
@@ -70,150 +69,193 @@ function BookingFormContent() {
     e.preventDefault();
     if (!selectedSalonId || !selectedServiceId || !bookingDate || !bookingTime) return;
 
-    const result = await addBooking(selectedSalonId, selectedServiceId, bookingDate, bookingTime);
-    if (result) {
-      setConfirmedBooking(result);
-      setIsConfirmed(true);
-    }
+    setBookingState('submitting');
+    
+    // Simulate network delay for polish
+    setTimeout(async () => {
+      const result = await addBooking(selectedSalonId, selectedServiceId, bookingDate, bookingTime);
+      if (result) {
+        setConfirmedBooking(result);
+        setBookingState('success');
+
+        // Trigger confirmation email
+        try {
+          fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customerName: result.userName,
+              bookingId: result.id,
+              salonName: result.salonName,
+              serviceName: result.serviceName,
+              date: result.date,
+              time: result.time,
+              bookingStatus: 'Confirmed',
+              userEmail: result.userEmail
+            })
+          });
+        } catch (err) {
+          console.error("Error triggering email send:", err);
+        }
+      } else {
+        setBookingState('draft');
+      }
+    }, 800);
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFAF8]">
+    <div className="flex flex-col min-h-screen bg-cream">
       <Navbar />
 
-      <main className="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-        {isConfirmed && confirmedBooking ? (
-          <div className="bg-[#FFFFFF] border border-[#E5DED8] p-8 rounded-md text-center max-w-2xl mx-auto space-y-6">
-            <h2 className="text-2xl font-bold text-[#2D2926]">Appointment Confirmed</h2>
-            <p className="text-sm text-[#716A65]">Your booking has been successfully scheduled.</p>
-            
-            <div className="bg-[#FCFAF8] p-6 rounded-md border border-[#E5DED8] text-left space-y-4 text-sm text-[#2D2926]">
-              <div className="flex justify-between border-b border-[#E5DED8] pb-2">
-                <span className="font-medium">Booking ID</span>
-                <span className="font-mono">{confirmedBooking.id}</span>
+        {bookingState === 'success' && confirmedBooking ? (
+          <div className="max-w-2xl mx-auto mt-10 animate-in slide-in-from-bottom-4">
+            <div className="bg-white border border-border rounded-xl shadow-lg overflow-hidden">
+              <div className="bg-sage p-8 text-center text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-sage opacity-50"></div>
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 text-sage text-3xl shadow-sm">
+                    ✓
+                  </div>
+                  <h2 className="font-serif text-3xl font-medium mb-2">Booking Confirmed</h2>
+                  <p className="text-white/90">Your appointment is set and a confirmation email is on the way.</p>
+                </div>
               </div>
-              <div className="flex justify-between border-b border-[#E5DED8] pb-2">
-                <span className="font-medium">Salon</span>
-                <span>{confirmedBooking.salonName}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#E5DED8] pb-2">
-                <span className="font-medium">Service</span>
-                <span>{confirmedBooking.serviceName}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#E5DED8] pb-2">
-                <span className="font-medium">Date & Time</span>
-                <span>{confirmedBooking.date} at {confirmedBooking.time}</span>
-              </div>
-              <div className="flex justify-between font-bold pt-2">
-                <span>Total Paid</span>
-                <span>₹{confirmedBooking.price}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-6 py-2 bg-[#2D2926] text-white rounded-md text-sm font-medium hover:bg-[#1a1715] transition-colors inline-block"
-            >
-              Go to Dashboard
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-[#2D2926]">Book an Appointment</h1>
-              <p className="text-sm text-[#716A65]">Select a salon, service, and your preferred time.</p>
-            </div>
-
-            <form onSubmit={handleBookingSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
-              <div className="md:col-span-2 space-y-6">
-                {/* 1. Salon & Service */}
-                <div className="bg-[#FFFFFF] border border-[#E5DED8] p-6 rounded-md space-y-4">
-                  <h3 className="font-bold text-[#2D2926]">1. Salon & Treatment</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[#2D2926] mb-1">Select Salon</label>
-                      <select 
-                        value={selectedSalonId}
-                        onChange={handleSalonChange}
-                        required
-                        className="w-full px-4 py-2 border border-[#E5DED8] rounded-md bg-[#FCFAF8] text-[#2D2926] focus:outline-none focus:border-[#9D5965]"
-                      >
-                        <option value="">-- Choose Salon --</option>
-                        {salons.map(s => (
-                          <option key={s.id} value={s.id}>{s.name} ({s.locality})</option>
-                        ))}
-                      </select>
+              <div className="p-8">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center border-b border-border pb-4">
+                    <span className="text-mutedtext">Booking ID</span>
+                    <span className="font-mono font-medium text-darktext">{confirmedBooking.id}</span>
+                  </div>
+                  
+                  <div className="flex items-start gap-4 border-b border-border pb-6">
+                    <div className="w-16 h-16 bg-cream rounded-lg flex items-center justify-center border border-border">
+                      <span className="text-xl">📍</span>
                     </div>
-
                     <div>
-                      <label className="block text-sm font-medium text-[#2D2926] mb-1">Select Service</label>
-                      <select 
-                        value={selectedServiceId}
-                        onChange={(e) => {
-                          setSelectedServiceId(e.target.value);
-                          setBookingDate('');
-                          setBookingTime('');
-                        }}
-                        required
-                        disabled={!selectedSalonId}
-                        className="w-full px-4 py-2 border border-[#E5DED8] rounded-md bg-[#FCFAF8] text-[#2D2926] focus:outline-none focus:border-[#9D5965] disabled:opacity-50"
-                      >
-                        <option value="">-- Choose Service --</option>
-                        {activeSalon?.services.map(ser => (
-                          <option key={ser.id} value={ser.id}>{ser.name} (₹{ser.price})</option>
-                        ))}
-                      </select>
+                      <h3 className="font-medium text-darktext text-lg">{confirmedBooking.salonName}</h3>
+                      <p className="text-mutedtext text-sm">Detailed directions are in your email</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 pb-6 border-b border-border">
+                    <div>
+                      <p className="text-xs text-mutedtext uppercase tracking-wider mb-1">Service</p>
+                      <p className="font-medium text-darktext">{confirmedBooking.serviceName}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-mutedtext uppercase tracking-wider mb-1">Date & Time</p>
+                      <p className="font-medium text-darktext">{confirmedBooking.date} at {confirmedBooking.time}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* 2. Date */}
-                {selectedSalonId && selectedServiceId && (
-                  <div className="bg-[#FFFFFF] border border-[#E5DED8] p-6 rounded-md space-y-4">
-                    <h3 className="font-bold text-[#2D2926]">2. Select Date</h3>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                      {datesList.map((dt) => (
+                <div className="mt-8 flex gap-4 justify-center">
+                  <Link href="/dashboard" className="px-6 py-3 bg-white border border-border text-darktext rounded-md font-medium hover:bg-cream transition-colors">
+                    View My Bookings
+                  </Link>
+                  <Link href="/salons" className="px-6 py-3 bg-plum text-warmwhite rounded-md font-medium hover:bg-plum-dark transition-colors">
+                    Explore More
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-12">
+            
+            {/* Left: Booking Form */}
+            <div className="w-full lg:w-[65%]">
+              <div className="mb-8">
+                <h1 className="font-serif text-3xl md:text-4xl text-darktext mb-3">Complete your booking</h1>
+                <p className="text-mutedtext">Select your preferred date and time for the appointment.</p>
+              </div>
+
+              <form onSubmit={handleBookingSubmit} className="space-y-10">
+                
+                {/* 1. Salon Selection */}
+                <div className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm">
+                  <h2 className="text-xl font-medium text-darktext mb-6">1. Salon & Service</h2>
+                  
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-medium text-mutedtext mb-2">Location</label>
+                      <select 
+                        value={selectedSalonId}
+                        onChange={handleSalonChange}
+                        required
+                        className="w-full p-3 bg-cream border border-border rounded-lg text-darktext focus:outline-none focus:border-plum"
+                      >
+                        <option value="">Select a salon...</option>
+                        {salons.map(s => (
+                          <option key={s.id} value={s.id}>{s.name} - {s.location}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {activeSalon && (
+                      <div className="animate-in fade-in">
+                        <label className="block text-sm font-medium text-mutedtext mb-2">Service</label>
+                        <select 
+                          value={selectedServiceId}
+                          onChange={(e) => setSelectedServiceId(e.target.value)}
+                          required
+                          className="w-full p-3 bg-cream border border-border rounded-lg text-darktext focus:outline-none focus:border-plum"
+                        >
+                          <option value="">Select a service...</option>
+                          {activeSalon.services.map(s => (
+                            <option key={s.id} value={s.id}>{s.name} (₹{s.price})</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Date & Time Selection */}
+                <div className={`bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm transition-opacity duration-300 ${!selectedServiceId ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+                  <h2 className="text-xl font-medium text-darktext mb-6">2. Date & Time</h2>
+                  
+                  <div className="mb-8">
+                    <label className="block text-sm font-medium text-mutedtext mb-3">Select Date</label>
+                    <div className="flex overflow-x-auto gap-3 pb-2 -mx-2 px-2 scrollbar-hide">
+                      {datesList.map((d, i) => (
                         <button
-                          key={dt.isoString}
+                          key={i}
                           type="button"
-                          onClick={() => {
-                            setBookingDate(dt.isoString);
-                            setBookingTime('');
-                          }}
-                          className={`min-w-[80px] p-3 rounded-md border text-center flex flex-col transition-colors ${
-                            bookingDate === dt.isoString 
-                              ? 'bg-[#2D2926] border-[#2D2926] text-white' 
-                              : 'border-[#E5DED8] text-[#2D2926] bg-[#FCFAF8] hover:border-[#9D5965]'
+                          onClick={() => setBookingDate(d.isoString)}
+                          className={`flex-shrink-0 flex flex-col items-center justify-center w-[88px] h-[96px] rounded-lg border transition-all ${
+                            bookingDate === d.isoString 
+                              ? 'bg-plum text-warmwhite border-plum shadow-md' 
+                              : 'bg-white border-border text-darktext hover:border-plum/50'
                           }`}
                         >
-                          <span className="text-xs">{dt.dayName}</span>
-                          <span className="text-lg font-bold">{dt.dayNum}</span>
-                          <span className="text-xs">{dt.month}</span>
+                          <span className="text-xs uppercase font-medium tracking-wider mb-1 opacity-80">{d.month}</span>
+                          <span className="text-2xl font-serif">{d.dayNum}</span>
+                          <span className="text-xs mt-1">{d.dayName}</span>
                         </button>
                       ))}
                     </div>
                   </div>
-                )}
 
-                {/* 3. Time */}
-                {selectedSalonId && selectedServiceId && bookingDate && (
-                  <div className="bg-[#FFFFFF] border border-[#E5DED8] p-6 rounded-md space-y-4">
-                    <h3 className="font-bold text-[#2D2926]">3. Select Time</h3>
-                    <div className="space-y-4">
+                  <div className={`transition-opacity duration-300 ${!bookingDate ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+                    <label className="block text-sm font-medium text-mutedtext mb-3">Select Time</label>
+                    
+                    <div className="space-y-6">
                       <div>
-                        <span className="text-sm font-medium text-[#716A65] block mb-2">Morning</span>
-                        <div className="flex flex-wrap gap-2">
+                        <p className="text-xs font-medium text-mutedtext mb-3 uppercase tracking-wider">Morning</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                           {morningSlots.map(time => (
                             <button
                               key={time}
                               type="button"
                               onClick={() => setBookingTime(time)}
-                              className={`px-4 py-2 rounded-md border text-sm transition-colors ${
+                              className={`py-2 px-2 text-sm rounded-md border transition-colors ${
                                 bookingTime === time 
-                                  ? 'bg-[#2D2926] border-[#2D2926] text-white' 
-                                  : 'border-[#E5DED8] text-[#2D2926] bg-[#FCFAF8] hover:border-[#9D5965]'
+                                  ? 'bg-plum text-warmwhite border-plum shadow-sm' 
+                                  : 'bg-cream border-border text-darktext hover:border-plum/50'
                               }`}
                             >
                               {time}
@@ -221,18 +263,19 @@ function BookingFormContent() {
                           ))}
                         </div>
                       </div>
+                      
                       <div>
-                        <span className="text-sm font-medium text-[#716A65] block mb-2">Afternoon</span>
-                        <div className="flex flex-wrap gap-2">
+                        <p className="text-xs font-medium text-mutedtext mb-3 uppercase tracking-wider">Afternoon</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                           {afternoonSlots.map(time => (
                             <button
                               key={time}
                               type="button"
                               onClick={() => setBookingTime(time)}
-                              className={`px-4 py-2 rounded-md border text-sm transition-colors ${
+                              className={`py-2 px-2 text-sm rounded-md border transition-colors ${
                                 bookingTime === time 
-                                  ? 'bg-[#2D2926] border-[#2D2926] text-white' 
-                                  : 'border-[#E5DED8] text-[#2D2926] bg-[#FCFAF8] hover:border-[#9D5965]'
+                                  ? 'bg-plum text-warmwhite border-plum shadow-sm' 
+                                  : 'bg-cream border-border text-darktext hover:border-plum/50'
                               }`}
                             >
                               {time}
@@ -240,18 +283,19 @@ function BookingFormContent() {
                           ))}
                         </div>
                       </div>
+
                       <div>
-                        <span className="text-sm font-medium text-[#716A65] block mb-2">Evening</span>
-                        <div className="flex flex-wrap gap-2">
+                        <p className="text-xs font-medium text-mutedtext mb-3 uppercase tracking-wider">Evening</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                           {eveningSlots.map(time => (
                             <button
                               key={time}
                               type="button"
                               onClick={() => setBookingTime(time)}
-                              className={`px-4 py-2 rounded-md border text-sm transition-colors ${
+                              className={`py-2 px-2 text-sm rounded-md border transition-colors ${
                                 bookingTime === time 
-                                  ? 'bg-[#2D2926] border-[#2D2926] text-white' 
-                                  : 'border-[#E5DED8] text-[#2D2926] bg-[#FCFAF8] hover:border-[#9D5965]'
+                                  ? 'bg-plum text-warmwhite border-plum shadow-sm' 
+                                  : 'bg-cream border-border text-darktext hover:border-plum/50'
                               }`}
                             >
                               {time}
@@ -261,78 +305,93 @@ function BookingFormContent() {
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+                
+                {/* Mobile Submit Button (Hidden on Desktop) */}
+                <div className="lg:hidden">
+                  <button 
+                    type="submit"
+                    disabled={bookingState === 'submitting' || !selectedServiceId || !bookingDate || !bookingTime}
+                    className="w-full bg-plum text-warmwhite py-4 rounded-lg font-medium hover:bg-plum-dark transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center"
+                  >
+                    {bookingState === 'submitting' ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Confirming...
+                      </span>
+                    ) : 'Confirm Appointment'}
+                  </button>
+                </div>
+              </form>
+            </div>
 
-              {/* Order Summary Sidebar */}
-              <div className="md:col-span-1">
-                <div className="bg-[#FFFFFF] border border-[#E5DED8] p-6 rounded-md sticky top-6 space-y-6">
-                  <h3 className="font-bold text-[#2D2926]">Order Summary</h3>
+            {/* Right: Order Summary Panel */}
+            <div className="w-full lg:w-[35%] relative">
+              <div className="sticky top-[100px] bg-white rounded-xl border border-border shadow-md overflow-hidden">
+                <div className="p-6 md:p-8">
+                  <h3 className="text-xl font-medium text-darktext mb-6">Order Summary</h3>
                   
-                  {bookingTime && activeService ? (
-                    <>
-                      <div className="space-y-3 text-sm text-[#2D2926] pb-4 border-b border-[#E5DED8]">
-                        <div className="flex justify-between font-medium">
-                          <span>{activeService.name}</span>
-                          <span>₹{basePrice}</span>
-                        </div>
-                        <p className="text-xs text-[#716A65]">{activeSalon?.name}</p>
-                      </div>
-
-                      <div className="space-y-2 text-sm text-[#2D2926] pb-4 border-b border-[#E5DED8]">
-                        <div className="flex justify-between">
-                          <span>Date</span>
-                          <span>{bookingDate}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Time</span>
-                          <span>{bookingTime}</span>
+                  {activeSalon && activeService ? (
+                    <div className="space-y-6 animate-in fade-in">
+                      <div className="flex gap-4 items-start">
+                        <div className="w-16 h-16 bg-cream border border-border rounded-lg flex-shrink-0"></div>
+                        <div>
+                          <h4 className="font-medium text-darktext">{activeSalon.name}</h4>
+                          <p className="text-sm text-mutedtext">{activeSalon.location}</p>
                         </div>
                       </div>
 
-                      <div className="space-y-2 text-sm text-[#2D2926] pb-4">
-                        <div className="flex justify-between text-[#716A65]">
-                          <span>Subtotal</span>
-                          <span>₹{basePrice}</span>
+                      <div className="border-t border-border pt-6">
+                        <div className="flex justify-between text-sm mb-4">
+                          <span className="text-darktext">{activeService.name}</span>
+                          <span className="font-medium text-darktext">₹{activeService.price}</span>
                         </div>
-                        <div className="flex justify-between text-[#716A65]">
-                          <span>Taxes (18%)</span>
+                        <div className="flex justify-between text-sm text-mutedtext mb-4">
+                          <span>Taxes & Fees</span>
                           <span>₹{gstTax}</span>
                         </div>
-                        <div className="flex justify-between font-bold text-base pt-2">
-                          <span>Total</span>
-                          <span>₹{totalAmount}</span>
-                        </div>
                       </div>
 
-                      <button
-                        type="submit"
-                        className="w-full py-3 bg-[#2D2926] text-white rounded-md text-sm font-medium hover:bg-[#1a1715] transition-colors"
-                      >
-                        Confirm Booking
-                      </button>
-                    </>
+                      <div className="border-t border-border pt-4 pb-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium text-darktext">Total</span>
+                          <span className="font-serif text-2xl text-darktext">₹{totalAmount}</span>
+                        </div>
+                      </div>
+                    </div>
                   ) : (
-                    <p className="text-sm text-[#716A65]">Please select a service, date, and time to view your summary.</p>
+                    <div className="text-center py-8 text-mutedtext text-sm bg-cream border border-dashed border-border rounded-lg">
+                      Select a salon and service<br/>to see the summary
+                    </div>
                   )}
+
+                  {/* Desktop Submit Button */}
+                  <div className="hidden lg:block mt-8">
+                    <button 
+                      onClick={handleBookingSubmit}
+                      disabled={bookingState === 'submitting' || !selectedServiceId || !bookingDate || !bookingTime}
+                      className="w-full bg-plum text-warmwhite py-4 rounded-lg font-medium hover:bg-plum-dark transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center"
+                    >
+                      {bookingState === 'submitting' ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                          Confirming...
+                        </span>
+                      ) : 'Confirm Appointment'}
+                    </button>
+                    <p className="text-center text-xs text-mutedtext mt-4">
+                      By booking this appointment, you agree to the cancellation policy.
+                    </p>
+                  </div>
                 </div>
               </div>
+            </div>
 
-            </form>
           </div>
         )}
-
       </main>
 
       <Footer />
     </div>
-  );
-}
-
-export default function BookingPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FCFAF8]" />}>
-      <BookingFormContent />
-    </Suspense>
   );
 }

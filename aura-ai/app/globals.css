@@ -3,35 +3,43 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-rose-50: #fff1f2;
-  --color-rose-100: #ffe4e6;
-  --color-rose-200: #fecdd3;
-  --color-rose-300: #fda4af;
-  --color-rose-400: #fb7185;
-  --color-rose-500: #f43f5e;
-  --color-rose-600: #e11d48;
-  --color-rose-700: #be123c;
-  --color-rose-800: #9f1239;
-  --color-rose-900: #881337;
-  --color-rose-950: #4c0519;
+  --color-plum: #4A2438;
+  --color-plum-dark: #381a29;
+  --color-rose: #B85C74;
+  --color-rose-dark: #9A4B5E;
+  --color-coral: #E77C6C;
+  --color-peach: #F2A77E;
+  --color-blush: #F8E8E8;
+  --color-cream: #FFF9F4;
+  --color-warmwhite: #FFFFFF;
+  --color-darktext: #2B2528;
+  --color-mutedtext: #746B70;
+  --color-border: #E8DDDF;
+  --color-border-dark: #D4C3C7;
+  --color-sage: #819B87;
+  --color-lavender: #8D7AAE;
+  --color-gold: #C99A4A;
+  
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
 }
 
 :root {
-  --background: #faf8f5;
-  --foreground: #2f2926;
-  --card: #ffffff;
-  --card-foreground: #2f2926;
-  --border: #e6e0da;
-  --ring: #a85d6a;
+  --background: #FFF9F4; /* Cream */
+  --foreground: #2B2528; /* Dark Text */
+  --card: #FFFFFF;
+  --card-foreground: #2B2528;
+  --border: #E8DDDF;
+  --ring: #B85C74;
 }
 
 .dark {
-  --background: #1c1c1c;
-  --foreground: #f5f5f5;
-  --card: #262626;
-  --card-foreground: #f5f5f5;
-  --border: #404040;
-  --ring: #a85d6a;
+  --background: #181516; /* Muted very dark warm grey */
+  --foreground: #F8E8E8;
+  --card: #221D1F;
+  --card-foreground: #FFF9F4;
+  --border: #40383B;
+  --ring: #B85C74;
 }
 
 /* Base resets & typography */

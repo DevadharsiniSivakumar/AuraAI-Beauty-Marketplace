@@ -30,88 +30,107 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#FCFAF8]">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link href="/" className="inline-block text-2xl font-bold text-[#2D2926] mb-6">
-          Aura
-        </Link>
-        <h2 className="text-2xl font-bold text-[#2D2926]">
-          Create an account
-        </h2>
-        <p className="mt-2 text-sm text-[#716A65]">
-          Already have an account?{' '}
-          <Link href="/login" className="font-medium text-[#9D5965] hover:underline">
-            Sign in here
+    <div className="min-h-screen flex bg-warmwhite">
+      
+      {/* Left 40%: Image Area (Desktop Only) */}
+      <div className="hidden lg:flex lg:w-[40%] bg-peach/20 relative overflow-hidden border-r border-border items-center justify-center">
+        <div className="absolute inset-0 bg-peach opacity-10 mix-blend-multiply"></div>
+        {/* Placeholder for real beauty image */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-30 text-peach font-serif text-2xl">
+          Skincare Image
+        </div>
+        
+        <div className="relative z-10 p-12 mt-auto w-full bg-gradient-to-t from-peach/60 to-transparent">
+          <Link href="/" className="inline-block text-3xl font-serif font-bold text-darktext mb-4">
+            Aura
           </Link>
-        </p>
+          <p className="text-darktext/90 font-medium text-lg leading-relaxed max-w-sm">
+            Join thousands discovering their perfect beauty regimen today.
+          </p>
+        </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-[#FFFFFF] border border-[#E5DED8] py-8 px-6 sm:px-10 rounded-md">
+      {/* Right 60%: Form Area */}
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-32">
+        <div className="w-full max-w-sm mx-auto lg:mx-0">
+          
+          <div className="lg:hidden mb-10">
+            <Link href="/" className="inline-block text-3xl font-serif font-bold text-darktext">
+              Aura
+            </Link>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-3xl font-serif text-darktext mb-2">Create an account</h2>
+            <p className="text-mutedtext">Join Aura to start managing your beauty journey.</p>
+          </div>
+
           {errorMsg && (
-            <div className="mb-4 p-3 rounded-md bg-red-50 text-red-700 text-sm border border-red-200">
-              {errorMsg}
+            <div className="mb-6 p-4 rounded-lg bg-rose/10 text-rose-dark text-sm border border-rose/20 flex items-start gap-3">
+              <span className="text-rose">!</span>
+              <span>{errorMsg}</span>
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSignup}>
+          <form onSubmit={handleSignup} className="space-y-5">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-[#2D2926] mb-1">
-                Full Name
-              </label>
+              <label htmlFor="name" className="block text-sm font-medium text-darktext mb-1.5">Full Name</label>
               <input
                 id="name"
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-[#E5DED8] rounded-md bg-[#FCFAF8] text-[#2D2926] focus:outline-none focus:border-[#9D5965]"
-                placeholder="Your Full Name"
+                className="w-full px-4 py-3 border border-border rounded-lg bg-cream text-darktext focus:outline-none focus:border-plum transition-colors"
+                placeholder="Your name"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#2D2926] mb-1">
-                Email address
-              </label>
+              <label htmlFor="email" className="block text-sm font-medium text-darktext mb-1.5">Email address</label>
               <input
                 id="email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-[#E5DED8] rounded-md bg-[#FCFAF8] text-[#2D2926] focus:outline-none focus:border-[#9D5965]"
+                className="w-full px-4 py-3 border border-border rounded-lg bg-cream text-darktext focus:outline-none focus:border-plum transition-colors"
                 placeholder="name@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#2D2926] mb-1">
-                Password
-              </label>
+              <label htmlFor="password" className="block text-sm font-medium text-darktext mb-1.5">Password</label>
               <input
                 id="password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-[#E5DED8] rounded-md bg-[#FCFAF8] text-[#2D2926] focus:outline-none focus:border-[#9D5965]"
-                placeholder="Create password"
+                className="w-full px-4 py-3 border border-border rounded-lg bg-cream text-darktext focus:outline-none focus:border-plum transition-colors"
+                placeholder="Create a password"
               />
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-2 bg-[#2D2926] text-white rounded-md text-sm font-medium hover:bg-[#1a1715] transition-colors disabled:opacity-50"
-              >
-                {isLoading ? 'Creating account...' : 'Create Account'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3.5 bg-plum text-warmwhite rounded-lg font-medium hover:bg-plum-dark transition-colors shadow-sm disabled:opacity-50 mt-2"
+            >
+              {isLoading ? 'Creating account...' : 'Create Account'}
+            </button>
           </form>
+
+          <p className="mt-8 text-center text-sm text-mutedtext">
+            Already have an account?{' '}
+            <Link href="/login" className="font-medium text-plum hover:underline">
+              Sign in
+            </Link>
+          </p>
+
         </div>
       </div>
+
     </div>
   );
 }

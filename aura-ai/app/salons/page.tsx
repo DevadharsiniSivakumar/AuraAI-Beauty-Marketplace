@@ -1,162 +1,221 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useApp } from '../context/AppContext';
 
-function ExploreSalonsContent() {
-  const { salons } = useApp();
+export default function SalonsPage() {
   const searchParams = useSearchParams();
-  const initialSearch = searchParams.get('search') || searchParams.get('category') || searchParams.get('q') || '';
+  const initialQuery = searchParams.get('q') || '';
+  const initialLocation = searchParams.get('location') || '';
+  const initialCategory = searchParams.get('category') || '';
 
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [selectedArea, setSelectedArea] = useState<string>('');
-  const [selectedService, setSelectedService] = useState<string>('');
-  const [maxBudget, setMaxBudget] = useState<string>('');
-  const [minRating, setMinRating] = useState<string>('');
+  const { salons, addFavorite, removeFavorite, isFavorite } = useApp();
+  const [filteredSalons, setFilteredSalons] = useState(salons);
+  
+  // Filters
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [location, setLocation] = useState(initialLocation);
+  const [category, setCategory] = useState(initialCategory);
+  const [rating, setRating] = useState('');
+  
+  // Fake loading state to show skeletons
+  const [isLoading, setIsLoading] = useState(true);
 
-  const areas = ['Indiranagar', 'Koramangala', 'Vittal Mallya Rd', 'Jayanagar', 'HSR Layout', 'Lavelle Road'];
-  const servicesList = ['Hair', 'Skincare', 'Bridal', 'Nails', 'Massages'];
-
-  const filteredSalons = useMemo(() => {
-    return salons.filter(salon => {
-      if (searchTerm && !salon.name.toLowerCase().includes(searchTerm.toLowerCase()) && !salon.description.toLowerCase().includes(searchTerm.toLowerCase())) {
-        const hasMatchingService = salon.services?.some(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.category.toLowerCase().includes(searchTerm.toLowerCase()));
-        if (!hasMatchingService) return false;
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      let filtered = salons;
+      
+      if (searchQuery) {
+        const lowerQ = searchQuery.toLowerCase();
+        filtered = filtered.filter(s => 
+          s.name.toLowerCase().includes(lowerQ) || 
+          s.services.some(svc => svc.name.toLowerCase().includes(lowerQ))
+        );
       }
       
-      if (selectedArea && salon.locality !== selectedArea) return false;
+      if (location) {
+        filtered = filtered.filter(s => s.location.toLowerCase().includes(location.toLowerCase()));
+      }
       
-      if (selectedService) {
-        const hasService = salon.services?.some(s => s.category === selectedService);
-        if (!hasService) return false;
+      if (category) {
+        filtered = filtered.filter(s => 
+          s.services.some(svc => svc.category.toLowerCase() === category.toLowerCase())
+        );
       }
-
-      if (maxBudget) {
-        const startingPrice = salon.services?.length ? Math.min(...salon.services.map(s => s.price)) : 0;
-        if (startingPrice > parseInt(maxBudget)) return false;
+      
+      if (rating) {
+        filtered = filtered.filter(s => s.rating >= parseFloat(rating));
       }
+      
+      setFilteredSalons(filtered);
+      setIsLoading(false);
+    }, 400); // 400ms fake loading for visual feedback
 
-      if (minRating && salon.rating < parseFloat(minRating)) return false;
-
-      return true;
-    });
-  }, [salons, searchTerm, selectedArea, selectedService, maxBudget, minRating]);
+    return () => clearTimeout(timer);
+  }, [searchQuery, location, category, rating, salons]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFAF8]">
+    <div className="flex flex-col min-h-screen bg-cream">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-[#2D2926] mb-2">Explore salons</h1>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Search salon or service..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-base px-4 py-3 border border-[#E5DED8] bg-[#FFFFFF] rounded-md focus:outline-none focus:border-[#9D5965] text-[#2D2926]"
-          />
-
-          <div className="flex flex-wrap gap-4 items-center">
-            <select 
-              value={selectedArea}
-              onChange={(e) => setSelectedArea(e.target.value)}
-              className="px-3 py-2 border border-[#E5DED8] rounded-md bg-[#FFFFFF] text-sm text-[#2D2926] focus:outline-none focus:border-[#9D5965]"
-            >
-              <option value="">All Areas</option>
-              {areas.map(area => <option key={area} value={area}>{area}</option>)}
-            </select>
-
-            <select 
-              value={selectedService}
-              onChange={(e) => setSelectedService(e.target.value)}
-              className="px-3 py-2 border border-[#E5DED8] rounded-md bg-[#FFFFFF] text-sm text-[#2D2926] focus:outline-none focus:border-[#9D5965]"
-            >
-              <option value="">All Services</option>
-              {servicesList.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-
-            <select 
-              value={maxBudget}
-              onChange={(e) => setMaxBudget(e.target.value)}
-              className="px-3 py-2 border border-[#E5DED8] rounded-md bg-[#FFFFFF] text-sm text-[#2D2926] focus:outline-none focus:border-[#9D5965]"
-            >
-              <option value="">Any Budget</option>
-              <option value="1500">Under ₹1500</option>
-              <option value="3000">Under ₹3000</option>
-              <option value="5000">Under ₹5000</option>
-            </select>
-
-            <select 
-              value={minRating}
-              onChange={(e) => setMinRating(e.target.value)}
-              className="px-3 py-2 border border-[#E5DED8] rounded-md bg-[#FFFFFF] text-sm text-[#2D2926] focus:outline-none focus:border-[#9D5965]"
-            >
-              <option value="">Any Rating</option>
-              <option value="4.0">4.0 &amp; above</option>
-              <option value="4.5">4.5 &amp; above</option>
-              <option value="4.8">4.8 &amp; above</option>
-            </select>
+      <main className="flex-grow">
+        {/* Header & Search */}
+        <div className="bg-warmwhite border-b border-border pt-12 pb-6 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-sm text-mutedtext mb-4">
+              <Link href="/" className="hover:text-plum">Home</Link> <span className="mx-2">/</span> <span className="text-darktext font-medium">Explore Salons</span>
+            </div>
             
-            {(searchTerm || selectedArea || selectedService || maxBudget || minRating) && (
-              <button 
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedArea('');
-                  setSelectedService('');
-                  setMaxBudget('');
-                  setMinRating('');
-                }}
-                className="text-sm text-[#716A65] hover:text-[#9D5965] underline decoration-[#E5DED8] underline-offset-4"
-              >
-                Clear all
-              </button>
-            )}
+            <h1 className="font-serif text-3xl md:text-4xl text-darktext mb-8">Explore salons</h1>
+            
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-grow relative">
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search salons, services..." 
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-lg text-darktext focus:outline-none focus:border-plum shadow-sm"
+                />
+                <span className="absolute left-3 top-3.5 text-mutedtext">🔍</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div>
-          {filteredSalons.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSalons.map((salon) => {
-                const startingPrice = salon.services?.length ? Math.min(...salon.services.map(s => s.price)) : 0;
-                return (
-                  <div key={salon.id} className="border border-[#E5DED8] rounded-md overflow-hidden bg-[#FCFAF8] flex flex-col">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={salon.image} alt={salon.name} className="w-full h-48 object-cover border-b border-[#E5DED8]" />
-                    <div className="p-4 flex flex-col flex-1 gap-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-bold text-[#2D2926] text-lg">{salon.name}</h3>
-                          <p className="text-sm text-[#716A65]">{salon.locality}</p>
-                        </div>
-                        <div className="text-sm font-medium text-[#2D2926]">★ {salon.rating}</div>
-                      </div>
-                      <p className="text-sm text-[#716A65] mt-1">
-                        {salon.services?.slice(0, 3).map(s => s.category).filter((v, i, a) => a.indexOf(v) === i).join(' · ')}
-                      </p>
-                      <div className="mt-auto pt-4 flex items-center justify-between border-t border-[#E5DED8]">
-                        <span className="text-sm text-[#716A65]">Starting from ₹{startingPrice}</span>
-                        <Link href={`/salons/${salon.id}`} className="text-sm font-medium text-[#FFFFFF] bg-[#2D2926] px-4 py-2 rounded-md hover:bg-[#1a1715] transition-colors">
-                          View salon
-                        </Link>
-                      </div>
+        {/* Sticky Filter Toolbar */}
+        <div className="bg-white border-b border-border sticky top-[72px] z-40 px-4 sm:px-6 lg:px-8 py-3 shadow-sm">
+          <div className="max-w-7xl mx-auto flex flex-wrap gap-3 items-center">
+            <span className="text-sm font-medium text-darktext mr-2 hidden md:inline-block">Filters:</span>
+            
+            <select 
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="bg-cream border border-border text-darktext text-sm rounded-md px-3 py-1.5 focus:outline-none focus:border-plum"
+            >
+              <option value="">Any Area</option>
+              <option value="Indiranagar">Indiranagar</option>
+              <option value="Koramangala">Koramangala</option>
+              <option value="Jayanagar">Jayanagar</option>
+              <option value="Whitefield">Whitefield</option>
+            </select>
+            
+            <select 
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="bg-cream border border-border text-darktext text-sm rounded-md px-3 py-1.5 focus:outline-none focus:border-plum"
+            >
+              <option value="">Any Category</option>
+              <option value="hair">Hair</option>
+              <option value="skin">Skin</option>
+              <option value="bridal">Bridal</option>
+              <option value="spa">Spa</option>
+            </select>
+
+            <select 
+              value={rating}
+              onChange={(e) => setRating(e.target.value)}
+              className="bg-cream border border-border text-darktext text-sm rounded-md px-3 py-1.5 focus:outline-none focus:border-plum"
+            >
+              <option value="">Any Rating</option>
+              <option value="4.5">4.5 & up</option>
+              <option value="4.7">4.7 & up</option>
+              <option value="4.9">4.9 & up</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Results */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="mb-6 flex justify-between items-end">
+            <span className="text-sm text-mutedtext">
+              {isLoading ? 'Searching...' : `Showing ${filteredSalons.length} results`}
+            </span>
+          </div>
+
+          {isLoading ? (
+            // Tasteful Skeletons
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="animate-pulse bg-white border border-border rounded-lg overflow-hidden">
+                  <div className="aspect-[4/3] bg-border-dark opacity-20"></div>
+                  <div className="p-5 space-y-4">
+                    <div className="h-5 bg-border-dark opacity-20 rounded w-2/3"></div>
+                    <div className="h-4 bg-border-dark opacity-20 rounded w-1/3"></div>
+                    <div className="pt-3 border-t border-border flex justify-between">
+                      <div className="h-4 bg-border-dark opacity-20 rounded w-1/2"></div>
+                      <div className="h-4 bg-border-dark opacity-20 rounded w-1/4"></div>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
+            </div>
+          ) : filteredSalons.length > 0 ? (
+            // Salon Grid
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredSalons.map((salon) => (
+                <div key={salon.id} className="group bg-white rounded-lg border border-border overflow-hidden hover:border-plum transition-colors duration-200 shadow-sm hover:shadow-md">
+                  <Link href={`/salons/${salon.id}`} className="block">
+                    <div className="aspect-[4/3] bg-border relative overflow-hidden">
+                      <div className="absolute inset-0 bg-sage opacity-20 group-hover:scale-105 transition-transform duration-500"></div>
+                      
+                      <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium text-darktext">
+                        {salon.services[0]?.category || 'Beauty'}
+                      </div>
+                    </div>
+                  </Link>
+                  
+                  <div className="p-5 flex flex-col gap-2 relative">
+                    <button 
+                      onClick={() => isFavorite(salon.id) ? removeFavorite(salon.id) : addFavorite(salon.id)}
+                      className="absolute top-4 right-4 text-2xl leading-none focus:outline-none hover:scale-110 transition-transform"
+                      aria-label="Toggle Favorite"
+                    >
+                      <span className={isFavorite(salon.id) ? "text-rose" : "text-border-dark"}>
+                        {isFavorite(salon.id) ? '♥' : '♡'}
+                      </span>
+                    </button>
+
+                    <Link href={`/salons/${salon.id}`} className="block">
+                      <div className="pr-8">
+                        <h3 className="font-semibold text-lg text-darktext group-hover:text-plum transition-colors">{salon.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-mutedtext">{salon.location}</span>
+                          <span className="text-mutedtext text-xs">•</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gold text-xs">★</span>
+                            <span className="text-sm font-medium text-darktext">{salon.rating}</span>
+                            <span className="text-mutedtext text-xs">({salon.reviews})</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 pt-3 border-t border-border flex justify-between items-center">
+                        <p className="text-sm text-darktext line-clamp-1">{salon.services[0]?.name}</p>
+                        <span className="text-sm font-medium">₹{salon.services[0]?.price}</span>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="text-center py-16 border border-[#E5DED8] rounded-md bg-[#FFFFFF]">
-              <h3 className="text-lg font-bold text-[#2D2926] mb-2">No results found</h3>
-              <p className="text-sm text-[#716A65]">Try adjusting your filters to find what you're looking for.</p>
+            // Empty State
+            <div className="bg-white border border-border rounded-lg p-12 text-center max-w-2xl mx-auto mt-10">
+              <span className="text-4xl mb-4 block">🔍</span>
+              <h3 className="text-xl font-medium text-darktext mb-2">No salons found</h3>
+              <p className="text-mutedtext">We couldn't find any salons matching your current filters. Try adjusting your search criteria.</p>
+              <button 
+                onClick={() => { setSearchQuery(''); setLocation(''); setCategory(''); setRating(''); }}
+                className="mt-6 text-plum font-medium hover:underline"
+              >
+                Clear all filters
+              </button>
             </div>
           )}
         </div>
@@ -164,13 +223,5 @@ function ExploreSalonsContent() {
 
       <Footer />
     </div>
-  );
-}
-
-export default function ExploreSalons() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FCFAF8]"></div>}>
-      <ExploreSalonsContent />
-    </Suspense>
   );
 }
