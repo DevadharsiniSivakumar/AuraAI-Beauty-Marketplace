@@ -154,7 +154,7 @@ export default function Home() {
                       <div className="flex items-center gap-1 bg-cream px-2 py-0.5 rounded text-sm">
                         <span className="text-gold">★</span>
                         <span className="font-medium">{salon.rating}</span>
-                        <span className="text-mutedtext text-xs">({salon.reviews} )</span>
+                        <span className="text-mutedtext text-xs">({salon.reviewsCount})</span>
                       </div>
                     </div>
                     <p className="text-sm text-mutedtext">{salon.location}</p>

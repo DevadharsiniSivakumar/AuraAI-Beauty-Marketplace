@@ -73,7 +73,7 @@ export default function ComparePage() {
                         <div className="flex items-center gap-2">
                           <span className="text-gold">★</span>
                           <span className={`font-medium ${isHighest ? 'text-darktext' : 'text-mutedtext'}`}>{salon.rating}</span>
-                          <span className="text-xs text-mutedtext">({salon.reviews})</span>
+                          <span className="text-xs text-mutedtext">({salon.reviewsCount})</span>
                         </div>
                       </td>
                     );

@@ -190,7 +190,7 @@ export default function SalonsPage() {
                           <div className="flex items-center gap-1">
                             <span className="text-gold text-xs">★</span>
                             <span className="text-sm font-medium text-darktext">{salon.rating}</span>
-                            <span className="text-mutedtext text-xs">({salon.reviews})</span>
+                            <span className="text-mutedtext text-xs">({salon.reviewsCount})</span>
                           </div>
                         </div>
                       </div>

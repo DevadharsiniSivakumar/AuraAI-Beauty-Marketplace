@@ -76,7 +76,7 @@ export default function SalonDetailsPage() {
                     <span className="text-gold">★</span>
                     <span className="font-medium text-darktext">{salon.rating}</span>
                     <span className="text-mutedtext underline decoration-border underline-offset-4 hover:decoration-mutedtext cursor-pointer transition-colors" onClick={() => setActiveTab('reviews')}>
-                      {salon.reviews} verified reviews
+                      {salon.reviewsCount} verified reviews
                     </span>
                   </div>
                 </div>
@@ -226,7 +226,7 @@ export default function SalonDetailsPage() {
                       <div className="bg-white p-6 rounded-lg border border-border shadow-sm text-center min-w-[200px]">
                         <div className="text-5xl font-serif text-darktext mb-2">{salon.rating}</div>
                         <div className="text-gold text-xl mb-1">★★★★★</div>
-                        <div className="text-sm text-mutedtext">{salon.reviews} verified reviews</div>
+                        <div className="text-sm text-mutedtext">{salon.reviewsCount} verified reviews</div>
                       </div>
 
                       {/* AI Summary Block */}
