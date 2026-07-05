@@ -153,6 +153,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [userMemory, setUserMemory] = useState<UserMemory | null>(null);
+  const [activeJourney, setActiveJourney] = useState<BeautyJourney | null>(null);
+  const [beautyProfile, setBeautyProfile] = useState<BeautyProfile | null>(null);
+
   // Load and sync Chat History per user
   useEffect(() => {
     const email = userProfile.email || 'guest';
@@ -173,11 +179,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(`aura_chat_${email}`, JSON.stringify(initialChat));
     }
   }, [userProfile.email, userProfile.name]);
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [userMemory, setUserMemory] = useState<UserMemory | null>(null);
-  const [activeJourney, setActiveJourney] = useState<BeautyJourney | null>(null);
-  const [beautyProfile, setBeautyProfile] = useState<BeautyProfile | null>(null);
+
 
   // Load and sync Beauty Profile
   useEffect(() => {
