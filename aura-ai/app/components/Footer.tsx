@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Sparkles, Mail, Heart, Check, Loader2 } from 'lucide-react';
+import { Mail, Check, Loader2 } from 'lucide-react';
 import { db, IS_MOCK } from '../../lib/firebase';
 
 export default function Footer() {
@@ -16,7 +16,6 @@ export default function Footer() {
     setStatus('loading');
     try {
       if (IS_MOCK) {
-        // Simulated Local Storage persistence
         const existing = localStorage.getItem('aura_newsletter_subscribers');
         const list = existing ? JSON.parse(existing) : [];
         list.push({ email, subscribedAt: new Date().toISOString() });
@@ -39,52 +38,39 @@ export default function Footer() {
   };
 
   return (
-    <footer className="border-t border-rosegold-200/50 dark:border-charcoal-800 bg-white/50 dark:bg-charcoal-950/50 py-12 mt-auto">
+    <footer className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 py-12 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
           {/* Brand Column */}
           <div className="space-y-4 md:col-span-1">
-            <Link href="/" className="flex items-center space-x-3 group">
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-[#0c051a] flex items-center justify-center shadow-md border border-rosegold-300/30">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src="/logo.jpg" 
-                  alt="Aura Logo" 
-                  className="w-full h-full object-cover scale-[1.7] transform" 
-                />
-              </div>
-              <span className="text-xl font-semibold tracking-wide bg-linear-to-r from-charcoal-900 to-rosegold-700 dark:from-rosegold-100 dark:to-gold-medium bg-clip-text text-transparent font-playfair">
+            <Link href="/" className="flex items-center space-x-2">
+              <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Aura
               </span>
             </Link>
-            <p className="text-xs sm:text-sm text-charcoal-550 dark:text-rosegold-300 leading-relaxed font-light">
-              A concierge platform providing personalized style advice, review analysis, beauty journey planning, and salon booking management.
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              Find salons, book appointments, and plan your beauty journey.
             </p>
           </div>
 
           {/* Quick Links Column */}
           <div>
-            <h4 className="text-xs font-semibold text-charcoal-800 dark:text-rosegold-200 uppercase tracking-widest mb-4">Platform</h4>
+            <h4 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Platform</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/concierge" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
-                  Concierge
+                <Link href="/concierge" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                  Assistant
                 </Link>
               </li>
               <li>
-                <Link href="/advisor" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
+                <Link href="/advisor" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                   Style Advisor
                 </Link>
               </li>
               <li>
-                <Link href="/salons" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
+                <Link href="/salons" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                   Explore Salons
-                </Link>
-              </li>
-              <li>
-                <Link href="/reviews" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
-                  Reviews
                 </Link>
               </li>
             </ul>
@@ -92,26 +78,16 @@ export default function Footer() {
 
           {/* Legal / Company Column */}
           <div>
-            <h4 className="text-xs font-semibold text-charcoal-800 dark:text-rosegold-200 uppercase tracking-widest mb-4">Company</h4>
+            <h4 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Company</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/dashboard" className="text-sm text-charcoal-600 dark:text-rosegold-350 hover:text-rosegold-500 transition-colors">
-                  Client Dashboard
+                <Link href="/dashboard" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                  Dashboard
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className="text-sm text-charcoal-600 dark:text-rosegold-350 hover:text-rosegold-500 transition-colors">
-                  Partner / Admin Area
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-sm text-charcoal-600 dark:text-rosegold-355 hover:text-rosegold-500 transition-colors">
-                  Terms of Service
+                <Link href="/admin" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                  Admin
                 </Link>
               </li>
             </ul>
@@ -119,9 +95,9 @@ export default function Footer() {
 
           {/* Newsletter Column */}
           <div className="space-y-4">
-            <h4 className="text-xs font-semibold text-charcoal-800 dark:text-rosegold-200 uppercase tracking-widest">Join the Club</h4>
-            <p className="text-sm text-charcoal-550 dark:text-rosegold-300 leading-relaxed font-light">
-              Get exclusive beauty packages and invitations to preview wellness salons.
+            <h4 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Join Newsletter</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              Get updates on new salons and features.
             </p>
             <form onSubmit={handleSubscribe} className="flex items-center space-x-2">
               <input
@@ -130,40 +106,36 @@ export default function Footer() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={status === 'loading'}
-                placeholder={status === 'success' ? "Subscribed!" : "Enter email"}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white placeholder-charcoal-400 disabled:opacity-50"
+                placeholder={status === 'success' ? "Subscribed!" : "Email address"}
+                className="w-full text-sm px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-500 disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={status === 'loading' || status === 'success'}
-                className="p-2 rounded-lg bg-rosegold-500 hover:bg-rosegold-600 text-white transition-colors disabled:opacity-50 shrink-0 cursor-pointer"
-                title="Subscribe"
+                className="p-2 rounded-md bg-gray-900 dark:bg-gray-100 hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-gray-900 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {status === 'loading' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : status === 'success' ? (
-                  <Check className="w-4 h-4 text-emerald-300" />
+                  <Check className="w-4 h-4 text-green-500" />
                 ) : (
                   <Mail className="w-4 h-4" />
                 )}
               </button>
             </form>
             {status === 'success' && (
-              <p className="text-[11px] text-emerald-500 dark:text-emerald-400 font-semibold animate-pulse">✓ Thank you for subscribing!</p>
+              <p className="text-xs text-green-600 dark:text-green-400">Thank you for subscribing!</p>
             )}
             {status === 'error' && (
-              <p className="text-[11px] text-red-500 font-semibold">✗ Subscription failed. Please try again.</p>
+              <p className="text-xs text-red-600 dark:text-red-400">Subscription failed. Please try again.</p>
             )}
           </div>
 
         </div>
 
         {/* Divider and Copyright */}
-        <div className="border-t border-rosegold-200/30 dark:border-charcoal-800/30 mt-12 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-charcoal-400 dark:text-charcoal-500">
-          <p>&copy; {new Date().getFullYear()} Aura Technologies Pvt Ltd. All rights reserved.</p>
-          <p className="flex items-center mt-2 md:mt-0">
-            Handcrafted with <Heart className="w-3.5 h-3.5 text-rosegold-500 mx-1 fill-rosegold-500 animate-pulse" /> by Aura
-          </p>
+        <div className="border-t border-gray-200 dark:border-gray-800 mt-12 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+          <p>&copy; {new Date().getFullYear()} Aura. All rights reserved.</p>
         </div>
       </div>
     </footer>

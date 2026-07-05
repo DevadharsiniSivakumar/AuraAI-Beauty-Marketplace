@@ -164,7 +164,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
     );
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-rosegold-50 dark:bg-charcoal-950">
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-black">
       <Navbar />
 
       <div className="flex-grow flex overflow-hidden max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
@@ -173,9 +173,9 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
         <aside className="hidden lg:flex flex-col w-72 shrink-0 gap-6 h-full overflow-y-auto pb-4">
           
           {/* Conversational History */}
-          <div className="p-5 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 space-y-4 shadow-2xs">
-            <h3 className="text-sm font-bold text-charcoal-900 dark:text-white flex items-center gap-2 font-playfair">
-              <History className="w-4 h-4 text-rosegold-500" />
+          <div className="p-5 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-4">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <History className="w-4 h-4 text-gray-500" />
               Recent Consults
             </h3>
             <div className="space-y-2">
@@ -184,22 +184,22 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                   <button 
                     key={idx}
                     onClick={() => handleSubmit(hist.title)}
-                    className="w-full text-left p-2.5 rounded-xl text-xs hover:bg-rosegold-50 dark:hover:bg-charcoal-800 transition-colors block border border-transparent hover:border-rosegold-100/60 cursor-pointer"
+                    className="w-full text-left p-2 rounded-md text-xs hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors block border border-transparent"
                   >
-                    <p className="font-semibold text-charcoal-800 dark:text-white line-clamp-1">{hist.title}</p>
-                    <span className="text-charcoal-400 block text-[10px] pt-0.5">{hist.date}</span>
+                    <p className="font-semibold text-gray-800 dark:text-white truncate">{hist.title}</p>
+                    <span className="text-gray-500 block text-xs pt-0.5">{hist.date}</span>
                   </button>
                 ))
               ) : (
-                <p className="text-xs text-charcoal-400 dark:text-rosegold-350 italic pl-1">No recent consultations found.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 italic pl-1">No recent consultations found.</p>
               )}
             </div>
           </div>
 
           {/* Extracted Recommendations Grid */}
-          <div className="p-5 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 flex-1 flex flex-col gap-4 overflow-hidden shadow-2xs">
-            <h3 className="text-sm font-bold text-charcoal-900 dark:text-white flex items-center gap-2 shrink-0 font-playfair">
-              <Tag className="w-4 h-4 text-rosegold-500" />
+          <div className="p-5 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-1 flex flex-col gap-4 overflow-hidden">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2 shrink-0">
+              <Tag className="w-4 h-4 text-gray-500" />
               Active Recommendations
             </h3>
             
@@ -208,22 +208,22 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                 allRecommendations.map((rec, idx) => (
                   <div 
                     key={idx}
-                    className="p-3 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-rosegold-50/10 dark:bg-charcoal-950/20 space-y-2 hover:border-rosegold-300 dark:hover:border-charcoal-700 transition-colors"
+                    className="p-3 rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black space-y-2 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
                   >
                     <div className="flex justify-between items-start">
                       <div className="min-w-0 flex-1">
-                        <span className="text-[8px] font-bold text-rosegold-600 dark:text-rosegold-400 uppercase tracking-widest block mb-0.5">{rec.type}</span>
-                        <h4 className="text-xs font-semibold text-charcoal-900 dark:text-white truncate">{rec.name}</h4>
-                        <p className="text-[10px] text-charcoal-450 dark:text-rosegold-300 truncate">{rec.details}</p>
+                        <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase block mb-0.5">{rec.type}</span>
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">{rec.name}</h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{rec.details}</p>
                       </div>
-                      <span className="text-[10px] font-bold text-rosegold-500 shrink-0 ml-1">
+                      <span className="text-xs font-bold text-gray-900 dark:text-white shrink-0 ml-1">
                         {rec.matchScore || 90}%
                       </span>
                     </div>
                     {rec.type === 'service' ? (
                       <Link
                         href={`/booking?salon=${rec.salonId}&service=${rec.id}`}
-                        className="w-full py-1.5 text-center rounded-lg bg-rosegold-500 hover:bg-rosegold-600 text-[10px] font-bold text-white flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                        className="w-full py-1.5 text-center rounded-md bg-gray-900 text-white dark:bg-white dark:text-black text-xs font-bold flex items-center justify-center gap-1 transition-colors"
                       >
                         <Calendar className="w-3.5 h-3.5" />
                         Book Appointment
@@ -231,7 +231,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                     ) : (
                       <Link
                         href={`/salons/${rec.id}`}
-                        className="w-full py-1.5 text-center rounded-lg border border-rosegold-200 dark:border-charcoal-800 hover:bg-rosegold-50 dark:hover:bg-charcoal-805 text-[10px] font-bold text-charcoal-800 dark:text-rosegold-200 flex items-center justify-center gap-1 transition-all cursor-pointer"
+                        className="w-full py-1.5 text-center rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center justify-center gap-1 transition-colors"
                       >
                         <Compass className="w-3.5 h-3.5" />
                         Explore Profile
@@ -240,8 +240,8 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                   </div>
                 ))
               ) : (
-                <div className="text-center py-12 text-charcoal-400 text-xs font-light space-y-2">
-                  <Compass className="w-8 h-8 mx-auto text-charcoal-300" />
+                <div className="text-center py-12 text-gray-400 text-xs font-light space-y-2">
+                  <Compass className="w-8 h-8 mx-auto text-gray-300" />
                   <p>Ask Aura questions to receive live booking options here.</p>
                 </div>
               )}
@@ -251,19 +251,19 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
         </aside>
 
         {/* Right Chat Container */}
-        <section className="flex-1 flex flex-col rounded-3xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 shadow-lg overflow-hidden h-full">
+        <section className="flex-1 flex flex-col rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden h-full">
           
           {/* Chat Header */}
-          <div className="px-6 py-4 border-b border-rosegold-100 dark:border-charcoal-800 flex items-center justify-between bg-white dark:bg-charcoal-900 shrink-0">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-900 shrink-0">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-charcoal-900 text-white dark:bg-white dark:text-charcoal-950 flex items-center justify-center shadow-2xs font-mono font-bold">
+              <div className="w-10 h-10 rounded-md bg-gray-900 text-white dark:bg-white dark:text-black flex items-center justify-center font-bold">
                 A
               </div>
               <div>
-                <h2 className="text-base font-semibold text-charcoal-950 dark:text-white flex items-center font-playfair">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center">
                   Aura
                 </h2>
-                <p className="text-xs text-charcoal-450 dark:text-rosegold-300">Consulting for {userProfile.name} • Profile Active</p>
+                <p className="text-xs text-gray-500">Consulting for {userProfile.name} • Profile Active</p>
               </div>
             </div>
           </div>
@@ -275,35 +275,35 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
               return (
                 <div 
                   key={msg.id}
-                  className={`flex gap-3 max-w-[85%] ${isAura ? 'mr-auto text-left' : 'ml-auto flex-row-reverse text-right'} animate-fade-in`}
+                  className={`flex gap-3 max-w-[85%] ${isAura ? 'mr-auto text-left' : 'ml-auto flex-row-reverse text-right'}`}
                 >
                   {/* Avatar */}
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0 shadow-xs ${
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0 ${
                     isAura 
-                      ? 'bg-linear-to-tr from-rosegold-500 to-gold-metallic text-white font-bold' 
-                      : 'bg-charcoal-700 dark:bg-charcoal-800 text-white font-semibold'
+                      ? 'bg-gray-900 text-white font-bold' 
+                      : 'bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold'
                   }`}>
                     {isAura ? <Sparkles className="w-4 h-4" /> : <User className="w-4 h-4" />}
                   </div>
 
                   <div className="space-y-3">
                     {/* Chat Bubble */}
-                    <div className={`p-4 rounded-2xl text-sm leading-relaxed ${
+                    <div className={`p-4 rounded-md text-sm leading-relaxed ${
                       isAura 
-                        ? 'bg-charcoal-50 dark:bg-charcoal-800/60 border border-rosegold-200/40 dark:border-charcoal-800 shadow-2xs' 
-                        : 'bg-linear-to-r from-rosegold-500 to-gold-metallic shadow-xs'
+                        ? 'bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700' 
+                        : 'bg-gray-900 dark:bg-white text-white dark:text-black'
                     }`}>
                       <p className={`whitespace-pre-line ${
                         isAura 
-                          ? 'text-charcoal-900 dark:text-rosegold-50 font-normal' 
-                          : 'text-white font-semibold'
+                          ? 'text-gray-900 dark:text-gray-100 font-normal' 
+                          : 'font-semibold'
                       }`}>
                         {msg.text}
                       </p>
-                      <span className={`block text-[10px] pt-1.5 ${
+                      <span className={`block text-xs pt-1.5 ${
                         isAura 
-                          ? 'text-charcoal-450 dark:text-rosegold-300' 
-                          : 'text-white/85 font-medium'
+                          ? 'text-gray-500' 
+                          : 'opacity-80'
                       }`}>
                         {msg.timestamp}
                       </span>
@@ -326,50 +326,50 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                           return (
                             <div 
                               key={idx}
-                              className="p-4 rounded-2xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 flex flex-col justify-between space-y-4 shadow-xs hover:border-rosegold-350 dark:hover:border-charcoal-700 transition-all duration-300 group"
+                              className="p-4 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-black flex flex-col justify-between space-y-4 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
                             >
                               {/* Memory alert header if present */}
                               {memoryIndicator && (
-                                <div className="text-[10px] text-rosegold-700 dark:text-gold-medium font-semibold flex items-center gap-1 bg-rosegold-100/30 dark:bg-charcoal-900/60 p-2 rounded-lg">
-                                  <Sparkles className="w-3.5 h-3.5 text-rosegold-500 shrink-0" />
+                                <div className="text-xs text-gray-700 dark:text-gray-300 font-medium flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-2 rounded-md">
+                                  <Sparkles className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                                   <span>{memoryIndicator}</span>
                                 </div>
                               )}
 
                               {/* Salon details card */}
                               <div className="space-y-3">
-                                <div className="relative h-24 w-full rounded-xl overflow-hidden bg-charcoal-100 dark:bg-charcoal-900">
+                                <div className="relative h-24 w-full rounded-md overflow-hidden bg-gray-100 dark:bg-gray-900">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={image} alt={rec.name} className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500" />
-                                  <div className="absolute top-2 right-2 bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-bold text-[9px] px-2.5 py-0.5 rounded-full shadow-xs">
+                                  <img src={image} alt={rec.name} className="w-full h-full object-cover" />
+                                  <div className="absolute top-2 right-2 bg-gray-900 text-white dark:bg-white dark:text-black font-bold text-xs px-2 py-0.5 rounded-sm">
                                     {matchScore}% Match
                                   </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                  <h4 className="text-sm font-bold text-charcoal-900 dark:text-white truncate">{rec.name}</h4>
-                                  <div className="flex justify-between items-center text-xs text-charcoal-400">
+                                  <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">{rec.name}</h4>
+                                  <div className="flex justify-between items-center text-xs text-gray-500">
                                     <span className="flex items-center gap-0.5 truncate">
-                                      <MapPin className="w-3.5 h-3.5 text-rosegold-500 shrink-0" />
+                                      <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                                       {location.split(',')[0]}
                                     </span>
-                                    <span className="flex items-center gap-0.5 text-rosegold-550 font-bold shrink-0">
-                                      <Star className="w-3.5 h-3.5 fill-rosegold-500" />
+                                    <span className="flex items-center gap-0.5 font-medium shrink-0">
+                                      <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
                                       {rating}
                                     </span>
                                   </div>
-                                  <p className="text-xs font-bold text-charcoal-800 dark:text-white pt-1">
+                                  <p className="text-xs font-medium text-gray-800 dark:text-white pt-1">
                                     {rec.type === 'service' ? `Treatment: ₹${rec.price}` : `Services from: ₹${startingPrice}`}
                                   </p>
                                 </div>
 
                                 {/* Why Aura Recommends This */}
-                                <div className="pt-2.5 border-t border-rosegold-100/60 dark:border-charcoal-850 space-y-1.5">
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-charcoal-450 block">Why Aura Recommends This</span>
+                                <div className="pt-2 border-t border-gray-200 dark:border-gray-800 space-y-1">
+                                  <span className="text-xs font-semibold text-gray-500 block">Why we recommend this:</span>
                                   <div className="space-y-1">
                                     {reasons.map((reason, rIdx) => (
-                                      <p key={rIdx} className="text-[10px] text-charcoal-600 dark:text-rosegold-200 flex items-start gap-1 leading-relaxed">
-                                        <span className="text-emerald-500 font-bold shrink-0">✓</span>
+                                      <p key={rIdx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1">
+                                        <span className="text-green-500 font-bold shrink-0">✓</span>
                                         <span>{reason}</span>
                                       </p>
                                     ))}
@@ -378,26 +378,26 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                               </div>
 
                               {/* Action Buttons */}
-                              <div className="space-y-2 pt-2 border-t border-rosegold-100/60 dark:border-charcoal-850">
+                              <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-800">
                                 <div className="flex gap-2">
                                   {rec.type === 'service' ? (
                                     <Link
                                       href={`/booking?salon=${rec.salonId}&service=${rec.id}`}
-                                      className="flex-grow py-2 text-center rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                                      className="flex-grow py-2 text-center rounded-md bg-gray-900 text-white dark:bg-white dark:text-black text-xs font-bold transition-colors"
                                     >
                                       Book Now
                                     </Link>
                                   ) : (
                                     <Link
                                       href={`/booking?salon=${rec.id}`}
-                                      className="flex-grow py-2 text-center rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                                      className="flex-grow py-2 text-center rounded-md bg-gray-900 text-white dark:bg-white dark:text-black text-xs font-bold transition-colors"
                                     >
                                       Book Now
                                     </Link>
                                   )}
                                   <Link
                                     href={`/salons/${salonId}`}
-                                    className="px-3.5 py-2 rounded-xl border border-rosegold-200 dark:border-charcoal-800 text-xs font-semibold text-charcoal-700 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-900 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                                    className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center shrink-0"
                                     title="View Salon Profile"
                                   >
                                     Profile
@@ -415,16 +415,15 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                     {isAura && msg.comparison && (
                       <div className="space-y-6 pt-2 max-w-3xl">
                         {/* 1. AI Recommendation Banner */}
-                        <div className="bg-linear-to-r from-rosegold-500 to-gold-metallic rounded-2xl p-5 shadow-xs text-white relative overflow-hidden">
-                          <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                        <div className="bg-gray-900 text-white dark:bg-gray-100 dark:text-black rounded-md p-5 relative overflow-hidden">
                           <div className="relative z-10 flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0">
-                              <Star className="w-5 h-5 fill-white text-white" />
+                            <div className="w-10 h-10 rounded-md bg-white/20 dark:bg-black/20 flex items-center justify-center shrink-0">
+                              <Star className="w-5 h-5" />
                             </div>
                             <div>
-                              <h5 className="text-[9px] uppercase tracking-widest font-bold text-white/80 mb-0.5">Aura Recommendation</h5>
-                              <h4 className="text-sm font-bold font-playfair mb-1">{msg.comparison.recommendation.recommendedSalonName}</h4>
-                              <p className="text-xs text-white/90 leading-relaxed">
+                              <h5 className="text-xs font-bold mb-1">Our Recommendation</h5>
+                              <h4 className="text-sm font-bold mb-1">{msg.comparison.recommendation.recommendedSalonName}</h4>
+                              <p className="text-xs leading-relaxed opacity-90">
                                 {msg.comparison.recommendation.reasonText}
                               </p>
                             </div>
@@ -436,35 +435,35 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                           {msg.comparison.feature1Comparison.map((salon, cIdx) => {
                             const salonObj = salons.find(s => s.name === salon.salonName);
                             return (
-                              <div key={cIdx} className="bg-white dark:bg-charcoal-900 rounded-2xl border border-rosegold-200 dark:border-charcoal-800 shadow-2xs hover:shadow-xs transition-shadow overflow-hidden flex flex-col justify-between">
+                              <div key={cIdx} className="bg-white dark:bg-black rounded-md border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col justify-between">
                                 <div className="p-4 space-y-4">
                                   <div className="flex justify-between items-start">
                                     <div>
-                                      <h5 className="text-sm font-bold text-charcoal-950 dark:text-white font-playfair">{salon.salonName}</h5>
-                                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rosegold-50 dark:bg-charcoal-800 border border-rosegold-100 dark:border-charcoal-700 mt-1">
-                                        <Sparkles className="w-3 h-3 text-rosegold-500" />
-                                        <span className="text-[8px] font-bold text-charcoal-800 dark:text-rosegold-200 uppercase tracking-wider">{salon.aiRecommendationBadge}</span>
+                                      <h5 className="text-sm font-bold text-gray-900 dark:text-white">{salon.salonName}</h5>
+                                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-gray-100 dark:bg-gray-800 mt-1">
+                                        <Sparkles className="w-3 h-3 text-gray-500" />
+                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{salon.aiRecommendationBadge}</span>
                                       </div>
                                     </div>
                                     <div className="text-right shrink-0">
-                                      <div className="flex items-center justify-end text-rosegold-550 font-bold text-sm">
-                                        <Star className="w-3.5 h-3.5 fill-rosegold-500 mr-0.5" />
+                                      <div className="flex items-center justify-end font-medium text-sm text-gray-900 dark:text-white">
+                                        <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500 mr-0.5" />
                                         {salon.rating}
                                       </div>
-                                      <span className="text-[10px] text-charcoal-450 block">{salon.priceRange}</span>
+                                      <span className="text-xs text-gray-500 block">{salon.priceRange}</span>
                                     </div>
                                   </div>
 
-                                  <div className="space-y-2 pt-3 border-t border-rosegold-100 dark:border-charcoal-800 text-xs">
+                                  <div className="space-y-2 pt-3 border-t border-gray-200 dark:border-gray-800 text-xs">
                                     <div>
-                                      <span className="text-[9px] text-charcoal-400 block mb-0.5 uppercase tracking-wider">Review Consensus</span>
-                                      <p className="font-medium text-charcoal-800 dark:text-white">{salon.reviewScore}</p>
+                                      <span className="text-xs text-gray-500 block mb-0.5">Review Consensus</span>
+                                      <p className="font-medium text-gray-800 dark:text-white">{salon.reviewScore}</p>
                                     </div>
                                     <div>
-                                      <span className="text-[9px] text-charcoal-400 block mb-1 uppercase tracking-wider font-semibold">Popular Treatments</span>
+                                      <span className="text-xs text-gray-500 block mb-1 font-medium">Popular Treatments</span>
                                       <div className="flex flex-wrap gap-1">
                                         {salon.popularServices.map((srv, sIdx) => (
-                                          <span key={sIdx} className="text-[8px] px-1.5 py-0.5 rounded bg-charcoal-50 dark:bg-charcoal-950 border border-charcoal-100 dark:border-charcoal-800 text-charcoal-600 dark:text-rosegold-200">
+                                          <span key={sIdx} className="text-xs px-2 py-1 rounded-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                                             {srv}
                                           </span>
                                         ))}
@@ -473,10 +472,10 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                                   </div>
                                 </div>
                                 {salonObj && (
-                                  <div className="px-4 py-2.5 bg-rosegold-50/50 dark:bg-charcoal-950 border-t border-rosegold-100 dark:border-charcoal-800">
+                                  <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
                                     <Link 
                                       href={`/booking?salon=${salonObj.id}`}
-                                      className="text-[10px] font-bold text-rosegold-600 dark:text-gold-medium hover:text-rosegold-700 dark:hover:text-gold-light flex items-center gap-1 w-fit"
+                                      className="text-xs font-bold text-gray-900 dark:text-white hover:underline flex items-center gap-1 w-fit"
                                     >
                                       Book Now <Compass className="w-3 h-3" />
                                     </Link>
@@ -489,37 +488,37 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
 
                         {/* 3. Review Intelligence Panel */}
                         <div className="space-y-4">
-                          <h5 className="text-xs font-bold text-charcoal-950 dark:text-white flex items-center gap-1.5 border-b border-rosegold-100 dark:border-charcoal-800 pb-2">
-                            <Star className="w-4 h-4 text-rosegold-500" />
-                            Review Intelligence Insights
+                          <h5 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-2">
+                            <Star className="w-4 h-4 text-gray-500" />
+                            Review Insights
                           </h5>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {msg.comparison.feature2ReviewIntelligence.map((intel, intelIdx) => {
                               const isPositive = intel.overallSentiment.toLowerCase() === 'positive';
                               const isNegative = intel.overallSentiment.toLowerCase() === 'negative';
                               return (
-                                <div key={intelIdx} className="bg-white dark:bg-charcoal-900 rounded-2xl border border-rosegold-200 dark:border-charcoal-800 p-4 space-y-3">
+                                <div key={intelIdx} className="bg-white dark:bg-black rounded-md border border-gray-200 dark:border-gray-800 p-4 space-y-3">
                                   <div className="flex items-center justify-between">
-                                    <h6 className="text-xs font-bold text-charcoal-900 dark:text-white truncate">{intel.salonName}</h6>
-                                    <span className={`text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                                    <h6 className="text-sm font-bold text-gray-900 dark:text-white truncate">{intel.salonName}</h6>
+                                    <span className={`text-xs font-medium px-2 py-1 rounded-sm ${
                                       isPositive
-                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400'
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                                         : isNegative
-                                          ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400'
-                                          : 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400'
+                                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                                     }`}>
-                                      {intel.overallSentiment} Sentiment
+                                      {intel.overallSentiment}
                                     </span>
                                   </div>
 
-                                  <div className="space-y-2.5 pt-1">
+                                  <div className="space-y-3 pt-1">
                                     {/* Strengths */}
                                     <div className="space-y-1">
-                                      <span className="text-[9px] text-charcoal-400 font-bold uppercase tracking-wider block">Key Strengths</span>
+                                      <span className="text-xs text-gray-500 font-medium block">Key Strengths</span>
                                       <div className="space-y-1">
                                         {intel.topStrengths.map((str, sIdx) => (
-                                          <p key={sIdx} className="text-[10px] text-charcoal-600 dark:text-rosegold-200 flex items-start gap-1">
-                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                          <p key={sIdx} className="text-xs text-gray-700 dark:text-gray-300 flex items-start gap-1">
+                                            <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
                                             <span>{str}</span>
                                           </p>
                                         ))}
@@ -528,17 +527,17 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
 
                                     {/* Complaints */}
                                     <div className="space-y-1">
-                                      <span className="text-[9px] text-charcoal-400 font-bold uppercase tracking-wider block">Complaints / Cons</span>
+                                      <span className="text-xs text-gray-500 font-medium block">Common Complaints</span>
                                       <div className="space-y-1">
                                         {intel.commonComplaints && intel.commonComplaints.length > 0 && intel.commonComplaints[0] !== '' ? (
                                           intel.commonComplaints.map((comp, cIdx) => (
-                                            <p key={cIdx} className="text-[10px] text-charcoal-550 dark:text-rosegold-300 flex items-start gap-1">
-                                              <XCircle className="w-3.5 h-3.5 text-red-350 shrink-0" />
+                                            <p key={cIdx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1">
+                                              <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
                                               <span>{comp}</span>
                                             </p>
                                           ))
                                         ) : (
-                                          <p className="text-[10px] text-charcoal-400 italic">No significant complaints found.</p>
+                                          <p className="text-xs text-gray-500 italic">No significant complaints found.</p>
                                         )}
                                       </div>
                                     </div>
@@ -558,18 +557,18 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
 
             {/* AI Typing & Loading Experience Indicator */}
             {isAiTyping && (
-              <div className="flex gap-3 max-w-[80%] mr-auto items-start animate-fade-in">
-                <div className="w-8 h-8 rounded-full bg-linear-to-tr from-rosegold-500 to-gold-metallic text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
+              <div className="flex gap-3 max-w-[80%] mr-auto items-start">
+                <div className="w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col space-y-1">
-                  <div className="p-3.5 rounded-2xl bg-rosegold-50/50 dark:bg-charcoal-950/30 border border-rosegold-200/50 dark:border-charcoal-800 flex items-center space-x-1 w-fit">
-                    <span className="w-2 h-2 bg-rosegold-400 rounded-full typing-dot"></span>
-                    <span className="w-2 h-2 bg-rosegold-400 rounded-full typing-dot"></span>
-                    <span className="w-2 h-2 bg-rosegold-400 rounded-full typing-dot"></span>
+                  <div className="p-3 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center space-x-1 w-fit">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
                   </div>
                   {loadingStage && (
-                    <span className="text-[10px] text-rosegold-600 dark:text-rosegold-350 font-bold pl-1 tracking-widest uppercase animate-pulse">
+                    <span className="text-xs text-gray-500 font-medium pl-1">
                       {loadingStage}...
                     </span>
                   )}
@@ -581,7 +580,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
           </div>
 
           {/* Chat input controls */}
-          <div className="p-4 border-t border-rosegold-200/50 dark:border-charcoal-800 bg-white/70 dark:bg-charcoal-900/70 space-y-4 shrink-0">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 space-y-4 shrink-0">
             
             {/* Suggested prompts list */}
             <div className="flex flex-wrap gap-2">
@@ -589,7 +588,7 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                 <button
                   key={idx}
                   onClick={() => handleSubmit(p.text)}
-                  className="text-xs px-3.5 py-1.5 rounded-full border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-700 dark:text-rosegold-250 hover:border-rosegold-400 dark:hover:border-rosegold-700 transition-colors shadow-2xs font-light cursor-pointer"
+                  className="text-xs px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   {p.label}
                 </button>
@@ -602,18 +601,18 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
                 e.preventDefault();
                 handleSubmit(inputText);
               }}
-              className="flex items-center gap-2 bg-rosegold-50/20 dark:bg-charcoal-950/30 p-1.5 rounded-2xl border border-rosegold-200 dark:border-charcoal-800 focus-within:ring-1 focus-within:ring-rosegold-500"
+              className="flex items-center gap-2 bg-white dark:bg-black p-2 rounded-md border border-gray-300 dark:border-gray-700"
             >
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Ask Aura (e.g. Find hair coloring packages or facials near Koramangala)..."
-                className="flex-1 text-sm bg-transparent border-0 focus:outline-hidden focus:ring-0 px-3 py-2 text-charcoal-900 dark:text-white placeholder-charcoal-400"
+                className="flex-1 text-sm bg-transparent border-0 focus:outline-hidden focus:ring-0 px-2 text-gray-900 dark:text-white placeholder-gray-400"
               />
               <button
                 type="submit"
-                className="p-2.5 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white hover:scale-103 transition-transform cursor-pointer"
+                className="p-2 rounded-md bg-gray-900 text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity"
                 title="Send Message"
               >
                 <Send className="w-4 h-4" />
@@ -627,3 +626,4 @@ Whether you're looking for a relaxing facial under a specific budget, a premium 
     </div>
   );
 }
+

@@ -393,25 +393,25 @@ export default function StyleAdvisor() {
         
         {/* Banner */}
         <section className="space-y-4 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-rosegold-300/40 bg-white dark:bg-charcoal-900 shadow-2xs text-xs font-semibold text-rosegold-550">
-            <Sparkles className="w-3.5 h-3.5 text-rosegold-550" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-gray-200 bg-white dark:bg-gray-800 shadow-sm text-xs font-semibold text-gray-600">
+            <Sparkles className="w-3.5 h-3.5 text-gray-600" />
             <span>Style Advisor</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-charcoal-955 dark:text-white font-playfair">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white font-serif">
             Style Advisor
           </h1>
-          <p className="text-sm sm:text-base text-charcoal-550 dark:text-rosegold-200 max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-gray-900 dark:text-gray-600 max-w-xl mx-auto">
             Get personalized consultations, update your Beauty Profile, or build step-by-step beauty goal journeys.
           </p>
 
           {/* Tab Selector */}
-          <div className="flex justify-center max-w-md mx-auto bg-rosegold-100/50 dark:bg-charcoal-900/60 p-1.5 rounded-full border border-rosegold-200/50 dark:border-charcoal-800 shadow-inner mt-6">
+          <div className="flex justify-center max-w-md mx-auto bg-gray-100 dark:bg-gray-800 p-1.5 rounded-full border border-gray-200 dark:border-gray-300 shadow-inner mt-6">
             <button 
               onClick={() => setActiveTab('scanner')}
               className={`flex-grow py-2 px-6 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'scanner' 
-                  ? 'bg-charcoal-900 text-white dark:bg-white dark:text-charcoal-950 shadow-xs font-bold' 
-                  : 'text-charcoal-600 dark:text-rosegold-200 hover:text-rosegold-700'
+                  ? 'bg-gray-800 text-white dark:bg-white dark:text-gray-900 shadow-xs font-bold' 
+                  : 'text-gray-900 dark:text-gray-600 hover:text-gray-600'
               }`}
             >
               Beauty Profile
@@ -420,8 +420,8 @@ export default function StyleAdvisor() {
               onClick={() => setActiveTab('planner')}
               className={`flex-grow py-2 px-6 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'planner' 
-                  ? 'bg-charcoal-900 text-white dark:bg-white dark:text-charcoal-950 shadow-xs font-bold' 
-                  : 'text-charcoal-600 dark:text-rosegold-200 hover:text-rosegold-700'
+                  ? 'bg-gray-800 text-white dark:bg-white dark:text-gray-900 shadow-xs font-bold' 
+                  : 'text-gray-900 dark:text-gray-600 hover:text-gray-600'
               }`}
             >
               Journey
@@ -433,19 +433,19 @@ export default function StyleAdvisor() {
         {activeTab === 'scanner' ? (
           <>
             <section className="max-w-4xl mx-auto">
-              <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+              <div className="rounded-md border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2">
                 
                 {/* Selfie Upload Area */}
-                <div className="p-8 border-b md:border-b-0 md:border-r border-rosegold-200/50 dark:border-charcoal-800 flex flex-col justify-between space-y-6">
+                <div className="p-8 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-300 flex flex-col justify-between space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold text-charcoal-950 dark:text-white mb-2 font-playfair">Beauty Profile Scanner</h3>
-                    <p className="text-xs text-charcoal-450 dark:text-rosegold-350">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 font-serif">Beauty Profile Scanner</h3>
+                    <p className="text-xs text-gray-900 dark:text-gray-600">
                       Upload your portrait to analyze and construct your personalized beauty profile.
                     </p>
                   </div>
 
                   {selectedPhoto ? (
-                    <div className="relative aspect-square rounded-2xl overflow-hidden border border-rosegold-200 dark:border-charcoal-800 bg-charcoal-50 dark:bg-charcoal-950 flex items-center justify-center">
+                    <div className="relative aspect-square rounded-md overflow-hidden border border-gray-200 dark:border-gray-300 bg-gray-800 dark:bg-gray-800 flex items-center justify-center">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         src={selectedPhoto} 
@@ -456,22 +456,22 @@ export default function StyleAdvisor() {
                       {/* Scanner overlay */}
                       {analyzing && (
                         <div className="absolute inset-0 bg-black/45 flex flex-col justify-end p-4 text-white">
-                          <div className="animate-scan"></div>
+                          <div className=""></div>
                           <div className="space-y-2 z-10">
-                            <div className="flex items-center space-x-2 text-xs font-mono text-rosegold-300">
+                            <div className="flex items-center space-x-2 text-xs font-mono text-gray-600">
                               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                               <span>{scanStep || 'Scanning skin layers...'}</span>
                             </div>
                             <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
-                              <div className="bg-rosegold-500 h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                              <div className="bg-gray-100 h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
                             </div>
                           </div>
                         </div>
                       )}
 
                       {!analyzing && hasResults && (
-                        <div className="absolute inset-0 bg-emerald-950/20 backdrop-blur-xs flex items-center justify-center">
-                          <div className="bg-white/95 dark:bg-charcoal-900/95 p-3 rounded-full text-emerald-600 shadow-lg flex items-center space-x-2 text-xs font-semibold">
+                        <div className="absolute inset-0 bg-emerald-950/20  flex items-center justify-center">
+                          <div className="bg-white/95 dark:bg-gray-800 p-3 rounded-full text-emerald-600 shadow-sm flex items-center space-x-2 text-xs font-semibold">
                             <CheckCircle className="w-4 h-4" />
                             <span>Scan Completed</span>
                           </div>
@@ -484,20 +484,20 @@ export default function StyleAdvisor() {
                       onDragOver={handleDrag}
                       onDragLeave={handleDrag}
                       onDrop={handleDrop}
-                      className={`aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center space-y-4 transition-colors ${
+                      className={`aspect-square rounded-md border-2 border-dashed flex flex-col items-center justify-center p-6 text-center space-y-4 transition-colors ${
                         dragActive 
-                          ? 'border-rosegold-500 bg-rosegold-50/10 dark:bg-charcoal-950/20' 
-                          : 'border-rosegold-200 dark:border-charcoal-800 hover:border-rosegold-400 dark:hover:border-rosegold-700 bg-rosegold-50/5 dark:bg-charcoal-950/5'
+                          ? 'border-gray-200 bg-gray-100 dark:bg-gray-800' 
+                          : 'border-gray-200 dark:border-gray-300 hover:border-gray-200 dark:hover:border-gray-200 bg-gray-100 dark:bg-gray-800'
                       }`}
                     >
-                      <div className="w-12 h-12 rounded-full bg-rosegold-500/10 text-rosegold-500 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center">
                         <Camera className="w-6 h-6" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-semibold text-charcoal-800 dark:text-white">Drag and drop your selfie</p>
-                        <p className="text-xs text-charcoal-400">or click below to browse your files</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Drag and drop your selfie</p>
+                        <p className="text-xs text-gray-900">or click below to browse your files</p>
                       </div>
-                      <label className="px-5 py-2.5 rounded-xl bg-rosegold-500 hover:bg-rosegold-600 text-white text-xs font-semibold cursor-pointer transition-colors inline-block">
+                      <label className="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-100 text-white text-xs font-semibold cursor-pointer transition-colors inline-block">
                         Select Photo
                         <input 
                           type="file"
@@ -506,7 +506,7 @@ export default function StyleAdvisor() {
                           className="hidden"
                         />
                       </label>
-                      <p className="text-[10px] text-charcoal-400">
+                      <p className="text-[10px] text-gray-900">
                         Supports JPG, JPEG, PNG, WEBP up to 10 MB
                       </p>
                     </div>
@@ -521,39 +521,39 @@ export default function StyleAdvisor() {
                 </div>
 
                 {/* AI analysis result feedback */}
-                <div className="p-8 bg-rosegold-50/20 dark:bg-charcoal-950/20 flex flex-col justify-between">
+                <div className="p-8 bg-gray-100 dark:bg-gray-800 flex flex-col justify-between">
                   
                   {hasResults ? (
                     <div className="space-y-6">
                       <div>
-                        <span className="text-[10px] font-bold text-rosegold-500 uppercase tracking-widest font-mono">Aura Summary</span>
-                        <h3 className="text-xl font-bold text-charcoal-955 dark:text-white mt-1 font-playfair">Beauty Profile</h3>
-                        <p className="text-xs text-charcoal-450 mt-1">Your personalized style parameters.</p>
+                        <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest font-mono">Aura Summary</span>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1 font-serif">Beauty Profile</h3>
+                        <p className="text-xs text-gray-900 mt-1">Your personalized style parameters.</p>
                       </div>
 
                       {/* Beauty Profile Summary card */}
-                      <div className="space-y-4 border border-rosegold-200/60 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 p-5 rounded-2xl shadow-2xs text-xs">
-                        <div className="flex justify-between items-center py-1.5 border-b border-rosegold-100 dark:border-charcoal-800">
-                          <span className="text-charcoal-450">Face Contour</span>
-                          <span className="font-bold text-charcoal-900 dark:text-white font-mono">
+                      <div className="space-y-4 border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 p-5 rounded-md shadow-sm text-xs">
+                        <div className="flex justify-between items-center py-1.5 border-b border-gray-200 dark:border-gray-300">
+                          <span className="text-gray-900">Face Contour</span>
+                          <span className="font-bold text-gray-900 dark:text-white font-mono">
                             {beautyProfile?.faceShape || 'Oval'}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center py-1.5 border-b border-rosegold-100 dark:border-charcoal-800">
-                          <span className="text-charcoal-450">Hair Texture</span>
-                          <span className="font-bold text-charcoal-900 dark:text-white font-mono">
+                        <div className="flex justify-between items-center py-1.5 border-b border-gray-200 dark:border-gray-300">
+                          <span className="text-gray-900">Hair Texture</span>
+                          <span className="font-bold text-gray-900 dark:text-white font-mono">
                             {beautyProfile?.hairType || '2C Wavy'} {beautyProfile?.hairDensity ? `(${beautyProfile.hairDensity})` : ''}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center py-1.5 border-b border-rosegold-100 dark:border-charcoal-800">
-                          <span className="text-charcoal-450">Skin Undertone</span>
-                          <span className="font-bold text-charcoal-900 dark:text-white font-mono">
+                        <div className="flex justify-between items-center py-1.5 border-b border-gray-200 dark:border-gray-300">
+                          <span className="text-gray-900">Skin Undertone</span>
+                          <span className="font-bold text-gray-900 dark:text-white font-mono">
                             {beautyProfile?.skinTone || 'Warm Olive'} {beautyProfile?.undertone ? `(${beautyProfile.undertone})` : ''}
                           </span>
                         </div>
                         <div className="flex justify-between items-center py-1.5">
-                          <span className="text-charcoal-450">Preferred Care</span>
-                          <span className="font-bold text-rosegold-500 font-mono">
+                          <span className="text-gray-900">Preferred Care</span>
+                          <span className="font-bold text-gray-600 font-mono">
                             {beautyProfile?.hairType?.toLowerCase()?.includes('straight') ? 'Sleek & Hydrate' : 'Texture Cuts & Skincare'}
                           </span>
                         </div>
@@ -561,8 +561,8 @@ export default function StyleAdvisor() {
 
                       {/* Summary explanation */}
                       {beautyProfile?.beautySummary && (
-                        <div className="p-4 rounded-xl bg-white dark:bg-charcoal-900 border border-rosegold-200 dark:border-charcoal-800">
-                          <p className="text-xs leading-relaxed text-charcoal-600 dark:text-rosegold-200 italic">
+                        <div className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-300">
+                          <p className="text-xs leading-relaxed text-gray-900 dark:text-gray-600 italic">
                             &ldquo;{beautyProfile.beautySummary}&rdquo;
                           </p>
                         </div>
@@ -571,17 +571,17 @@ export default function StyleAdvisor() {
                       {/* Reset action */}
                       <button
                         onClick={handleReset}
-                        className="w-full py-2.5 rounded-xl border border-rosegold-300 dark:border-charcoal-800 text-xs font-semibold text-charcoal-800 dark:text-rosegold-100 hover:bg-rosegold-100 dark:hover:bg-charcoal-800 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        className="w-full py-2.5 rounded-xl border border-gray-200 dark:border-gray-300 text-xs font-semibold text-gray-900 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                       >
                         <RotateCcw className="w-4 h-4" />
                         Scan Another Selfie
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4 text-charcoal-400">
-                      <Sparkles className="w-10 h-10 text-rosegold-400/80" />
+                    <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4 text-gray-900">
+                      <Sparkles className="w-10 h-10 text-gray-600/80" />
                       <div className="space-y-1">
-                        <p className="text-sm font-semibold text-charcoal-850 dark:text-rosegold-100">Advisor Ready</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-600">Advisor Ready</p>
                         <p className="text-xs leading-relaxed max-w-[240px] mx-auto font-light">
                           Upload a portrait photo to analyze face mapping coordinates and load recommendations.
                         </p>
@@ -604,18 +604,18 @@ export default function StyleAdvisor() {
               
               {/* SECTION 1: Hairstyles */}
               <div className="space-y-4">
-                <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center gap-2">
-                  <Scissors className="w-5 h-5 text-rosegold-500" />
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Scissors className="w-5 h-5 text-gray-600" />
                   Recommended Hairstyles
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {styleResults.hairstyles.map((style, idx) => (
-                    <div key={idx} className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-3 hover:border-rosegold-300 transition-colors shadow-2xs">
+                    <div key={idx} className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 space-y-3 hover:border-gray-200 transition-colors shadow-sm">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={style.image} alt={style.name} className="w-full h-28 rounded-lg object-cover" />
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-charcoal-900 dark:text-white">{style.name}</h4>
-                        <p className="text-[11px] text-charcoal-550 dark:text-rosegold-300 leading-normal font-light mt-1">{style.desc}</p>
+                        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">{style.name}</h4>
+                        <p className="text-[11px] text-gray-900 dark:text-gray-600 leading-normal font-light mt-1">{style.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -624,18 +624,18 @@ export default function StyleAdvisor() {
 
               {/* SECTION 2: Makeup Styles */}
               <div className="space-y-4">
-                <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-rosegold-500" />
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-gray-600" />
                   Recommended Makeup Styles
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {styleResults.makeups.map((style, idx) => (
-                    <div key={idx} className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-3 hover:border-rosegold-300 transition-colors shadow-2xs">
+                    <div key={idx} className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 space-y-3 hover:border-gray-200 transition-colors shadow-sm">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={style.image} alt={style.name} className="w-full h-28 rounded-lg object-cover" />
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-charcoal-900 dark:text-white">{style.name}</h4>
-                        <p className="text-[11px] text-charcoal-550 dark:text-rosegold-300 leading-normal font-light mt-1">{style.desc}</p>
+                        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">{style.name}</h4>
+                        <p className="text-[11px] text-gray-900 dark:text-gray-600 leading-normal font-light mt-1">{style.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -646,21 +646,21 @@ export default function StyleAdvisor() {
 
             {/* SECTION 3: Recommended Services */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center gap-2">
-                <Scissors className="w-5 h-5 text-rosegold-500" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Scissors className="w-5 h-5 text-gray-600" />
                 Recommended Treatments
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {styleResults.services.map((service, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-900 bg-white dark:bg-charcoal-900 flex flex-col justify-between h-40 hover:border-rosegold-300 transition-colors">
+                  <div key={idx} className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 flex flex-col justify-between h-40 hover:border-gray-200 transition-colors">
                     <div>
-                      <span className="text-[9px] font-bold text-rosegold-500 uppercase tracking-widest">{service.category}</span>
-                      <h4 className="text-xs sm:text-sm font-bold text-charcoal-900 dark:text-white line-clamp-1">{service.name}</h4>
-                      <p className="text-[11px] text-charcoal-500 dark:text-rosegold-300 leading-relaxed font-light mt-1">{service.desc}</p>
+                      <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{service.category}</span>
+                      <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{service.name}</h4>
+                      <p className="text-[11px] text-gray-900 dark:text-gray-600 leading-relaxed font-light mt-1">{service.desc}</p>
                     </div>
                     <Link
                       href={`/booking?salon=${service.salonId}&service=${service.serviceId}`}
-                      className="w-full py-2 text-center rounded-lg bg-rosegold-500 hover:bg-rosegold-650 text-[10px] font-bold text-white flex items-center justify-center gap-1 transition-colors"
+                      className="w-full py-2 text-center rounded-lg bg-gray-100 hover:bg-gray-100 text-[10px] font-bold text-white flex items-center justify-center gap-1 transition-colors"
                     >
                       Book Appointment
                     </Link>
@@ -670,10 +670,10 @@ export default function StyleAdvisor() {
             </div>
 
             {/* SECTION 4: Recommended Salons */}
-            <div className="p-6 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 space-y-5">
+            <div className="p-6 rounded-md border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 space-y-5">
               <div className="space-y-1">
-                <h3 className="text-xl font-bold text-charcoal-955 dark:text-white font-playfair">Recommended Salons</h3>
-                <p className="text-xs text-charcoal-550 dark:text-rosegold-250">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white font-serif">Recommended Salons</h3>
+                <p className="text-xs text-gray-900 dark:text-gray-600">
                   Salons matching your active style profile and preferences.
                 </p>
               </div>
@@ -682,38 +682,38 @@ export default function StyleAdvisor() {
                 {salons.slice(0, 2).map((salon) => (
                   <div 
                     key={salon.id} 
-                    className="p-4 rounded-xl border border-rosegold-200/50 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 flex flex-col justify-between gap-4 hover:border-rosegold-350 transition-colors"
+                    className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 flex flex-col justify-between gap-4 hover:border-gray-200 transition-colors"
                   >
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-gray-200 text-white">
                           {salon.matchScore}% Match
                         </span>
-                        <div className="flex text-rosegold-500 text-xs items-center font-bold">
+                        <div className="flex text-gray-600 text-xs items-center font-bold">
                           <Star className="w-3.5 h-3.5 fill-rosegold-500 mr-0.5" />
                           {salon.rating}
                         </div>
                       </div>
                       
-                      <h4 className="text-sm font-bold text-charcoal-900 dark:text-white">{salon.name}</h4>
-                      <p className="text-xs text-charcoal-400 flex items-center">
-                        <MapPin className="w-3 h-3 text-rosegold-500 mr-1" />
+                      <h4 className="text-sm font-bold text-gray-900 dark:text-white">{salon.name}</h4>
+                      <p className="text-xs text-gray-900 flex items-center">
+                        <MapPin className="w-3 h-3 text-gray-600 mr-1" />
                         {salon.location}
                       </p>
                       
                       <div className="flex flex-wrap gap-1 pt-1">
                         {salon.badges.slice(0, 2).map(tag => (
-                          <span key={tag} className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-rosegold-100/40 dark:bg-charcoal-800 text-charcoal-600 dark:text-rosegold-200">
+                          <span key={tag} className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-600">
                             {tag}
                           </span>
                         ))}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 pt-3 border-t border-rosegold-100 dark:border-charcoal-800">
+                    <div className="flex items-center gap-3 pt-3 border-t border-gray-200 dark:border-gray-300">
                       <Link
                         href={`/salons/${salon.id}`}
-                        className="w-full py-2 text-center rounded-lg bg-rosegold-500 hover:bg-rosegold-600 text-white text-xs font-semibold flex items-center justify-center gap-1"
+                        className="w-full py-2 text-center rounded-lg bg-gray-100 hover:bg-gray-100 text-white text-xs font-semibold flex items-center justify-center gap-1"
                       >
                         Explore Salon Profile
                         <ChevronRight className="w-3.5 h-3.5" />
@@ -728,16 +728,16 @@ export default function StyleAdvisor() {
         )}
       </>
     ) : (
-          <section className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+          <section className="max-w-4xl mx-auto space-y-8 ">
             {/* Active Journey Indicator */}
             {activeJourney && (
-              <div className="rounded-2xl border border-rosegold-200/50 bg-rosegold-50/20 dark:bg-charcoal-900/60 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="rounded-md border border-gray-200 bg-gray-100 dark:bg-gray-800 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-charcoal-900 dark:text-white flex items-center gap-1.5">
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                     <CheckCircle className="w-4 h-4 text-emerald-500" />
                     Active Journey: {activeJourney.journeyType} Plan ({activeJourney.durationDays} Days)
                   </h4>
-                  <p className="text-xs text-charcoal-500 dark:text-rosegold-200">
+                  <p className="text-xs text-gray-900 dark:text-gray-600">
                     Goal: &ldquo;{activeJourney.goal}&rdquo; | Progress: {activeJourney.progressPercent}%
                   </p>
                 </div>
@@ -751,26 +751,26 @@ export default function StyleAdvisor() {
             )}
 
             {/* Planner Input card */}
-            <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-lg p-6 sm:p-8 space-y-6">
+            <div className="rounded-md border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 shadow-sm p-6 sm:p-8 space-y-6">
               <div>
-                <h3 className="text-xl font-bold text-charcoal-950 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-rosegold-500" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-gray-600" />
                   Define Your Beauty Goal
                 </h3>
-                <p className="text-xs sm:text-sm text-charcoal-550 dark:text-rosegold-300 mt-1">
+                <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-600 mt-1">
                   Tell Aura what you want to prepare for or recover. We will design a customized, multi-week timeline.
                 </p>
               </div>
 
               {/* Suggestions Chips */}
               <div className="space-y-2">
-                <p className="text-[10px] uppercase font-bold tracking-widest text-charcoal-400">Quick suggestions</p>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-gray-900">Quick suggestions</p>
                 <div className="flex flex-wrap gap-2">
                   {quickGoals.map((g, idx) => (
                     <button
                       key={idx}
                       onClick={() => setGoalInput(g.text)}
-                      className="px-3 py-1.5 rounded-lg border border-rosegold-200 dark:border-charcoal-800 bg-rosegold-50/20 dark:bg-charcoal-950/20 text-xs text-charcoal-800 dark:text-rosegold-200 hover:border-rosegold-400 dark:hover:border-rosegold-600 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-300 bg-gray-100 dark:bg-gray-800 text-xs text-gray-900 dark:text-gray-600 hover:border-gray-200 dark:hover:border-gray-200 transition-colors cursor-pointer"
                     >
                       {g.label}
                     </button>
@@ -783,7 +783,7 @@ export default function StyleAdvisor() {
                   value={goalInput}
                   onChange={(e) => setGoalInput(e.target.value)}
                   placeholder="e.g. My wedding is in 45 days and I want perfect skin and silky smooth hair..."
-                  className="w-full min-h-[100px] p-4 rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-charcoal-50/20 dark:bg-charcoal-950/40 text-sm focus:outline-none focus:ring-2 focus:ring-rosegold-400 text-charcoal-950 dark:text-white placeholder-charcoal-400 resize-y"
+                  className="w-full min-h-[100px] p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-gray-800 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-rosegold-400 text-gray-900 dark:text-white placeholder-charcoal-400 resize-y"
                   required
                 />
                 
@@ -791,7 +791,7 @@ export default function StyleAdvisor() {
                   <button
                     type="submit"
                     disabled={generating || !goalInput.trim()}
-                    className="px-6 py-3 rounded-xl bg-linear-to-r from-rosegold-600 to-rosegold-800 hover:from-rosegold-500 hover:to-rosegold-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 rounded-xl bg-white border border-gray-200 hover:bg-gray-800 text-white font-semibold text-sm shadow-sm hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {generating ? (
                       <>
@@ -811,17 +811,17 @@ export default function StyleAdvisor() {
 
             {/* Generated Plan details */}
             {generatedPlan && (
-              <div className="space-y-8 animate-fade-in">
+              <div className="space-y-8 ">
                 {/* Header overview card */}
-                <div className="rounded-3xl border border-rosegold-200 dark:border-charcoal-850 bg-linear-to-r from-rosegold-100/35 via-white to-white dark:from-charcoal-900 dark:to-charcoal-950/60 p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-md">
+                <div className="rounded-md border border-gray-200 dark:border-gray-300 bg-white border border-gray-200 dark:from-charcoal-900 dark:to-charcoal-950/60 p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-sm">
                   <div className="space-y-2">
-                    <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-linear-to-r from-rosegold-500 to-gold-metallic text-white tracking-widest uppercase">
+                    <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-white border border-gray-200 text-white tracking-widest uppercase">
                       {generatedPlan.journeyType} Journey
                     </span>
-                    <h3 className="text-2xl font-bold text-charcoal-950 dark:text-white">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                       Your Beauty Roadmap ({generatedPlan.durationDays} Days)
                     </h3>
-                    <p className="text-xs text-charcoal-550 dark:text-rosegold-300">
+                    <p className="text-xs text-gray-900 dark:text-gray-600">
                       Goal: &ldquo;{goalInput}&rdquo;
                     </p>
                   </div>
@@ -834,7 +834,7 @@ export default function StyleAdvisor() {
                   ) : (
                     <button
                       onClick={handleSaveJourney}
-                      className="px-5 py-2.5 bg-charcoal-900 hover:bg-charcoal-800 text-white rounded-xl font-semibold text-xs shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer dark:bg-white dark:text-charcoal-950 dark:hover:bg-charcoal-100"
+                      className="px-5 py-2.5 bg-gray-800 hover:bg-gray-800 text-white rounded-xl font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer dark:bg-white dark:text-gray-900 dark:hover:bg-gray-800"
                     >
                       Save Journey to Profile
                     </button>
@@ -842,37 +842,37 @@ export default function StyleAdvisor() {
                 </div>
 
                 {/* Steps Timeline visualization */}
-                <div className="relative pl-6 sm:pl-8 border-l border-rosegold-200 dark:border-charcoal-800 space-y-10">
+                <div className="relative pl-6 sm:pl-8 border-l border-gray-200 dark:border-gray-300 space-y-10">
                   {generatedPlan.steps.map((step: any) => {
                     const matchedSalons = getMatchingSalonsForService(step.recommendedService);
                     const isSalonsVisible = visibleSalonsForStep[step.stepNumber];
 
                     return (
-                      <div key={step.stepNumber} className="relative group animate-fade-in">
+                      <div key={step.stepNumber} className="relative group ">
                         {/* Bullet Circle */}
-                        <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 w-6 h-6 rounded-full border-2 border-rosegold-400 bg-white dark:bg-charcoal-950 flex items-center justify-center font-bold text-[10px] text-rosegold-500">
+                        <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 w-6 h-6 rounded-full border-2 border-gray-200 bg-white dark:bg-gray-800 flex items-center justify-center font-bold text-[10px] text-gray-600">
                           {step.stepNumber}
                         </div>
 
                         {/* Step content card */}
-                        <div className="rounded-2xl border border-rosegold-200/50 dark:border-charcoal-900 bg-white dark:bg-charcoal-950 p-6 hover:border-rosegold-350 transition-colors shadow-2xs space-y-4">
+                        <div className="rounded-md border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 p-6 hover:border-gray-200 transition-colors shadow-sm space-y-4">
                           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <span className="text-[10px] font-bold text-rosegold-500 uppercase tracking-widest bg-rosegold-100/30 dark:bg-charcoal-800 px-2 py-0.5 rounded-md">
+                            <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">
                               {step.timeline}
                             </span>
-                            <h4 className="text-base font-bold text-charcoal-900 dark:text-white">
+                            <h4 className="text-base font-bold text-gray-900 dark:text-white">
                               {step.title}
                             </h4>
                           </div>
 
-                          <p className="text-xs sm:text-sm text-charcoal-600 dark:text-rosegold-200 leading-relaxed font-light">
+                          <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-600 leading-relaxed font-light">
                             {step.description}
                           </p>
 
-                          <div className="pt-2 border-t border-rosegold-100 dark:border-charcoal-800/85 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          <div className="pt-2 border-t border-gray-200 dark:border-gray-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div className="text-xs">
-                              <span className="text-charcoal-400">Recommended service:</span>{' '}
-                              <strong className="text-charcoal-800 dark:text-white">{step.recommendedService}</strong>
+                              <span className="text-gray-900">Recommended service:</span>{' '}
+                              <strong className="text-gray-900 dark:text-white">{step.recommendedService}</strong>
                             </div>
 
                             <button
@@ -880,7 +880,7 @@ export default function StyleAdvisor() {
                                 ...prev,
                                 [step.stepNumber]: !prev[step.stepNumber]
                               }))}
-                              className="px-3.5 py-1.5 border border-rosegold-350 dark:border-charcoal-850 hover:bg-rosegold-50/50 dark:hover:bg-charcoal-800 text-[10px] font-bold text-rosegold-550 dark:text-rosegold-300 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                              className="px-3.5 py-1.5 border border-gray-200 dark:border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-[10px] font-bold text-gray-600 dark:text-gray-600 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
                             >
                               {isSalonsVisible ? 'Hide Salons' : 'Find Salons'}
                               <ChevronRight className={`w-3 h-3 transition-transform ${isSalonsVisible ? 'rotate-90' : ''}`} />
@@ -889,9 +889,9 @@ export default function StyleAdvisor() {
 
                           {/* On-Demand Salon recommendations block */}
                           {isSalonsVisible && (
-                            <div className="pt-4 border-t border-dashed border-rosegold-200 dark:border-charcoal-800 animate-fade-in space-y-3">
+                            <div className="pt-4 border-t border-dashed border-gray-200 dark:border-gray-300  space-y-3">
                               <div className="flex justify-between items-center">
-                                <p className="text-[10px] uppercase font-bold tracking-widest text-charcoal-400">
+                                <p className="text-[10px] uppercase font-bold tracking-widest text-gray-900">
                                   Nearby Salons offering this treatment
                                 </p>
                               </div>
@@ -901,30 +901,30 @@ export default function StyleAdvisor() {
                                   {matchedSalons.slice(0, 2).map((salon) => (
                                     <div 
                                       key={salon.id} 
-                                      className="p-4 rounded-xl border border-rosegold-200/40 dark:border-charcoal-850 bg-charcoal-50/20 dark:bg-charcoal-900/40 flex flex-col justify-between gap-3 hover:border-rosegold-300 transition-all shadow-xs"
+                                      className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-gray-800 dark:bg-gray-800 flex flex-col justify-between gap-3 hover:border-gray-200 transition-all shadow-xs"
                                     >
                                       <div>
                                         <div className="flex justify-between items-center text-[10px]">
-                                          <span className="font-semibold text-rosegold-550 dark:text-rosegold-350">
+                                          <span className="font-semibold text-gray-600 dark:text-gray-600">
                                             {salon.matchedService.name} (₹{salon.matchedService.price})
                                           </span>
-                                          <div className="flex text-rosegold-500 items-center font-bold">
+                                          <div className="flex text-gray-600 items-center font-bold">
                                             <Star className="w-3.5 h-3.5 fill-rosegold-500 mr-0.5" />
                                             {salon.rating}
                                           </div>
                                         </div>
-                                        <h5 className="text-xs font-bold text-charcoal-900 dark:text-white mt-1">
+                                        <h5 className="text-xs font-bold text-gray-900 dark:text-white mt-1">
                                           {salon.name}
                                         </h5>
-                                        <p className="text-[10px] text-charcoal-400 flex items-center mt-0.5">
-                                          <MapPin className="w-2.5 h-2.5 text-rosegold-500 mr-0.5" />
+                                        <p className="text-[10px] text-gray-900 flex items-center mt-0.5">
+                                          <MapPin className="w-2.5 h-2.5 text-gray-600 mr-0.5" />
                                           {salon.locality}
                                         </p>
                                       </div>
 
                                       <Link
                                         href={`/booking?salon=${salon.id}&service=${salon.matchedService.id}`}
-                                        className="w-full py-1.5 text-center rounded-lg bg-rosegold-500 hover:bg-rosegold-600 text-[10px] font-bold text-white transition-colors"
+                                        className="w-full py-1.5 text-center rounded-lg bg-gray-100 hover:bg-gray-100 text-[10px] font-bold text-white transition-colors"
                                       >
                                         Book Step Appointment
                                       </Link>
@@ -932,7 +932,7 @@ export default function StyleAdvisor() {
                                   ))}
                                 </div>
                               ) : (
-                                <p className="text-xs text-charcoal-400 py-2 italic">
+                                <p className="text-xs text-gray-900 py-2 italic">
                                   No salons in our index currently match &ldquo;{step.recommendedService}&rdquo;. Try browsing our booking page!
                                 </p>
                               )}

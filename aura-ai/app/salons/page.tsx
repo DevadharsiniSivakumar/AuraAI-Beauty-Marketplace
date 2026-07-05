@@ -10,9 +10,7 @@ import {
   Search, 
   MapPin, 
   Star, 
-  SlidersHorizontal, 
-  Compass,
-  ChevronRight
+  SlidersHorizontal
 } from 'lucide-react';
 
 function ExploreSalonsContent() {
@@ -106,10 +104,10 @@ function ExploreSalonsContent() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         
         {/* Top search & title bar */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-rosegold-200/40 pb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-200 dark:border-gray-800 pb-6">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-charcoal-955 dark:text-white font-playfair font-playfair">Discover Salons</h1>
-            <p className="text-sm text-charcoal-550 dark:text-rosegold-200">Personalized beauty planning matched to your active profile across the platform.</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Discover Salons</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Find the perfect beauty services for you.</p>
           </div>
 
           <div className="relative w-full md:w-72">
@@ -118,9 +116,9 @@ function ExploreSalonsContent() {
               placeholder="Search salon or service..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full text-xs sm:text-sm pl-9 pr-3 py-2.5 rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+              className="w-full text-sm pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-black rounded-md focus:outline-hidden focus:border-gray-500 text-gray-900 dark:text-white"
             />
-            <Search className="absolute left-3 top-3 w-4 h-4 text-charcoal-400" />
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
           </div>
         </div>
 
@@ -128,10 +126,10 @@ function ExploreSalonsContent() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
           {/* Sidebar Filter Panel */}
-          <aside className="lg:col-span-1 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 space-y-6 h-fit">
-            <div className="flex items-center justify-between border-b border-rosegold-100 dark:border-charcoal-800 pb-3">
-              <h3 className="font-bold text-charcoal-950 dark:text-white flex items-center gap-2 text-sm uppercase tracking-wide">
-                <SlidersHorizontal className="w-4 h-4 text-rosegold-555" />
+          <aside className="lg:col-span-1 p-6 border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 rounded-md space-y-6 h-fit">
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3">
+              <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-sm uppercase tracking-wider">
+                <SlidersHorizontal className="w-4 h-4 text-gray-500" />
                 Refine Search
               </h3>
               {(selectedLocalities.length > 0 || budgetFilters.length > 0 || luxuryOnly || homeServiceOnly || minRating > 0 || searchTerm !== '') && (
@@ -144,7 +142,7 @@ function ExploreSalonsContent() {
                     setMinRating(0);
                     setSearchTerm('');
                   }}
-                  className="text-[10px] font-semibold text-rosegold-500 hover:text-rosegold-655 cursor-pointer"
+                  className="text-xs font-semibold text-gray-500 hover:text-gray-900 dark:hover:text-white cursor-pointer"
                 >
                   Clear All
                 </button>
@@ -153,15 +151,15 @@ function ExploreSalonsContent() {
 
             {/* Neighborhood Checkboxes */}
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-charcoal-700 dark:text-rosegold-250 uppercase tracking-widest">Neighborhood</h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+              <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Neighborhood</h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
                 {localitiesList.map((locality) => (
-                  <label key={locality} className="flex items-center text-xs text-charcoal-600 dark:text-rosegold-200 cursor-pointer">
+                  <label key={locality} className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={selectedLocalities.includes(locality)}
                       onChange={() => handleLocalityToggle(locality)}
-                      className="rounded-md border-rosegold-300 text-rosegold-500 focus:ring-rosegold-500 mr-2 h-4 w-4 bg-transparent"
+                      className="rounded-sm border-gray-300 dark:border-gray-600 mr-2 h-4 w-4"
                     />
                     {locality}
                   </label>
@@ -171,23 +169,23 @@ function ExploreSalonsContent() {
 
             {/* Service Type Switch */}
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-charcoal-700 dark:text-rosegold-250 uppercase tracking-widest">Preferences</h4>
-              <div className="space-y-2.5">
-                <label className="flex items-center text-xs text-charcoal-600 dark:text-rosegold-200 cursor-pointer">
+              <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Preferences</h4>
+              <div className="space-y-2">
+                <label className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={luxuryOnly}
                     onChange={(e) => setLuxuryOnly(e.target.checked)}
-                    className="rounded-md border-rosegold-300 text-rosegold-500 focus:ring-rosegold-500 mr-2 h-4 w-4 bg-transparent"
+                    className="rounded-sm border-gray-300 dark:border-gray-600 mr-2 h-4 w-4"
                   />
                   Luxury Brands Only
                 </label>
-                <label className="flex items-center text-xs text-charcoal-600 dark:text-rosegold-200 cursor-pointer">
+                <label className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={homeServiceOnly}
                     onChange={(e) => setHomeServiceOnly(e.target.checked)}
-                    className="rounded-md border-rosegold-300 text-rosegold-500 focus:ring-rosegold-500 mr-2 h-4 w-4 bg-transparent"
+                    className="rounded-sm border-gray-300 dark:border-gray-600 mr-2 h-4 w-4"
                   />
                   Offers Home Service
                 </label>
@@ -196,53 +194,53 @@ function ExploreSalonsContent() {
 
             {/* Price Segment Checkbox */}
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-charcoal-700 dark:text-rosegold-250 uppercase tracking-widest">Average Pricing</h4>
+              <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Pricing</h4>
               <div className="space-y-2">
-                <label className="flex items-center text-xs text-charcoal-600 dark:text-rosegold-200 cursor-pointer">
+                <label className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={budgetFilters.includes('low')}
                     onChange={() => handleBudgetToggle('low')}
-                    className="rounded-md border-rosegold-300 text-rosegold-500 focus:ring-rosegold-500 mr-2 h-4 w-4 bg-transparent"
+                    className="rounded-sm border-gray-300 dark:border-gray-600 mr-2 h-4 w-4"
                   />
-                  Budget-Friendly (Avg &lt; ₹2000)
+                  Budget-Friendly (&lt; ₹2000)
                 </label>
-                <label className="flex items-center text-xs text-charcoal-600 dark:text-rosegold-200 cursor-pointer">
+                <label className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={budgetFilters.includes('mid')}
                     onChange={() => handleBudgetToggle('mid')}
-                    className="rounded-md border-rosegold-300 text-rosegold-500 focus:ring-rosegold-500 mr-2 h-4 w-4 bg-transparent"
+                    className="rounded-sm border-gray-300 dark:border-gray-600 mr-2 h-4 w-4"
                   />
-                  Premium Select (Avg ₹2000 - ₹5000)
+                  Premium (₹2000 - ₹5000)
                 </label>
-                <label className="flex items-center text-xs text-charcoal-600 dark:text-rosegold-200 cursor-pointer">
+                <label className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={budgetFilters.includes('high')}
                     onChange={() => handleBudgetToggle('high')}
-                    className="rounded-md border-rosegold-300 text-rosegold-500 focus:ring-rosegold-500 mr-2 h-4 w-4 bg-transparent"
+                    className="rounded-sm border-gray-300 dark:border-gray-600 mr-2 h-4 w-4"
                   />
-                  Ultra-Luxury (Avg &gt; ₹5000)
+                  Luxury (&gt; ₹5000)
                 </label>
               </div>
             </div>
 
             {/* Rating selector slider */}
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-charcoal-700 dark:text-rosegold-250 uppercase tracking-widest">Minimum Rating</h4>
+              <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Minimum Rating</h4>
               <div className="flex gap-2">
                 {[0, 4.4, 4.6, 4.8].map((ratingVal) => (
                   <button
                     key={ratingVal}
                     onClick={() => setMinRating(ratingVal)}
-                    className={`flex-1 text-center py-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
+                    className={`flex-1 text-center py-1 border rounded-md text-xs cursor-pointer ${
                       minRating === ratingVal 
-                        ? 'bg-rosegold-500 border-rosegold-500 text-white font-semibold' 
-                        : 'border-rosegold-200 dark:border-charcoal-800 text-charcoal-650 hover:bg-rosegold-50 dark:hover:bg-charcoal-800'
+                        ? 'bg-gray-900 border-gray-900 text-white dark:bg-white dark:text-gray-900 dark:border-white font-medium' 
+                        : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
-                    {ratingVal === 0 ? 'All' : `${ratingVal}★`}
+                    {ratingVal === 0 ? 'All' : `${ratingVal}+`}
                   </button>
                 ))}
               </div>
@@ -263,90 +261,83 @@ function ExploreSalonsContent() {
                   return (
                     <div 
                       key={salon.id}
-                      className="rounded-2xl border border-rosegold-200/60 dark:border-charcoal-855 bg-white dark:bg-charcoal-900 shadow-2xs hover:shadow-md hover:scale-[1.01] hover:border-rosegold-400/50 transition-all flex flex-col justify-between overflow-hidden group duration-300"
+                      className="border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-black overflow-hidden flex flex-col justify-between"
                     >
                       {/* Image container */}
-                      <div className="relative h-48 w-full overflow-hidden">
+                      <div className="relative h-48 w-full bg-gray-100 dark:bg-gray-900">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={salon.image} 
                           alt={salon.name} 
-                          className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500" 
+                          className="w-full h-full object-cover" 
                         />
                       </div>
 
                       {/* Info body */}
                       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-lg text-charcoal-955 dark:text-white line-clamp-1">{salon.name}</h3>
-                            <div className="flex items-center text-rosegold-550 shrink-0 text-sm">
-                              <Star className="w-4 h-4 fill-rosegold-500 mr-1" />
-                              <span className="font-bold">{salon.rating}</span>
-                              <span className="text-[10px] text-charcoal-450 ml-1">({salon.reviewsCount || salon.reviews?.length || 0})</span>
+                          <div className="flex items-start justify-between">
+                            <h3 className="font-bold text-lg text-gray-900 dark:text-white line-clamp-1">{salon.name}</h3>
+                            <div className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 mr-1" />
+                              <span>{salon.rating}</span>
+                              <span className="text-gray-500 ml-1 text-xs font-normal">({salon.reviewsCount || salon.reviews?.length || 0})</span>
                             </div>
                           </div>
                           
-                          <p className="text-xs text-charcoal-400 flex items-center">
-                            <MapPin className="w-3.5 h-3.5 text-rosegold-500 mr-1.5 shrink-0" />
+                          <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+                            <MapPin className="w-4 h-4 text-gray-400 mr-1 shrink-0" />
                             {salon.location}
                           </p>
 
-                          <p className="text-xs text-charcoal-550 dark:text-rosegold-350">
-                            Price Range: <strong className="text-charcoal-900 dark:text-white">{startingPrice > 0 ? `Starts from ₹${startingPrice}` : 'N/A'}</strong>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Starts from: <strong className="text-gray-900 dark:text-white">{startingPrice > 0 ? `₹${startingPrice}` : 'N/A'}</strong>
                           </p>
                         </div>
 
                         {/* Card footer buttons */}
-                        <div className="pt-4 border-t border-rosegold-100 dark:border-charcoal-800/80 flex gap-2">
+                        <div className="pt-4 flex gap-2">
                           <Link
                             href={`/salons/${salon.id}`}
-                            className="flex-1 text-center py-2.5 rounded-xl border border-rosegold-200 dark:border-charcoal-800 text-xs font-semibold text-charcoal-600 dark:text-rosegold-200 hover:bg-rosegold-50 dark:hover:bg-charcoal-955/30 transition-colors cursor-pointer"
+                            className="flex-1 text-center py-2 border border-gray-300 dark:border-gray-700 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                           >
                             View Details
                           </Link>
                           <Link
                             href={`/booking?salon=${salon.id}`}
-                            className="flex-1 text-center py-2.5 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic hover:from-rosegold-600 hover:to-gold-dark text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                            className="flex-1 text-center py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                           >
                             Book Salon
                           </Link>
                         </div>
-
                       </div>
-
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="text-center py-20 border border-dashed border-rosegold-200 dark:border-charcoal-800 rounded-3xl space-y-3">
-                <Compass className="w-12 h-12 text-charcoal-300 mx-auto animate-spin" />
-                <h3 className="text-lg font-bold text-charcoal-850 dark:text-white font-playfair">No matches found</h3>
-                <p className="text-xs text-charcoal-400 max-w-xs mx-auto font-light">
-                  No salons match your selected locations, pricing segment, or tags. Try resetting filters.
+              <div className="text-center py-20 border border-gray-200 dark:border-gray-800 rounded-md bg-gray-50 dark:bg-gray-900">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No matches found</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                  No salons match your selected filters.
                 </p>
-                <div className="pt-2">
-                  <button
-                    onClick={() => {
-                      setSelectedLocalities([]);
-                      setBudgetFilters([]);
-                      setLuxuryOnly(false);
-                      setHomeServiceOnly(false);
-                      setMinRating(0);
-                      setSearchTerm('');
-                    }}
-                    className="px-5 py-2 rounded-full bg-rosegold-500 hover:bg-rosegold-600 text-white text-xs font-semibold cursor-pointer"
-                  >
-                    Reset All Filters
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    setSelectedLocalities([]);
+                    setBudgetFilters([]);
+                    setLuxuryOnly(false);
+                    setHomeServiceOnly(false);
+                    setMinRating(0);
+                    setSearchTerm('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-sm font-medium"
+                >
+                  Reset Filters
+                </button>
               </div>
             )}
           </section>
-
         </div>
-
       </main>
 
       <Footer />
@@ -357,8 +348,8 @@ function ExploreSalonsContent() {
 export default function ExploreSalons() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-rosegold-50 dark:bg-charcoal-950">
-        <div className="w-8 h-8 border-4 border-rosegold-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
       </div>
     }>
       <ExploreSalonsContent />
