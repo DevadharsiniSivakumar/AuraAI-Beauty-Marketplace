@@ -384,7 +384,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     id: d.id || data.salonId,
                     name: data.name || '',
                     rating: Number(data.rating) || 5.0,
-                    reviewsCount: data.reviewsCount || data.reviews?.length || 0,
+                    reviewsCount: data.reviewsCount || (Array.isArray(data.reviews) ? data.reviews.length : 0),
                     location: data.location || '',
                     locality: data.locality || data.location?.split(',')[0]?.trim() || 'Indiranagar',
                     address: data.address || '',
@@ -394,7 +394,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     isLuxury: data.category === 'Luxury',
                     offersHomeService: data.category === 'Home Service',
                     phone: data.phone || '',
-                    reviews: data.reviews || [],
+                    reviews: Array.isArray(data.reviews) ? data.reviews : [],
                     aiReviewSummary: data.aiReviewSummary || { pros: [], cons: [], summary: '' },
                     matchScore: data.matchScore || 95,
                     badges: data.badges || [],
@@ -828,7 +828,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Extract reviews across all salons
   const reviews = useMemo(() => {
     return dbSalons.flatMap(s => 
-      (s.reviews || []).map((r: any) => ({ ...r, salonName: s.name, salonId: s.id }))
+      (Array.isArray(s.reviews) ? s.reviews : []).map((r: any) => ({ ...r, salonName: s.name, salonId: s.id }))
     );
   }, [dbSalons]);
 
