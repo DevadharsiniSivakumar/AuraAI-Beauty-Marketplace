@@ -6,10 +6,13 @@ import { useRouter } from 'next/navigation';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { useApp } from './context/AppContext';
+import { useAuth } from './context/AuthContext';
 
 export default function Home() {
   const router = useRouter();
-  const { salons, isAuthenticated } = useApp();
+  const { salons } = useApp();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
 

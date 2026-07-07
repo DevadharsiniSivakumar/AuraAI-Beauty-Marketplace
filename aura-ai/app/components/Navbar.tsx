@@ -2,13 +2,20 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, role, logout } = useAuth();
+  const isAdmin = role === 'admin';
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
@@ -69,6 +76,12 @@ export default function Navbar() {
                   {user.email?.[0].toUpperCase() || 'U'}
                 </div>
               </Link>
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium text-mutedtext hover:text-plum transition-colors cursor-pointer"
+              >
+                Log Out
+              </button>
             </div>
           ) : (
             <div className="flex items-center space-x-4">
@@ -144,6 +157,15 @@ export default function Navbar() {
                   >
                     Profile Settings
                   </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-3 py-3 rounded-md text-base font-medium text-red-500 hover:bg-red-50/50 hover:text-red-650 cursor-pointer"
+                  >
+                    Log Out
+                  </button>
                 </>
               ) : (
                 <div className="flex flex-col space-y-2 px-3 pt-2">

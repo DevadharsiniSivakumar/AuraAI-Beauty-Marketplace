@@ -9,14 +9,15 @@ import { useAuth } from '../context/AuthContext';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { bookings, salons, favorites } = useApp();
+  const { bookings, salons, userProfile } = useApp();
+  const favorites = userProfile?.favoriteSalons || [];
 
   const userBookings = bookings.filter(b => b.userId === user?.uid);
   const upcomingBookings = userBookings.filter(b => new Date(`${b.date}T${b.time}`) >= new Date()).sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
   const pastBookings = userBookings.filter(b => new Date(`${b.date}T${b.time}`) < new Date()).sort((a, b) => new Date(`${b.date}T${b.time}`).getTime() - new Date(`${a.date}T${a.time}`).getTime());
 
   const savedSalons = salons.filter(s => favorites.includes(s.id));
-  const userName = user?.displayName || user?.email?.split('@')[0] || 'User';
+  const userName = user?.name || user?.email?.split('@')[0] || 'User';
 
   return (
     <div className="flex flex-col min-h-screen bg-cream">

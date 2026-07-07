@@ -116,6 +116,9 @@ interface AppContextType {
   updateProfile: (profile: Partial<UserProfile>) => void;
   sendChatMessage: (message: string) => void;
   toggleDarkMode: () => void;
+  addFavorite: (salonId: string) => void;
+  removeFavorite: (salonId: string) => void;
+  isFavorite: (salonId: string) => boolean;
   // Salon CRUD operations
   addSalon: (salonData: any, imageFile: File | null) => Promise<void>;
   updateSalon: (salonId: string, salonData: any, imageFile: File | null) => Promise<void>;
@@ -535,6 +538,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
     });
   }, [dbSalons, dbServices]);
+
+
+  const addFavorite = (salonId: string) => {
+    if (!userProfile.favoriteSalons?.includes(salonId)) {
+      updateProfile({ favoriteSalons: [...(userProfile.favoriteSalons || []), salonId] });
+    }
+  };
+
+  const removeFavorite = (salonId: string) => {
+    if (userProfile.favoriteSalons?.includes(salonId)) {
+      updateProfile({ favoriteSalons: (userProfile.favoriteSalons || []).filter(id => id !== salonId) });
+    }
+  };
+
+  const isFavorite = (salonId: string) => {
+    return userProfile.favoriteSalons?.includes(salonId) || false;
+  };
 
   const toggleDarkMode = () => {
     const nextMode = !isDarkMode;
@@ -1307,6 +1327,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateProfile,
         sendChatMessage,
         toggleDarkMode,
+        addFavorite,
+        removeFavorite,
+        isFavorite,
         addSalon,
         updateSalon,
         deleteSalon,

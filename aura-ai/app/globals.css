@@ -19,6 +19,36 @@
   --color-sage: #819B87;
   --color-lavender: #8D7AAE;
   --color-gold: #C99A4A;
+
+  /* Royal Purple & Gold Luxury Colors */
+  --color-gold-light: #fef9c3;
+  --color-gold-medium: #eab308;
+  --color-gold-dark: #ca8a04;
+  --color-gold-metallic: #d4af37;
+  
+  --color-rosegold-50: #faf5ff;
+  --color-rosegold-100: #f3e8ff;
+  --color-rosegold-200: #e9d5ff;
+  --color-rosegold-300: #d8b4fe;
+  --color-rosegold-400: #c084fc;
+  --color-rosegold-500: #a855f7;
+  --color-rosegold-600: #9333ea;
+  --color-rosegold-700: #7e22ce;
+  --color-rosegold-800: #6b21a8;
+  --color-rosegold-900: #581c87;
+  --color-rosegold-950: #3b0764;
+
+  --color-charcoal-50: #fafafb;
+  --color-charcoal-100: #f4f3f6;
+  --color-charcoal-200: #e4e2eb;
+  --color-charcoal-300: #c5c2d3;
+  --color-charcoal-400: #9893af;
+  --color-charcoal-500: #716b8c;
+  --color-charcoal-600: #544e6f;
+  --color-charcoal-700: #3b3554;
+  --color-charcoal-800: #251e39;
+  --color-charcoal-900: #171127;
+  --color-charcoal-950: #0a0518;
   
   --font-sans: var(--font-inter);
   --font-serif: var(--font-playfair);

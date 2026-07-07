@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 
-export default function AdminPage() {
-  const { isAdmin } = useAuth();
-  const { salons, bookings } = useApp();
+export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'overview' | 'salons' | 'bookings' | 'reviews' | 'services' }) {
+  const { role } = useAuth();
+  const isAdmin = role === 'admin';
+  const { salons, bookings, reviews } = useApp();
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'salons' | 'bookings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'salons' | 'bookings' | 'reviews' | 'services'>(defaultTab);
 
   if (!isAdmin) {
     return (
@@ -44,6 +45,8 @@ export default function AdminPage() {
             { id: 'overview', label: 'Overview', icon: '📊' },
             { id: 'salons', label: 'Salons', icon: '🏪' },
             { id: 'bookings', label: 'Bookings', icon: '📅' },
+            { id: 'services', label: 'Services', icon: '💇' },
+            { id: 'reviews', label: 'Reviews', icon: '⭐' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -222,6 +225,70 @@ export default function AdminPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'services' && (
+            <div className="bg-white rounded-lg border border-border shadow-sm overflow-hidden animate-in fade-in">
+              <div className="p-4 border-b border-border flex justify-between items-center bg-warmwhite">
+                <h3 className="font-medium text-darktext">Services Directory</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-cream text-mutedtext uppercase tracking-wider text-xs border-b border-border">
+                      <th className="p-4 font-medium">Name</th>
+                      <th className="p-4 font-medium">Category</th>
+                      <th className="p-4 font-medium">Price</th>
+                      <th className="p-4 font-medium">Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {salons.flatMap(s => s.services.map(ser => ({ ...ser, salonName: s.name }))).map((service, i) => (
+                      <tr key={i} className="hover:bg-cream/30 transition-colors">
+                        <td className="p-4 font-medium text-darktext">{service.name} <span className="text-xs text-mutedtext">at {service.salonName}</span></td>
+                        <td className="p-4 text-mutedtext">{service.category}</td>
+                        <td className="p-4 text-darktext">₹{service.price}</td>
+                        <td className="p-4 text-mutedtext">{service.duration}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <div className="bg-white rounded-lg border border-border shadow-sm overflow-hidden animate-in fade-in">
+              <div className="p-4 border-b border-border flex justify-between items-center bg-warmwhite">
+                <h3 className="font-medium text-darktext">All Reviews</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-cream text-mutedtext uppercase tracking-wider text-xs border-b border-border">
+                      <th className="p-4 font-medium">Author</th>
+                      <th className="p-4 font-medium">Salon</th>
+                      <th className="p-4 font-medium">Rating</th>
+                      <th className="p-4 font-medium">Comment</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {reviews && reviews.length > 0 ? (reviews as any[]).map((review, i) => (
+                      <tr key={i} className="hover:bg-cream/30 transition-colors">
+                        <td className="p-4 font-medium text-darktext">{review.author}</td>
+                        <td className="p-4 text-mutedtext">{review.salonName}</td>
+                        <td className="p-4 text-darktext">★ {review.rating}</td>
+                        <td className="p-4 text-mutedtext">{review.comment}</td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-mutedtext">No reviews found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
