@@ -33,18 +33,20 @@ export default function SignupPage() {
     <div className="min-h-screen flex bg-warmwhite">
       
       {/* Left 40%: Image Area (Desktop Only) */}
-      <div className="hidden lg:flex lg:w-[40%] bg-peach/20 relative overflow-hidden border-r border-border items-center justify-center">
-        <div className="absolute inset-0 bg-peach opacity-10 mix-blend-multiply"></div>
-        {/* Placeholder for real beauty image */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-30 text-peach font-serif text-2xl">
-          Skincare Image
-        </div>
+      <div className="hidden lg:flex lg:w-[40%] relative overflow-hidden border-r border-border items-center justify-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img 
+          src="/login-bg.png" 
+          alt="Aura Beauty Background" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-plum/10 mix-blend-multiply"></div>
         
-        <div className="relative z-10 p-12 mt-auto w-full bg-gradient-to-t from-peach/60 to-transparent">
-          <Link href="/" className="inline-block text-3xl font-serif font-bold text-darktext mb-4">
+        <div className="relative z-10 p-12 mt-auto w-full bg-gradient-to-t from-plum/80 to-transparent">
+          <Link href="/" className="inline-block text-3xl font-serif font-bold text-warmwhite mb-4">
             Aura
           </Link>
-          <p className="text-darktext/90 font-medium text-lg leading-relaxed max-w-sm">
+          <p className="text-warmwhite/90 font-medium text-lg leading-relaxed max-w-sm">
             Join thousands discovering their perfect beauty regimen today.
           </p>
         </div>
