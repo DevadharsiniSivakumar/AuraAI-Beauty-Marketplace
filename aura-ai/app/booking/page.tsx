@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import ClientConsoleLayout from '../components/ClientConsoleLayout';
 import { useApp } from '../context/AppContext';
 
 export default function BookingPage() {
@@ -104,10 +103,8 @@ export default function BookingPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-cream">
-      <Navbar />
-
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <ClientConsoleLayout activeSidebarItem="bookings" headerTitle="Book Appointment">
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         {bookingState === 'success' && confirmedBooking ? (
           <div className="max-w-2xl mx-auto mt-10 animate-in slide-in-from-bottom-4">
@@ -389,9 +386,7 @@ export default function BookingPage() {
 
           </div>
         )}
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </ClientConsoleLayout>
   );
 }

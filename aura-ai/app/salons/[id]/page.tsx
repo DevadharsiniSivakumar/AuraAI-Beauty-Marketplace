@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import ClientConsoleLayout from '../../components/ClientConsoleLayout';
 import { useApp } from '../../context/AppContext';
 import { useParams } from 'next/navigation';
 
@@ -21,17 +20,15 @@ export default function SalonDetailsPage() {
 
   if (!salon) {
     return (
-      <div className="flex flex-col min-h-screen bg-cream">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center">
+      <ClientConsoleLayout activeSidebarItem="explore" headerTitle="Salon Not Found">
+        <div className="flex-grow flex items-center justify-center py-20">
           <div className="text-center">
             <h1 className="text-2xl font-medium text-darktext mb-2">Salon not found</h1>
             <p className="text-mutedtext mb-6">The salon you are looking for does not exist.</p>
             <Link href="/salons" className="text-plum hover:underline">Return to search</Link>
           </div>
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </ClientConsoleLayout>
     );
   }
 
@@ -49,10 +46,7 @@ export default function SalonDetailsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-cream">
-      <Navbar />
-
-      <main className="flex-grow pb-24">
+    <ClientConsoleLayout activeSidebarItem="explore" headerTitle={salon.name}>
         {/* Header Section */}
         <div className="bg-warmwhite border-b border-border pt-8 pb-6 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
@@ -321,9 +315,6 @@ export default function SalonDetailsPage() {
 
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </ClientConsoleLayout>
   );
 }

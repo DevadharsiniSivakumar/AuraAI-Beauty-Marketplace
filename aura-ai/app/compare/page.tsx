@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import ClientConsoleLayout from '../components/ClientConsoleLayout';
 import { useApp } from '../context/AppContext';
 
 export default function ComparePage() {
@@ -19,10 +18,8 @@ export default function ComparePage() {
   const compareSalons = selectedIds.map(id => salons.find(s => s.id === id)).filter(Boolean) as any[];
 
   return (
-    <div className="flex flex-col min-h-screen bg-cream">
-      <Navbar />
-
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <ClientConsoleLayout activeSidebarItem="compare" headerTitle="Compare Salons">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="mb-8 flex justify-between items-end">
           <div>
             <h1 className="font-serif text-3xl md:text-4xl text-darktext mb-2">Compare Salons</h1>
@@ -172,9 +169,7 @@ export default function ComparePage() {
             </Link>
           </div>
         )}
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </ClientConsoleLayout>
   );
 }

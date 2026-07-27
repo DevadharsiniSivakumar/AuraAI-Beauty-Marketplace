@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import ClientConsoleLayout from './components/ClientConsoleLayout';
 import { useApp } from './context/AppContext';
 import { useAuth } from './context/AuthContext';
 
@@ -32,10 +31,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-warmwhite">
-      <Navbar />
-
-      <main className="flex-grow">
+    <ClientConsoleLayout activeSidebarItem="explore" headerTitle="Aura Marketplace">
         {/* A. HERO */}
         <section className="bg-cream pt-16 pb-24 md:pt-24 md:pb-32 px-4 sm:px-6 lg:px-8 border-b border-border">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
@@ -302,9 +298,6 @@ export default function Home() {
           </div>
         </section>
 
-      </main>
-
-      <Footer />
-    </div>
+    </ClientConsoleLayout>
   );
 }

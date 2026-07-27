@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import ClientConsoleLayout from '../components/ClientConsoleLayout';
 import { useApp } from '../context/AppContext';
 
 export default function SalonsPage() {
@@ -60,10 +59,7 @@ export default function SalonsPage() {
   }, [searchQuery, location, category, rating, salons]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-cream">
-      <Navbar />
-
-      <main className="flex-grow">
+    <ClientConsoleLayout activeSidebarItem="explore" headerTitle="Explore Salons">
         {/* Header & Search */}
         <div className="bg-warmwhite border-b border-border pt-12 pb-6 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
@@ -219,9 +215,6 @@ export default function SalonsPage() {
             </div>
           )}
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </ClientConsoleLayout>
   );
 }
