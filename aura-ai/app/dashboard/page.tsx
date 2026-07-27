@@ -19,7 +19,9 @@ import {
   Store,
   Scissors,
   ChevronRight,
-  TrendingUp
+  TrendingUp,
+  Camera,
+  MessageSquare
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -124,17 +126,36 @@ export default function DashboardPage() {
             <Compass className="w-4 h-4" />
             Beauty Journey
           </button>
+
+          <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
+
+          <Link 
+            href="/advisor?tab=scanner"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <Camera className="w-4 h-4 text-peach" />
+            Selfie Scanner
+          </Link>
+
+          <Link 
+            href="/advisor?tab=planner"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <Scissors className="w-4 h-4 text-peach" />
+            Journey Planner
+          </Link>
+
+          <Link 
+            href="/concierge"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <MessageSquare className="w-4 h-4 text-peach" />
+            AI Concierge
+          </Link>
         </nav>
 
         {/* Sidebar Footer Operations */}
         <div className="p-4 border-t border-plum-dark/50 space-y-1.5 flex-shrink-0">
-          <Link 
-            href="/advisor"
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-warmwhite/75 hover:text-white transition-colors rounded-lg hover:bg-cream/5 text-left"
-          >
-            <ExternalLink className="w-4 h-4 text-peach" />
-            Ask Aura Advisor
-          </Link>
           <Link 
             href="/"
             className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-warmwhite/75 hover:text-white transition-colors rounded-lg hover:bg-cream/5 text-left"

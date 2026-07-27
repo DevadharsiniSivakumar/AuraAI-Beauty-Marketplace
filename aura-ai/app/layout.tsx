@@ -1,21 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 import RouteGuard from "./components/RouteGuard";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "Aura | Beauty Appointments",
@@ -30,8 +17,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfair.variable} h-full antialiased font-sans`}
+      className="h-full antialiased font-sans"
     >
+      <head>
+        <style>{`
+          :root {
+            --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-playfair: 'Playfair Display', Georgia, Cambria, serif;
+          }
+        `}</style>
+      </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <RouteGuard>
