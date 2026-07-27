@@ -7,7 +7,7 @@ export default function JourneyPage() {
   const router = useRouter();
   
   useEffect(() => {
-    router.replace('/advisor?tab=planner');
+    router.replace('/dashboard?tab=journey');
   }, [router]);
 
   return (

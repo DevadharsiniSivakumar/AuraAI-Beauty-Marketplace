@@ -55,139 +55,6 @@ export default function StyleAdvisor() {
   const [errorMsg, setErrorMsg] = useState('');
   const [scanStep, setScanStep] = useState('');
 
-  // Journey Planner state variables
-  const [activeTab, setActiveTab] = useState<'scanner' | 'planner'>('scanner');
-  const [goalInput, setGoalInput] = useState('');
-  const [generating, setGenerating] = useState(false);
-  const [generatedPlan, setGeneratedPlan] = useState<any | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [visibleSalonsForStep, setVisibleSalonsForStep] = useState<Record<number, boolean>>({});
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('tab') === 'planner') {
-        setActiveTab('planner');
-      }
-    }
-  }, []);
-
-  const quickGoals = [
-    { label: 'Wedding in 45 days', text: 'My wedding is in 45 days. I need a complete glow-up plan for skin and hair.' },
-    { label: 'Party next week', text: 'I have a major party next week and need to look my absolute best.' },
-    { label: 'Dry/damaged hair recovery', text: 'My hair is severely dry and damaged. I need a recovery journey.' },
-    { label: 'Acne & skin glow', text: 'I want to clear up my skin congestion and get a healthy radiant glow.' }
-  ];
-
-  const getMatchingSalonsForService = (serviceName: string) => {
-    const query = serviceName.toLowerCase();
-    return salons.map((salon: any) => {
-      const matchingServices = (salon.services || []).filter((s: any) => 
-        s.name.toLowerCase().includes(query) || 
-        query.includes(s.name.toLowerCase()) ||
-        s.category.toLowerCase().includes(query) ||
-        query.includes(s.category.toLowerCase())
-      );
-      if (matchingServices.length === 0) return null;
-      return {
-        ...salon,
-        matchedService: matchingServices[0]
-      };
-    }).filter((s: any): s is any => s !== null);
-  };
-
-  const handleSaveJourney = async () => {
-    if (!generatedPlan) return;
-    try {
-      const targetDate = new Date();
-      targetDate.setDate(targetDate.getDate() + (generatedPlan.durationDays || 30));
-
-      await saveJourney({
-        goal: goalInput,
-        journeyType: generatedPlan.journeyType,
-        durationDays: generatedPlan.durationDays || 30,
-        steps: generatedPlan.steps.map((step: any) => ({
-          ...step,
-          status: 'Pending'
-        })),
-        targetDate: targetDate.toISOString().split('T')[0]
-      });
-      setSaveSuccess(true);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleGenerateJourney = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!goalInput.trim()) return;
-
-    setGenerating(true);
-    setGeneratedPlan(null);
-    setSaveSuccess(false);
-    setVisibleSalonsForStep({});
-
-    try {
-      const res = await fetch('/api/journey/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userGoal: goalInput,
-          userProfile,
-          userMemory
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to generate journey');
-      }
-
-      const data = await res.json();
-      setGeneratedPlan(data);
-    } catch (err) {
-      console.error('Fetch failed, generating local fallback:', err);
-      // Client-side quick fallback construction
-      const clientFallback = (goal: string) => {
-        const goalLower = goal.toLowerCase();
-        let type: any = 'Maintenance';
-        let days = 30;
-        let steps = [];
-
-        if (goalLower.includes('wed') || goalLower.includes('marri') || goalLower.includes('brid')) {
-          type = 'Bridal';
-          days = 45;
-          steps = [
-            { stepNumber: 1, title: 'Consultation & Hydra Facial', description: 'Begin hydration prep and skin health evaluation.', timeline: 'Day 45 (6 Weeks Out)', recommendedService: 'Advanced Hydra Facial' },
-            { stepNumber: 2, title: 'Hair Spa', description: 'Rehydrate wavy hair strands and protect fiber roots.', timeline: 'Day 30 (4 Weeks Out)', recommendedService: 'Hair Spa' },
-            { stepNumber: 3, title: 'Manicure & Pedicure', description: 'Soften hands and feet for event-day neatness.', timeline: 'Day 15 (2 Weeks Out)', recommendedService: 'Pedicure' },
-            { stepNumber: 4, title: 'Rose Gold Glow Facial', description: 'Lock in skin brightness without harsh treatments.', timeline: 'Day 3 (3 Days Out)', recommendedService: 'Rose Gold Shimmer Facial' },
-          ];
-        } else if (goalLower.includes('part') || goalLower.includes('event')) {
-          type = 'Event Prep';
-          days = 7;
-          steps = [
-            { stepNumber: 1, title: 'Hydra Facial Reset', description: 'Exfoliate dead surface cells for clear skin.', timeline: 'Day 7 (1 Week Out)', recommendedService: 'Advanced Hydra Facial' },
-            { stepNumber: 2, title: 'Hair Spa Moisture Boost', description: 'Add gloss and texture styling prep.', timeline: 'Day 3 (3 Days Out)', recommendedService: 'Hair Spa' },
-            { stepNumber: 3, title: 'Nails Prep', description: 'Clean, shape and paint nails.', timeline: 'Day 1 (1 Day Out)', recommendedService: 'Pedicure' },
-          ];
-        } else {
-          steps = [
-            { stepNumber: 1, title: 'Skincare Reset', description: 'Exfoliate and deep cleanse layers.', timeline: 'Week 1', recommendedService: 'Advanced Hydra Facial' },
-            { stepNumber: 2, title: 'Relaxation & Massage', description: 'Relieve stress and improve lymphatic flow.', timeline: 'Week 2', recommendedService: 'Deep Tissue Massage' },
-            { stepNumber: 3, title: 'Nails & Grooming', description: 'Routine clean up and moisturizing.', timeline: 'Week 4', recommendedService: 'Pedicure' },
-          ];
-        }
-
-        return { journeyType: type, durationDays: days, steps };
-      };
-      setGeneratedPlan(clientFallback(goalInput));
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   // Sync selected photo and results from active beauty profile on load
   useEffect(() => {
     if (beautyProfile) {
@@ -455,27 +322,10 @@ export default function StyleAdvisor() {
           <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
 
           <button 
-            onClick={() => setActiveTab('scanner')}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
-              activeTab === 'scanner' 
-                ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach' 
-                : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
-            }`}
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer bg-cream/15 text-white shadow-xs border-l-4 border-peach text-left"
           >
-            <Camera className="w-4 h-4 text-peach" />
+            <Camera className="w-4 h-4 text-peach animate-pulse" />
             Selfie Scanner
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('planner')}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
-              activeTab === 'planner' 
-                ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach' 
-                : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
-            }`}
-          >
-            <Scissors className="w-4 h-4 text-peach" />
-            Journey Planner
           </button>
 
           <Link 
@@ -484,6 +334,14 @@ export default function StyleAdvisor() {
           >
             <MessageSquare className="w-4 h-4 text-peach" />
             AI Concierge
+          </Link>
+
+          <Link 
+            href="/compare"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <TrendingUp className="w-4 h-4 text-peach" />
+            Compare Salons
           </Link>
         </nav>
 
@@ -529,44 +387,18 @@ export default function StyleAdvisor() {
         {/* Content Workspace */}
         <main className="flex-grow overflow-y-auto p-8 bg-cream/40 space-y-8">
           
-          {/* Tab Selector Card */}
-          <div className="bg-white p-6 rounded-2xl border border-border shadow-xs max-w-4xl mx-auto space-y-4">
+          {/* Header Card */}
+          <div className="bg-white p-6 rounded-2xl border border-border shadow-xs max-w-4xl mx-auto space-y-2 animate-in fade-in">
             <h3 className="text-lg font-serif font-bold text-darktext flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-plum animate-pulse" />
-              AI Skincare & Beauty Planner
+              <Camera className="w-5 h-5 text-plum" />
+              Aura AI Selfie Scanner
             </h3>
             <p className="text-xs text-mutedtext">
-              Construct a detailed facial, hair, and skin undertone profile using selfie scans or generate customized beauty prep planners.
+              Construct a detailed facial, hair, and skin undertone profile using selfie scans to get bespoke recommendations.
             </p>
-            
-            <div className="flex bg-cream p-1 rounded-xl border border-border max-w-xs pt-1.5 pb-1.5 pl-1.5 pr-1.5">
-              <button 
-                onClick={() => setActiveTab('scanner')}
-                className={`flex-grow py-1.5 px-4 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'scanner' 
-                    ? 'bg-plum text-white shadow-xs' 
-                    : 'text-mutedtext hover:text-darktext'
-                }`}
-              >
-                Beauty Profile
-              </button>
-              <button 
-                onClick={() => setActiveTab('planner')}
-                className={`flex-grow py-1.5 px-4 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'planner' 
-                    ? 'bg-plum text-white shadow-xs' 
-                    : 'text-mutedtext hover:text-darktext'
-                }`}
-              >
-                Journey Planner
-              </button>
-            </div>
           </div>
 
-        {/* Tab content condition */}
-        {activeTab === 'scanner' ? (
-          <>
-            <section className="max-w-4xl mx-auto">
+          <section className="max-w-4xl mx-auto animate-in fade-in">
               <div className="rounded-md border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2">
                 
                 {/* Selfie Upload Area */}
@@ -858,227 +690,6 @@ export default function StyleAdvisor() {
               </div>
             </div>
 
-          </section>
-        )}
-      </>
-    ) : (
-          <section className="max-w-4xl mx-auto space-y-8 ">
-            {/* Active Journey Indicator */}
-            {activeJourney && (
-              <div className="rounded-md border border-gray-200 bg-gray-100 dark:bg-gray-800 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    Active Journey: {activeJourney.journeyType} Plan ({activeJourney.durationDays} Days)
-                  </h4>
-                  <p className="text-xs text-gray-900 dark:text-gray-300">
-                    Goal: &ldquo;{activeJourney.goal}&rdquo; | Progress: {activeJourney.progressPercent}%
-                  </p>
-                </div>
-                <button
-                  onClick={deleteActiveJourney}
-                  className="px-3 py-1.5 rounded-lg border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-semibold cursor-pointer transition-colors"
-                >
-                  Reset Journey
-                </button>
-              </div>
-            )}
-
-            {/* Planner Input card */}
-            <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-6 sm:p-8 space-y-6">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-gray-600 dark:text-gray-350" />
-                  Define Your Beauty Goal
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-300 mt-1">
-                  Tell Aura what you want to prepare for or recover. We will design a customized, multi-week timeline.
-                </p>
-              </div>
-
-              {/* Suggestions Chips */}
-              <div className="space-y-2">
-                <p className="text-[10px] uppercase font-bold tracking-widest text-gray-900 dark:text-gray-300">Quick suggestions</p>
-                <div className="flex flex-wrap gap-2">
-                  {quickGoals.map((g, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setGoalInput(g.text)}
-                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-xs text-gray-900 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-500 dark:hover:text-white transition-colors cursor-pointer"
-                    >
-                      {g.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <form onSubmit={(e) => handleGenerateJourney(e)} className="space-y-4">
-                <textarea
-                  value={goalInput}
-                  onChange={(e) => setGoalInput(e.target.value)}
-                  placeholder="e.g. My wedding is in 45 days and I want perfect skin and silky smooth hair..."
-                  className="w-full min-h-[100px] p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-cream dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-plum text-gray-900 dark:text-white placeholder-mutedtext resize-y"
-                  required
-                />
-                
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={generating || !goalInput.trim()}
-                    className="px-6 py-3 rounded-xl bg-plum hover:bg-plum-dark text-warmwhite font-semibold text-sm shadow-sm hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {generating ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-warmwhite border-t-transparent rounded-full animate-spin"></div>
-                        Generating Journey...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        Generate Journey Plan
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {/* Generated Plan details */}
-            {generatedPlan && (
-              <div className="space-y-8 ">
-                {/* Header overview card */}
-                <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-sm">
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-plum/10 border border-plum/20 text-plum tracking-widest uppercase">
-                      {generatedPlan.journeyType} Journey
-                    </span>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Your Beauty Roadmap ({generatedPlan.durationDays} Days)
-                    </h3>
-                    <p className="text-xs text-gray-900 dark:text-gray-300">
-                      Goal: &ldquo;{goalInput}&rdquo;
-                    </p>
-                  </div>
-
-                  {saveSuccess ? (
-                    <div className="px-5 py-2.5 bg-emerald-600/10 border border-emerald-500/20 text-emerald-600 rounded-xl font-bold text-xs flex items-center gap-1.5">
-                      <CheckCircle className="w-4 h-4" />
-                      Saved to Profile
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleSaveJourney}
-                      className="px-5 py-2.5 bg-gray-800 hover:bg-gray-800 text-white rounded-xl font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer dark:bg-white dark:text-gray-900 dark:hover:bg-gray-800"
-                    >
-                      Save Journey to Profile
-                    </button>
-                  )}
-                </div>
-
-                {/* Steps Timeline visualization */}
-                <div className="relative pl-6 sm:pl-8 border-l border-gray-200 dark:border-gray-700 space-y-10">
-                  {generatedPlan.steps.map((step: any) => {
-                    const matchedSalons = getMatchingSalonsForService(step.recommendedService);
-                    const isSalonsVisible = visibleSalonsForStep[step.stepNumber];
-
-                    return (
-                      <div key={step.stepNumber} className="relative group ">
-                        {/* Bullet Circle */}
-                        <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center font-bold text-[10px] text-gray-600 dark:text-gray-300">
-                          {step.stepNumber}
-                        </div>
-
-                        {/* Step content card */}
-                        <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 hover:border-gray-200 transition-colors shadow-sm space-y-4">
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-widest bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">
-                              {step.timeline}
-                            </span>
-                            <h4 className="text-base font-bold text-gray-900 dark:text-white">
-                              {step.title}
-                            </h4>
-                          </div>
-
-                          <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-300 leading-relaxed font-light">
-                            {step.description}
-                          </p>
-
-                          <div className="pt-2 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div className="text-xs">
-                              <span className="text-gray-950 dark:text-gray-300">Recommended service:</span>{' '}
-                              <strong className="text-gray-900 dark:text-white">{step.recommendedService}</strong>
-                            </div>
-                            <button
-                              onClick={() => setVisibleSalonsForStep(prev => ({
-                                ...prev,
-                                [step.stepNumber]: !prev[step.stepNumber]
-                              }))}
-                              className="px-3.5 py-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-[10px] font-bold text-gray-600 dark:text-gray-300 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
-                            >
-                              {isSalonsVisible ? 'Hide Salons' : 'Find Salons'}
-                              <ChevronRight className={`w-3 h-3 transition-transform ${isSalonsVisible ? 'rotate-90' : ''}`} />
-                            </button>
-                          </div>
-
-                          {/* On-Demand Salon recommendations block */}
-                          {isSalonsVisible && (
-                            <div className="pt-4 border-t border-dashed border-gray-200 dark:border-gray-700  space-y-3">
-                              <div className="flex justify-between items-center">
-                                  <p className="text-[10px] uppercase font-bold tracking-widest text-gray-900 dark:text-gray-300">
-                                    Nearby Salons offering this treatment
-                                  </p>
-                              </div>
-
-                              {matchedSalons.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  {matchedSalons.slice(0, 2).map((salon: any) => (
-                                    <div 
-                                      key={salon.id} 
-                                      className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col justify-between gap-3 hover:border-gray-200 transition-all shadow-xs"
-                                    >
-                                      <div>
-                                        <div className="flex justify-between items-center text-[10px]">
-                                          <span className="font-semibold text-gray-600 dark:text-gray-400">
-                                            {salon.matchedService.name} (₹{salon.matchedService.price})
-                                          </span>
-                                          <div className="flex text-gray-600 dark:text-gray-400 items-center font-bold">
-                                            <Star className="w-3.5 h-3.5 fill-rosegold-500 mr-0.5" />
-                                            {salon.rating}
-                                          </div>
-                                        </div>
-                                        <h5 className="text-xs font-bold text-gray-900 dark:text-white mt-1">
-                                          {salon.name}
-                                        </h5>
-                                        <p className="text-[10px] text-gray-900 dark:text-gray-300 flex items-center mt-0.5">
-                                          <MapPin className="w-2.5 h-2.5 text-gray-600 dark:text-gray-400 mr-0.5" />
-                                          {salon.locality}
-                                        </p>
-                                      </div>
-
-                                      <Link
-                                        href={`/booking?salon=${salon.id}&service=${salon.matchedService.id}`}
-                                        className="w-full py-1.5 text-center rounded-lg bg-plum text-warmwhite hover:bg-plum-dark text-[10px] font-bold transition-colors"
-                                      >
-                                        Book Step Appointment
-                                      </Link>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-xs text-gray-900 dark:text-gray-400 py-2 italic">
-                                  No salons in our index currently match &ldquo;{step.recommendedService}&rdquo;. Try browsing our booking page!
-                                </p>
-                              )}
-                            </div>
-                          )}
-
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </section>
         )}
 

@@ -21,13 +21,137 @@ import {
   ChevronRight,
   TrendingUp,
   Camera,
-  MessageSquare
+  MessageSquare,
+  Sparkles,
+  CheckCircle,
+  MapPin
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { bookings, salons, userProfile, activeJourney } = useApp();
+  const { bookings, salons, userProfile, activeJourney, userMemory, saveJourney, deleteActiveJourney } = useApp();
+
+  const [goalInput, setGoalInput] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [generatedPlan, setGeneratedPlan] = useState<any | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [visibleSalonsForStep, setVisibleSalonsForStep] = useState<Record<number, boolean>>({});
+
+  const quickGoals = [
+    { label: 'Wedding in 45 days', text: 'My wedding is in 45 days. I need a complete glow-up plan for skin and hair.' },
+    { label: 'Party next week', text: 'I have a major party next week and need to look my absolute best.' },
+    { label: 'Dry/damaged hair recovery', text: 'My hair is severely dry and damaged. I need a recovery journey.' },
+    { label: 'Acne & skin glow', text: 'I want to clear up my skin congestion and get a healthy radiant glow.' }
+  ];
+
+  const getMatchingSalonsForService = (serviceName: string) => {
+    const query = serviceName.toLowerCase();
+    return salons.map((salon: any) => {
+      const matchingServices = (salon.services || []).filter((s: any) => 
+        s.name.toLowerCase().includes(query) || 
+        query.includes(s.name.toLowerCase()) ||
+        s.category.toLowerCase().includes(query) ||
+        query.includes(s.category.toLowerCase())
+      );
+      if (matchingServices.length === 0) return null;
+      return {
+        ...salon,
+        matchedService: matchingServices[0]
+      };
+    }).filter((s: any): s is any => s !== null);
+  };
+
+  const handleSaveJourney = async () => {
+    if (!generatedPlan) return;
+    try {
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + (generatedPlan.durationDays || 30));
+
+      await saveJourney({
+        goal: goalInput,
+        journeyType: generatedPlan.journeyType,
+        durationDays: generatedPlan.durationDays || 30,
+        steps: generatedPlan.steps.map((step: any) => ({
+          ...step,
+          status: 'Pending'
+        })),
+        targetDate: targetDate.toISOString().split('T')[0]
+      });
+      setSaveSuccess(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleGenerateJourney = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!goalInput.trim()) return;
+
+    setGenerating(true);
+    setGeneratedPlan(null);
+    setSaveSuccess(false);
+    setVisibleSalonsForStep({});
+
+    try {
+      const res = await fetch('/api/journey/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userGoal: goalInput,
+          userProfile,
+          userMemory
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to generate journey');
+      }
+
+      const data = await res.json();
+      setGeneratedPlan(data);
+    } catch (err) {
+      console.error('Fetch failed, generating local fallback:', err);
+      const clientFallback = (goal: string) => {
+        const goalLower = goal.toLowerCase();
+        let type: any = 'Maintenance';
+        let days = 30;
+        let steps = [];
+
+        if (goalLower.includes('wed') || goalLower.includes('marri') || goalLower.includes('brid')) {
+          type = 'Bridal';
+          days = 45;
+          steps = [
+            { stepNumber: 1, title: 'Consultation & Hydra Facial', description: 'Begin hydration prep and skin health evaluation.', timeline: 'Day 45 (6 Weeks Out)', recommendedService: 'Advanced Hydra Facial' },
+            { stepNumber: 2, title: 'Hair Spa', description: 'Rehydrate wavy hair strands and protect fiber roots.', timeline: 'Day 30 (4 Weeks Out)', recommendedService: 'Hair Spa' },
+            { stepNumber: 3, title: 'Manicure & Pedicure', description: 'Soften hands and feet for event-day neatness.', timeline: 'Day 15 (2 Weeks Out)', recommendedService: 'Pedicure' },
+            { stepNumber: 4, title: 'Rose Gold Glow Facial', description: 'Lock in skin brightness without harsh treatments.', timeline: 'Day 3 (3 Days Out)', recommendedService: 'Rose Gold Shimmer Facial' },
+          ];
+        } else if (goalLower.includes('part') || goalLower.includes('event')) {
+          type = 'Event Prep';
+          days = 7;
+          steps = [
+            { stepNumber: 1, title: 'Hydra Facial Reset', description: 'Exfoliate dead surface cells for clear skin.', timeline: 'Day 7 (1 Week Out)', recommendedService: 'Advanced Hydra Facial' },
+            { stepNumber: 2, title: 'Hair Spa Moisture Boost', description: 'Add gloss and texture styling prep.', timeline: 'Day 3 (3 Days Out)', recommendedService: 'Hair Spa' },
+            { stepNumber: 3, title: 'Nails Prep', description: 'Clean, shape and paint nails.', timeline: 'Day 1 (1 Day Out)', recommendedService: 'Pedicure' },
+          ];
+        } else {
+          steps = [
+            { stepNumber: 1, title: 'Skincare Reset', description: 'Exfoliate and deep cleanse layers.', timeline: 'Week 1', recommendedService: 'Advanced Hydra Facial' },
+            { stepNumber: 2, title: 'Relaxation & Massage', description: 'Relieve stress and improve lymphatic flow.', timeline: 'Week 2', recommendedService: 'Deep Tissue Massage' },
+            { stepNumber: 3, title: 'Nails & Grooming', description: 'Routine clean up and moisturizing.', timeline: 'Week 4', recommendedService: 'Pedicure' },
+          ];
+        }
+
+        return { journeyType: type, durationDays: days, steps };
+      };
+      setGeneratedPlan(clientFallback(goalInput));
+    } finally {
+      setGenerating(false);
+    }
+  };
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'saved' | 'journey'>('overview');
 
   React.useEffect(() => {
@@ -130,19 +254,11 @@ export default function DashboardPage() {
           <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
 
           <Link 
-            href="/advisor?tab=scanner"
+            href="/advisor"
             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
           >
             <Camera className="w-4 h-4 text-peach" />
             Selfie Scanner
-          </Link>
-
-          <Link 
-            href="/advisor?tab=planner"
-            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
-          >
-            <Scissors className="w-4 h-4 text-peach" />
-            Journey Planner
           </Link>
 
           <Link 
@@ -151,6 +267,14 @@ export default function DashboardPage() {
           >
             <MessageSquare className="w-4 h-4 text-peach" />
             AI Concierge
+          </Link>
+
+          <Link 
+            href="/compare"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <TrendingUp className="w-4 h-4 text-peach" />
+            Compare Salons
           </Link>
         </nav>
 
@@ -541,9 +665,26 @@ export default function DashboardPage() {
           {/* BEAUTY JOURNEY TAB */}
           {activeTab === 'journey' && (
             <div className="space-y-8 animate-in fade-in">
-              <div className="bg-white p-6 rounded-2xl border border-border shadow-xs bg-cream/10">
-                <h3 className="font-serif font-bold text-darktext text-lg">My Beauty Journeys & Timelines</h3>
-                <p className="text-xs text-mutedtext mt-1">Monitor customized skincare prep, bridal glow planning, and AI recommendation timelines.</p>
+              <div className="bg-white p-6 rounded-2xl border border-border shadow-xs bg-cream/10 flex justify-between items-center">
+                <div>
+                  <h3 className="font-serif font-bold text-darktext text-lg">Beauty Journey Console</h3>
+                  <p className="text-xs text-mutedtext mt-1">Track saved timelines or generate new goal preps with Aura AI.</p>
+                </div>
+                {activeJourney && (
+                  <button 
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to discard your current plan? This will clear your tracking history.')) {
+                        await deleteActiveJourney();
+                        setGeneratedPlan(null);
+                        setGoalInput('');
+                        setSaveSuccess(false);
+                      }
+                    }}
+                    className="px-3.5 py-1.5 border border-rose/30 hover:bg-rose/10 text-rose text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                  >
+                    Reset Active Plan
+                  </button>
+                )}
               </div>
 
               {activeJourney ? (
@@ -589,7 +730,7 @@ export default function DashboardPage() {
                               <span className="text-[10px] text-mutedtext font-bold uppercase tracking-wider">Timeline: {step.timeline}</span>
                               <Link 
                                 href="/salons"
-                                className="text-[10px] font-bold text-plum hover:text-plum-dark"
+                                className="text-[10px] font-bold text-plum hover:text-plum-dark font-sans"
                               >
                                 Find Provider &rarr;
                               </Link>
@@ -601,14 +742,195 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white border border-dashed border-border rounded-2xl p-12 text-center bg-cream/5">
-                  <p className="text-sm text-mutedtext mb-4">No active beauty preparations generated yet.</p>
-                  <button 
-                    onClick={() => router.push('/journey')}
-                    className="px-6 py-2.5 bg-plum text-warmwhite text-xs font-bold rounded-xl hover:bg-plum-dark transition-colors cursor-pointer"
-                  >
-                    Generate Custom Beauty Plan
-                  </button>
+                <div className="space-y-8 animate-in fade-in">
+                  <div className="bg-white p-6 rounded-2xl border border-border shadow-xs space-y-6">
+                    <div className="space-y-2">
+                      <h3 className="font-serif font-bold text-lg text-darktext flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-plum animate-pulse" />
+                        Define Your Beauty Goal
+                      </h3>
+                      <p className="text-xs text-mutedtext leading-relaxed">
+                        Tell Aura what you want to prepare for or recover from. We will design a customized, multi-week timeline.
+                      </p>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {quickGoals.map((qg: any) => (
+                        <button
+                          key={qg.label}
+                          onClick={() => setGoalInput(qg.text)}
+                          className="text-[11px] bg-cream hover:bg-cream-dark border border-border text-mutedtext px-3.5 py-1.5 rounded-full transition-colors text-left font-semibold cursor-pointer"
+                        >
+                          {qg.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <form onSubmit={handleGenerateJourney} className="space-y-4 pt-2">
+                      <textarea
+                        value={goalInput}
+                        onChange={(e) => setGoalInput(e.target.value)}
+                        placeholder="e.g. My wedding is in 45 days and I want perfect skin and silky smooth hair..."
+                        className="w-full bg-cream border border-border text-darktext text-sm rounded-xl p-4 focus:outline-none focus:border-plum resize-none"
+                        rows={4}
+                      />
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={generating || !goalInput.trim()}
+                          className="px-5 py-3 bg-plum text-warmwhite rounded-xl hover:bg-plum-dark text-xs font-bold transition-all disabled:opacity-50 disabled:bg-border cursor-pointer flex items-center gap-2"
+                        >
+                          {generating ? (
+                            <>
+                              <div className="w-3 h-3 rounded-full border-2 border-warmwhite border-t-transparent animate-spin"></div>
+                              Generating Journey Plan...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 text-peach animate-pulse" />
+                              Generate Journey Plan
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {generating && (
+                    <div className="bg-white p-8 rounded-xl border border-border h-full min-h-[300px] flex flex-col items-center justify-center space-y-4 shadow-sm animate-pulse">
+                      <div className="w-12 h-12 bg-cream rounded-full border-4 border-plum border-t-transparent animate-spin"></div>
+                      <p className="text-mutedtext font-medium text-xs">Aura is designing your schedule...</p>
+                    </div>
+                  )}
+
+                  {generatedPlan && !generating && (
+                    <div className="space-y-8 animate-in fade-in">
+                      <div className="bg-white rounded-2xl border border-border p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-sm">
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-plum/10 border border-plum/20 text-plum tracking-widest uppercase">
+                            {generatedPlan.journeyType} Journey
+                          </span>
+                          <h3 className="text-2xl font-bold text-darktext">
+                            Your Beauty Roadmap ({generatedPlan.durationDays} Days)
+                          </h3>
+                          <p className="text-xs text-mutedtext">
+                            Goal: &ldquo;{goalInput}&rdquo;
+                          </p>
+                        </div>
+
+                        {saveSuccess ? (
+                          <div className="px-5 py-2.5 bg-emerald-600/10 border border-emerald-500/20 text-emerald-600 rounded-xl font-bold text-xs flex items-center gap-1.5">
+                            <CheckCircle className="w-4 h-4 animate-bounce" />
+                            Saved to Profile
+                          </div>
+                        ) : (
+                          <button
+                            onClick={handleSaveJourney}
+                            className="px-5 py-2.5 bg-plum hover:bg-plum-dark text-white rounded-xl font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            Save Journey to Profile
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="relative pl-6 sm:pl-8 border-l border-border space-y-10">
+                        {generatedPlan.steps.map((step: any) => {
+                          const matchedSalons = getMatchingSalonsForService(step.recommendedService);
+                          const isSalonsVisible = visibleSalonsForStep[step.stepNumber];
+
+                          return (
+                            <div key={step.stepNumber} className="relative group">
+                              <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 w-6 h-6 rounded-full border-2 border-border bg-white flex items-center justify-center font-bold text-[10px] text-mutedtext">
+                                {step.stepNumber}
+                              </div>
+
+                              <div className="rounded-xl border border-border bg-white p-6 hover:border-plum/40 transition-colors shadow-sm space-y-4">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                  <span className="text-[10px] font-bold text-mutedtext uppercase tracking-widest bg-cream px-2 py-0.5 rounded-md">
+                                    {step.timeline}
+                                  </span>
+                                  <h4 className="text-base font-bold text-darktext">
+                                    {step.title}
+                                  </h4>
+                                </div>
+
+                                <p className="text-xs sm:text-sm text-mutedtext leading-relaxed font-light">
+                                  {step.description}
+                                </p>
+
+                                <div className="pt-2 border-t border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                  <div className="text-xs">
+                                    <span className="text-mutedtext">Recommended service:</span>{' '}
+                                    <strong className="text-darktext">{step.recommendedService}</strong>
+                                  </div>
+                                  <button
+                                    onClick={() => setVisibleSalonsForStep(prev => ({
+                                      ...prev,
+                                      [step.stepNumber]: !prev[step.stepNumber]
+                                    }))}
+                                    className="px-3.5 py-1.5 border border-border hover:bg-cream text-[10px] font-bold text-darktext rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                                  >
+                                    {isSalonsVisible ? 'Hide Salons' : 'Find Salons'}
+                                    <ChevronRight className={`w-3 h-3 transition-transform ${isSalonsVisible ? 'rotate-90' : ''}`} />
+                                  </button>
+                                </div>
+
+                                {isSalonsVisible && (
+                                  <div className="pt-4 border-t border-dashed border-border space-y-3">
+                                    <p className="text-[10px] uppercase font-bold tracking-widest text-mutedtext">
+                                      Nearby Salons offering this treatment
+                                    </p>
+
+                                    {matchedSalons.length > 0 ? (
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {matchedSalons.slice(0, 2).map((salon: any) => (
+                                          <div 
+                                            key={salon.id} 
+                                            className="p-4 rounded-xl border border-border bg-white flex flex-col justify-between gap-3 hover:border-plum/20 transition-all shadow-xs"
+                                          >
+                                            <div>
+                                              <div className="flex justify-between items-center text-[10px]">
+                                                <span className="font-semibold text-mutedtext">
+                                                  {salon.matchedService.name} (₹{salon.matchedService.price})
+                                                </span>
+                                                <div className="flex text-mutedtext items-center font-bold">
+                                                  <Star className="w-3.5 h-3.5 fill-rosegold-500 mr-0.5" />
+                                                  {salon.rating}
+                                                </div>
+                                              </div>
+                                              <h5 className="text-xs font-bold text-darktext mt-1">
+                                                {salon.name}
+                                              </h5>
+                                              <p className="text-[10px] text-mutedtext flex items-center mt-0.5">
+                                                <MapPin className="w-2.5 h-2.5 text-mutedtext mr-0.5" />
+                                                {salon.locality}
+                                              </p>
+                                            </div>
+
+                                            <Link
+                                              href={`/booking?salon=${salon.id}&service=${salon.matchedService.id}`}
+                                              className="w-full py-1.5 text-center rounded-lg bg-plum text-warmwhite hover:bg-plum-dark text-[10px] font-bold transition-colors font-sans"
+                                            >
+                                              Book Step Appointment
+                                            </Link>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <p className="text-xs text-mutedtext py-2 italic">
+                                        No salons in our index currently match &ldquo;{step.recommendedService}&rdquo;. Try browsing our booking page!
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
