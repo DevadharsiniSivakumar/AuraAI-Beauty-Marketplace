@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useApp } from '../context/AppContext';
@@ -31,6 +31,16 @@ export default function ReviewsPage() {
   const [formComment, setFormComment] = useState('');
   const [formTagsText, setFormTagsText] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const salonParam = params.get('salon');
+      if (salonParam && completedSalonIds.has(salonParam)) {
+        setSelectedSalonId(salonParam);
+      }
+    }
+  }, [completedSalonIds]);
 
   // Form submission handler
   const handleSubmit = (e: React.FormEvent) => {

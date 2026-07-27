@@ -531,7 +531,15 @@ export default function DashboardPage() {
                             <p className="text-[10px] text-mutedtext">{booking.serviceName}</p>
                             <div className="pt-2 flex justify-between items-center border-t border-border mt-2">
                               <span className="text-[10px] font-bold text-plum">INR {booking.price}</span>
-                              <span className="text-[9px] font-semibold text-sage">Visited</span>
+                              <div className="flex items-center gap-2">
+                                <Link 
+                                  href={`/reviews?salon=${booking.salonId}`}
+                                  className="text-[9px] font-bold text-sage hover:underline font-sans"
+                                >
+                                  Write Review
+                                </Link>
+                                <span className="text-[9px] font-semibold text-sage bg-sage/10 px-1.5 py-0.5 rounded">Visited</span>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -587,12 +595,22 @@ export default function DashboardPage() {
                           </span>
                         </td>
                         <td className="p-4 text-center pr-6">
-                          <Link 
-                            href={`/salons/${booking.salonId}`}
-                            className="inline-flex items-center gap-1 text-plum hover:text-plum-dark font-bold text-xs border border-plum/10 px-2.5 py-1 rounded-lg bg-plum/5 hover:bg-plum/10 transition-colors"
-                          >
-                            View Salon
-                          </Link>
+                          <div className="flex items-center justify-center gap-2">
+                            <Link 
+                              href={`/salons/${booking.salonId}`}
+                              className="inline-flex items-center gap-1 text-plum hover:text-plum-dark font-bold text-xs border border-plum/10 px-2.5 py-1 rounded-lg bg-plum/5 hover:bg-plum/10 transition-colors"
+                            >
+                              View Salon
+                            </Link>
+                            {booking.status === 'Completed' && (
+                              <Link 
+                                href={`/reviews?salon=${booking.salonId}`}
+                                className="inline-flex items-center gap-1 text-sage hover:text-sage-dark font-bold text-xs border border-sage/20 px-2.5 py-1 rounded-lg bg-sage/10 hover:bg-sage/20 transition-colors font-sans"
+                              >
+                                Write Review
+                              </Link>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )) : (

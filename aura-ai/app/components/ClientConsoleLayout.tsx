@@ -120,27 +120,15 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
               <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
 
               <Link 
-                href="/advisor?tab=scanner"
+                href="/advisor"
                 className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
                   activeSidebarItem === 'scanner' 
                     ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
                     : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
                 }`}
               >
-                <Camera className="w-4 h-4 text-peach" />
+                <Camera className="w-4 h-4 text-peach animate-pulse" />
                 Selfie Scanner
-              </Link>
-
-              <Link 
-                href="/advisor?tab=planner"
-                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-                  activeSidebarItem === 'planner' 
-                    ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
-                    : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
-                }`}
-              >
-                <Scissors className="w-4 h-4 text-peach" />
-                Journey Planner
               </Link>
 
               <Link 
@@ -163,7 +151,7 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
                     : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
                 }`}
               >
-                <TrendingUp className="w-4 h-4" />
+                <TrendingUp className="w-4 h-4 text-peach" />
                 Compare Salons
               </Link>
             </>
