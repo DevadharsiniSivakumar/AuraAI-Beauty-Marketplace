@@ -28,6 +28,16 @@ export default function DashboardPage() {
   const { bookings, salons, userProfile, activeJourney } = useApp();
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'saved' | 'journey'>('overview');
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab === 'bookings' || tab === 'saved' || tab === 'journey' || tab === 'overview') {
+        setActiveTab(tab as any);
+      }
+    }
+  }, []);
+
   const favorites = userProfile?.favoriteSalons || [];
   const userBookings = bookings.filter(b => b.userId === user?.uid || b.userEmail === user?.email);
   

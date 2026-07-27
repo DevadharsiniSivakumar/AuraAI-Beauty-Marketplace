@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { 
   Sparkles, 
@@ -20,11 +20,31 @@ import {
   Star,
   Info,
   RefreshCw,
-  XCircle
+  XCircle,
+  LayoutDashboard,
+  Calendar,
+  Compass,
+  ArrowLeft,
+  LogOut
 } from 'lucide-react';
 
 export default function StyleAdvisor() {
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const { salons, activeJourney, saveJourney, deleteActiveJourney, userProfile, userMemory, beautyProfile, saveBeautyProfile } = useApp();
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  const userName = user?.name || user?.email?.split('@')[0] || 'User';
+  const userInitials = userName.substring(0, 2).toUpperCase();
+
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [hasResults, setHasResults] = useState(false);
@@ -60,8 +80,8 @@ export default function StyleAdvisor() {
 
   const getMatchingSalonsForService = (serviceName: string) => {
     const query = serviceName.toLowerCase();
-    return salons.map(salon => {
-      const matchingServices = salon.services.filter(s => 
+    return salons.map((salon: any) => {
+      const matchingServices = (salon.services || []).filter((s: any) => 
         s.name.toLowerCase().includes(query) || 
         query.includes(s.name.toLowerCase()) ||
         s.category.toLowerCase().includes(query) ||
@@ -72,7 +92,7 @@ export default function StyleAdvisor() {
         ...salon,
         matchedService: matchingServices[0]
       };
-    }).filter((s): s is any => s !== null);
+    }).filter((s: any): s is any => s !== null);
   };
 
   const handleSaveJourney = async () => {
@@ -356,19 +376,19 @@ export default function StyleAdvisor() {
     ]
   };
 
-  const hairstyles = beautyProfile?.recommendedHairstyles?.map((name, idx) => ({
+  const hairstyles = beautyProfile?.recommendedHairstyles?.map((name: string, idx: number) => ({
     name,
     desc: `Bespoke styling suitable for your ${beautyProfile.faceShape.toLowerCase()} face contour and ${beautyProfile.hairType.toLowerCase()} hair.`,
     image: defaultStyleResults.hairstyles[idx % defaultStyleResults.hairstyles.length].image
   })) || defaultStyleResults.hairstyles;
 
-  const makeups = beautyProfile?.recommendedMakeupStyles?.map((name, idx) => ({
+  const makeups = beautyProfile?.recommendedMakeupStyles?.map((name: string, idx: number) => ({
     name,
     desc: `Premium custom cosmetics tailored for your ${beautyProfile.skinTone.toLowerCase()} skin tone with a ${beautyProfile.undertone?.toLowerCase() || 'warm'} undertone.`,
     image: defaultStyleResults.makeups[idx % defaultStyleResults.makeups.length].image
   })) || defaultStyleResults.makeups;
 
-  const services = beautyProfile?.recommendedTreatments?.map((name, idx) => {
+  const services = beautyProfile?.recommendedTreatments?.map((name: string, idx: number) => {
     const isSkincare = name.toLowerCase().includes('facial') || name.toLowerCase().includes('skin') || name.toLowerCase().includes('peel') || name.toLowerCase().includes('glow') || name.toLowerCase().includes('hydra');
     return {
       name,
@@ -386,48 +406,133 @@ export default function StyleAdvisor() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="flex h-screen bg-cream overflow-hidden text-darktext">
+      
+      {/* Sidebar - Identical in shape/color to Admin/Client sidebars */}
+      <aside className="w-64 bg-plum text-warmwhite flex flex-col flex-shrink-0 shadow-xl border-r border-plum-dark/40 z-20">
+        <div className="h-20 flex items-center px-6 border-b border-plum-dark/50 gap-3">
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-[#0c051a] flex items-center justify-center border border-rosegold-300/40">
+            <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover scale-[1.7]" />
+          </div>
+          <span className="font-serif text-2xl font-bold tracking-wide text-white">Aura Hub</span>
+        </div>
         
-        {/* Banner */}
-        <section className="space-y-4 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm text-xs font-semibold text-gray-600 dark:text-gray-300">
-            <Sparkles className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
-            <span>Style Advisor</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white font-serif">
-            Style Advisor
-          </h1>
-          <p className="text-sm sm:text-base text-gray-900 dark:text-gray-300 max-w-xl mx-auto">
-            Get personalized consultations, update your Beauty Profile, or build step-by-step beauty goal journeys.
-          </p>
+        {/* Navigation Sidebar List */}
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+          <Link 
+            href="/dashboard?tab=overview"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Overview
+          </Link>
 
-          {/* Tab Selector */}
-          <div className="flex justify-center max-w-md mx-auto bg-gray-100 dark:bg-gray-800 p-1.5 rounded-full border border-gray-200 dark:border-gray-700 shadow-inner mt-6">
-            <button 
-              onClick={() => setActiveTab('scanner')}
-              className={`flex-grow py-2 px-6 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === 'scanner' 
-                  ? 'bg-gray-800 text-white dark:bg-white dark:text-gray-900 shadow-xs font-bold' 
-                  : 'text-gray-900 dark:text-gray-400 hover:text-gray-600 dark:hover:text-white'
-              }`}
-            >
-              Beauty Profile
-            </button>
-            <button 
-              onClick={() => setActiveTab('planner')}
-              className={`flex-grow py-2 px-6 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === 'planner' 
-                  ? 'bg-gray-800 text-white dark:bg-white dark:text-gray-900 shadow-xs font-bold' 
-                  : 'text-gray-900 dark:text-gray-400 hover:text-gray-600 dark:hover:text-white'
-              }`}
-            >
-              Journey
-            </button>
+          <Link 
+            href="/dashboard?tab=bookings"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <Calendar className="w-4 h-4" />
+            My Bookings
+          </Link>
+
+          <Link 
+            href="/dashboard?tab=saved"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <Heart className="w-4 h-4" />
+            Saved Salons
+          </Link>
+
+          <Link 
+            href="/dashboard?tab=journey"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <Compass className="w-4 h-4" />
+            Beauty Journey
+          </Link>
+        </nav>
+
+        {/* Sidebar Footer Operations */}
+        <div className="p-4 border-t border-plum-dark/50 space-y-1.5 flex-shrink-0">
+          <button 
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-white transition-all duration-200 rounded-xl bg-cream/15 shadow-xs border-l-4 border-peach text-left"
+          >
+            <Sparkles className="w-4 h-4 text-peach animate-pulse" />
+            Ask Aura Advisor
+          </button>
+          <Link 
+            href="/"
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-warmwhite/75 hover:text-white transition-colors rounded-lg hover:bg-cream/5 text-left"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Marketplace
+          </Link>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose hover:text-rose-dark transition-colors rounded-lg hover:bg-rose/10 text-left cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            Log Out Account
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Workspace */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        
+        {/* Top Header */}
+        <header className="h-20 bg-white border-b border-border flex items-center justify-between px-8 flex-shrink-0 shadow-xs z-10">
+          <h2 className="text-xl font-serif font-bold text-darktext capitalize">
+            Aura AI Style Advisor
+          </h2>
+          
+          <div className="flex items-center gap-3.5">
+            <div className="text-right">
+              <p className="text-xs font-bold text-darktext">{userName}</p>
+              <p className="text-[10px] text-mutedtext">{user?.email || 'Authenticated client'}</p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-plum text-warmwhite flex items-center justify-center font-bold text-sm shadow-md border-2 border-peach">
+              {userInitials}
+            </div>
           </div>
-        </section>
+        </header>
+
+        {/* Content Workspace */}
+        <main className="flex-grow overflow-y-auto p-8 bg-cream/40 space-y-8">
+          
+          {/* Tab Selector Card */}
+          <div className="bg-white p-6 rounded-2xl border border-border shadow-xs max-w-4xl mx-auto space-y-4">
+            <h3 className="text-lg font-serif font-bold text-darktext flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-plum animate-pulse" />
+              AI Skincare & Beauty Planner
+            </h3>
+            <p className="text-xs text-mutedtext">
+              Construct a detailed facial, hair, and skin undertone profile using selfie scans or generate customized beauty prep planners.
+            </p>
+            
+            <div className="flex bg-cream p-1 rounded-xl border border-border max-w-xs pt-1.5 pb-1.5 pl-1.5 pr-1.5">
+              <button 
+                onClick={() => setActiveTab('scanner')}
+                className={`flex-grow py-1.5 px-4 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'scanner' 
+                    ? 'bg-plum text-white shadow-xs' 
+                    : 'text-mutedtext hover:text-darktext'
+                }`}
+              >
+                Beauty Profile
+              </button>
+              <button 
+                onClick={() => setActiveTab('planner')}
+                className={`flex-grow py-1.5 px-4 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'planner' 
+                    ? 'bg-plum text-white shadow-xs' 
+                    : 'text-mutedtext hover:text-darktext'
+                }`}
+              >
+                Journey Planner
+              </button>
+            </div>
+          </div>
 
         {/* Tab content condition */}
         {activeTab === 'scanner' ? (
@@ -608,8 +713,8 @@ export default function StyleAdvisor() {
                   <Scissors className="w-5 h-5 text-gray-600" />
                   Recommended Hairstyles
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {styleResults.hairstyles.map((style, idx) => (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {styleResults.hairstyles.map((style: any, idx: number) => (
                     <div key={idx} className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 space-y-3 hover:border-gray-200 transition-colors shadow-sm">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={style.image} alt={style.name} className="w-full h-28 rounded-lg object-cover" />
@@ -629,7 +734,7 @@ export default function StyleAdvisor() {
                   Recommended Makeup Styles
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {styleResults.makeups.map((style, idx) => (
+                  {styleResults.makeups.map((style: any, idx: number) => (
                     <div key={idx} className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 space-y-3 hover:border-gray-200 transition-colors shadow-sm">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={style.image} alt={style.name} className="w-full h-28 rounded-lg object-cover" />
@@ -651,7 +756,7 @@ export default function StyleAdvisor() {
                 Recommended Treatments
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {styleResults.services.map((service, idx) => (
+                {styleResults.services.map((service: any, idx: number) => (
                   <div key={idx} className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 flex flex-col justify-between h-40 hover:border-gray-200 transition-colors">
                     <div>
                       <span className="text-[9px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-widest">{service.category}</span>
@@ -679,7 +784,7 @@ export default function StyleAdvisor() {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                {salons.slice(0, 2).map((salon) => (
+                {salons.slice(0, 2).map((salon: any) => (
                   <div 
                     key={salon.id} 
                     className="p-4 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-800 flex flex-col justify-between gap-4 hover:border-gray-200 transition-colors"
@@ -702,7 +807,7 @@ export default function StyleAdvisor() {
                       </p>
                       
                       <div className="flex flex-wrap gap-1 pt-1">
-                        {salon.badges.slice(0, 2).map(tag => (
+                        {salon.badges.slice(0, 2).map((tag: any) => (
                           <span key={tag} className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-300">
                             {tag}
                           </span>
@@ -897,7 +1002,7 @@ export default function StyleAdvisor() {
 
                               {matchedSalons.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  {matchedSalons.slice(0, 2).map((salon) => (
+                                  {matchedSalons.slice(0, 2).map((salon: any) => (
                                     <div 
                                       key={salon.id} 
                                       className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col justify-between gap-3 hover:border-gray-200 transition-all shadow-xs"
@@ -948,9 +1053,9 @@ export default function StyleAdvisor() {
           </section>
         )}
 
-      </main>
+        </main>
+      </div>
 
-      <Footer />
     </div>
   );
 }
