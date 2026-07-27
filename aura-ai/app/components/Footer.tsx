@@ -51,6 +51,11 @@ export default function Footer() {
                   Profile
                 </Link>
               </li>
+              <li>
+                <Link href="/admin/login" className="text-sm text-warmwhite hover:text-peach transition-colors opacity-90">
+                  Admin Portal
+                </Link>
+              </li>
             </ul>
           </div>
 

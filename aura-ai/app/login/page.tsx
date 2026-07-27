@@ -8,8 +8,8 @@ import { useAuth } from '../context/AuthContext';
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('user@auraai.com');
+  const [password, setPassword] = useState('password');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,8 +18,12 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      await login(email, password);
-      router.push('/dashboard');
+      const session = await login(email, password);
+      if (session.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       console.error('Login error:', err);
       setErrorMsg('Invalid email or password. Please try again.');
@@ -120,6 +124,28 @@ export default function LoginPage() {
               Create one
             </Link>
           </p>
+
+          <div className="mt-6 p-4 rounded-xl bg-cream border border-border text-left">
+            <p className="text-xs font-bold text-darktext mb-1.5 flex items-center gap-1.5">
+              <span>💡</span> Standard User Demo Credentials:
+            </p>
+            <div className="space-y-1 font-mono text-[11px] text-mutedtext bg-warmwhite p-2 rounded border border-border">
+              <p>Email: <span className="font-semibold select-all text-darktext">user@auraai.com</span></p>
+              <p>Password: <span className="font-semibold select-all text-darktext">password</span></p>
+            </div>
+            <p className="text-[10px] text-mutedtext mt-2 leading-relaxed">
+              Use these credentials to sign in as a standard client to browse, book, and review salons.
+            </p>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-border text-center">
+            <Link 
+              href="/admin/login" 
+              className="inline-flex items-center gap-2 text-xs font-semibold text-plum hover:text-plum-dark transition-colors"
+            >
+              <span>🛡️</span> Are you an Administrator? Access Admin Portal
+            </Link>
+          </div>
 
         </div>
       </div>

@@ -129,6 +129,19 @@ export default function AdminLoginPage() {
             </div>
           </form>
 
+          <div className="mt-6 p-4 rounded-xl bg-charcoal-100/60 dark:bg-charcoal-950/40 border border-charcoal-300 dark:border-charcoal-800 text-left">
+            <p className="text-xs font-semibold text-charcoal-700 dark:text-rosegold-200 mb-1.5 flex items-center gap-1.5">
+              <span>💡</span> Administrative Demo Credentials:
+            </p>
+            <div className="space-y-1 font-mono text-[11px] text-charcoal-600 dark:text-rosegold-300 bg-white/50 dark:bg-charcoal-950/60 p-2 rounded border border-charcoal-200/50 dark:border-charcoal-900/50">
+              <p>Email: <span className="font-semibold select-all text-charcoal-850 dark:text-rosegold-100">admin@auraai.com</span></p>
+              <p>Password: <span className="font-semibold select-all text-charcoal-850 dark:text-rosegold-100">password</span></p>
+            </div>
+            <p className="text-[10px] text-mutedtext mt-2 leading-relaxed">
+              Use these credentials to sign in. The system is running in simulated authentication mode by default.
+            </p>
+          </div>
+
           <div className="mt-6 pt-6 border-t border-rosegold-250 dark:border-charcoal-800 text-center">
             <Link
               href="/login"

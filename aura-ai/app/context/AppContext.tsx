@@ -127,6 +127,10 @@ interface AppContextType {
   addService: (serviceData: any, salonId: string) => Promise<void>;
   updateService: (serviceId: string, serviceData: any) => Promise<void>;
   deleteService: (serviceId: string) => Promise<void>;
+  // Administrative operations
+  deleteReviewAdmin: (salonId: string, reviewId: string) => Promise<void>;
+  updateUserRoleAdmin: (userId: string, role: 'user' | 'admin') => Promise<void>;
+  deleteUserAdmin: (userId: string) => Promise<void>;
   // Journey operations
   activeJourney: BeautyJourney | null;
   saveJourney: (journey: Omit<BeautyJourney, 'id' | 'userId' | 'progressPercent' | 'createdAt'>) => Promise<void>;
@@ -1219,6 +1223,99 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Admin Delete Review
+  const deleteReviewAdmin = async (salonId: string, reviewId: string) => {
+    const targetSalon = dbSalons.find(s => s.id === salonId);
+    if (!targetSalon) return;
+
+    const currentReviews = targetSalon.reviews || [];
+    const updatedReviews = currentReviews.filter((r: any) => r.id !== reviewId);
+    const newRating = updatedReviews.length > 0 
+      ? parseFloat((updatedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / updatedReviews.length).toFixed(1))
+      : 5.0;
+
+    if (IS_MOCK) {
+      const updatedSalons = dbSalons.map(s => {
+        if (s.id === salonId) {
+          return {
+            ...s,
+            reviews: updatedReviews,
+            rating: newRating,
+            reviewsCount: updatedReviews.length
+          };
+        }
+        return s;
+      });
+      setDbSalons(updatedSalons);
+      localStorage.setItem('aura_salons', JSON.stringify(updatedSalons));
+    } else {
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await updateDoc(doc(db, 'salons', salonId), {
+          reviews: updatedReviews,
+          rating: newRating,
+          reviewsCount: updatedReviews.length
+        });
+      } catch (error: any) {
+        console.error('Failed to delete review in Firestore, falling back to local storage:', error);
+        const updatedSalons = dbSalons.map(s => {
+          if (s.id === salonId) {
+            return {
+              ...s,
+              reviews: updatedReviews,
+              rating: newRating,
+              reviewsCount: updatedReviews.length
+            };
+          }
+          return s;
+        });
+        setDbSalons(updatedSalons);
+        localStorage.setItem('aura_salons', JSON.stringify(updatedSalons));
+      }
+    }
+  };
+
+  // Admin Update User Role
+  const updateUserRoleAdmin = async (userId: string, newRole: 'user' | 'admin') => {
+    if (IS_MOCK) {
+      const mockUsers = JSON.parse(localStorage.getItem('aura_mock_users') || '[]');
+      const updatedUsers = mockUsers.map((u: any) => 
+        u.uid === userId ? { ...u, role: newRole } : u
+      );
+      localStorage.setItem('aura_mock_users', JSON.stringify(updatedUsers));
+    } else {
+      try {
+        const { doc, updateDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await updateDoc(doc(db, 'users', userId), {
+          role: newRole
+        });
+      } catch (error: any) {
+        console.error('Failed to update user role in Firestore:', error);
+        alert('Could not update user role in Firestore.');
+      }
+    }
+  };
+
+  // Admin Delete User
+  const deleteUserAdmin = async (userId: string) => {
+    if (IS_MOCK) {
+      const mockUsers = JSON.parse(localStorage.getItem('aura_mock_users') || '[]');
+      const updatedUsers = mockUsers.filter((u: any) => u.uid !== userId);
+      localStorage.setItem('aura_mock_users', JSON.stringify(updatedUsers));
+    } else {
+      try {
+        const { doc, deleteDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        await deleteDoc(doc(db, 'users', userId));
+      } catch (error: any) {
+        console.error('Failed to delete user from Firestore:', error);
+        alert('Could not delete user from Firestore.');
+      }
+    }
+  };
+
   // Reactive User Memory Syncing & Computation
   useEffect(() => {
     if (salons.length === 0) return;
@@ -1336,6 +1433,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addService,
         updateService,
         deleteService,
+        deleteReviewAdmin,
+        updateUserRoleAdmin,
+        deleteUserAdmin,
         activeJourney,
         saveJourney,
         updateJourneyStepStatus,
