@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import ClientConsoleLayout from '../components/ClientConsoleLayout';
 import { useApp } from '../context/AppContext';
 import { 
   Star, 
@@ -10,7 +9,6 @@ import {
   MessageSquare, 
   CheckCircle2, 
   ThumbsUp, 
-  SlidersHorizontal,
   MapPin
 } from 'lucide-react';
 
@@ -89,36 +87,34 @@ export default function ReviewsPage() {
   }, [reviews]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <ClientConsoleLayout activeSidebarItem="bookings" headerTitle="Review Intelligence">
+      <div className="space-y-10 animate-in fade-in">
         
         {/* Header */}
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-charcoal-950 dark:text-white">Review Intelligence</h1>
-          <p className="text-sm text-charcoal-550 dark:text-rosegold-200">Share your experiences and read consolidated feedback from our verified beauty communities.</p>
+        <div className="bg-white p-6 rounded-2xl border border-border shadow-xs bg-cream/10">
+          <h1 className="text-3xl font-serif font-bold text-darktext">Review Intelligence</h1>
+          <p className="text-xs text-mutedtext mt-1">Share your experiences and read consolidated feedback from our verified beauty communities.</p>
         </div>
 
         {/* Aggregate statistics layout & Review form */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Rating aggregate statistics card */}
-          <div className="lg:col-span-1 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 space-y-6 shadow-2xs h-fit">
-            <h3 className="font-bold text-charcoal-900 dark:text-white text-sm uppercase tracking-wider">Aura aggregates</h3>
+          <div className="lg:col-span-1 p-6 rounded-2xl border border-border bg-white space-y-6 shadow-xs h-fit">
+            <h3 className="font-bold text-darktext text-xs uppercase tracking-wider">Aura aggregates</h3>
             
             <div className="flex items-center space-x-4">
               <div className="text-center">
-                <span className="text-4xl sm:text-5xl font-extrabold text-charcoal-950 dark:text-white block">{stats.avg}</span>
-                <span className="text-[10px] text-charcoal-400 font-light block pt-0.5">out of 5</span>
+                <span className="text-4xl font-extrabold text-darktext block">{stats.avg}</span>
+                <span className="text-[10px] text-mutedtext font-light block pt-0.5">out of 5</span>
               </div>
               <div>
                 <div className="flex text-rosegold-500 mb-1">
                   {[...Array(Math.round(stats.avg))].map((_, i) => (
-                    <Star key={i} className="w-4.5 h-4.5 fill-rosegold-500" />
+                    <Star key={i} className="w-4.5 h-4.5 fill-rosegold-500 text-rosegold-500" />
                   ))}
                 </div>
-                <span className="text-xs text-charcoal-500">{stats.total} Verified Reviews</span>
+                <span className="text-xs text-mutedtext">{stats.total} Verified Reviews</span>
               </div>
             </div>
 
@@ -127,12 +123,12 @@ export default function ReviewsPage() {
               {stats.distPct.map((pct, idx) => {
                 const starNum = 5 - idx;
                 return (
-                  <div key={idx} className="flex items-center text-xs text-charcoal-600 dark:text-rosegold-200 gap-3">
+                  <div key={idx} className="flex items-center text-xs text-darktext gap-3">
                     <span className="w-3 shrink-0 text-right">{starNum}★</span>
-                    <div className="flex-1 bg-rosegold-100/40 dark:bg-charcoal-800 rounded-full h-2 overflow-hidden">
-                      <div className="bg-rosegold-500 h-full rounded-full" style={{ width: `${pct}%` }}></div>
+                    <div className="flex-1 bg-cream rounded-full h-2 overflow-hidden border border-border">
+                      <div className="bg-plum h-full rounded-full" style={{ width: `${pct}%` }}></div>
                     </div>
-                    <span className="w-8 shrink-0 text-right text-charcoal-400 font-light">{pct}%</span>
+                    <span className="w-8 shrink-0 text-right text-mutedtext font-light">{pct}%</span>
                   </div>
                 );
               })}
@@ -140,45 +136,45 @@ export default function ReviewsPage() {
           </div>
 
           {/* Form to submit a review */}
-          <div className="lg:col-span-2 p-6 rounded-2xl border border-rosegold-200 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-xs space-y-5">
-            <h3 className="text-lg font-bold text-charcoal-950 dark:text-white flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-rosegold-555" />
+          <div className="lg:col-span-2 p-6 rounded-2xl border border-border bg-white shadow-xs space-y-5">
+            <h3 className="text-lg font-serif font-bold text-darktext flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-plum" />
               Write a Review
             </h3>
 
             {allowedSalons.length === 0 ? (
-              <div className="p-6 rounded-xl border border-amber-200/50 bg-amber-500/5 text-amber-900 dark:text-amber-300 space-y-2">
+              <div className="p-6 rounded-xl border border-amber-200/50 bg-amber-500/5 text-amber-900 space-y-2">
                 <p className="font-semibold text-sm">Review Restrictions Active</p>
                 <p className="text-xs font-light leading-relaxed">
                   To maintain marketplace integrity, you can only write a review for a salon after you have completed at least one appointment there. Visit the dashboard to view your booking history.
                 </p>
               </div>
             ) : isSubmitted ? (
-              <div className="p-6 rounded-xl border border-emerald-100 dark:border-emerald-950/50 bg-emerald-50/10 dark:bg-emerald-950/20 text-center space-y-2 text-emerald-800 dark:text-emerald-350">
-                <CheckCircle2 className="w-8 h-8 mx-auto" />
+              <div className="p-6 rounded-xl border border-emerald-100 bg-emerald-500/5 text-center space-y-2 text-emerald-800">
+                <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-600" />
                 <p className="font-semibold text-sm">Review Submitted Successfully!</p>
-                <p className="text-xs font-light text-emerald-700/80 dark:text-emerald-400">Thank you for helping AuraAI grow smarter.</p>
+                <p className="text-xs font-light text-emerald-700/80">Thank you for helping AuraAI grow smarter.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Select Salon visited</label>
+                    <label className="block text-[10px] font-bold text-mutedtext uppercase tracking-wider mb-2">Select Salon visited</label>
                     <select
                       value={selectedSalonId}
                       onChange={(e) => setSelectedSalonId(e.target.value)}
                       required
-                      className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 text-charcoal-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-rosegold-505"
+                      className="block w-full px-3 py-2.5 text-sm rounded-xl border border-border bg-cream text-darktext focus:outline-none focus:border-plum"
                     >
-                      <option value="" className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">-- Choose Salon --</option>
+                      <option value="" className="bg-cream text-darktext">-- Choose Salon --</option>
                       {allowedSalons.map(s => (
-                        <option key={s.id} value={s.id} className="bg-white dark:bg-charcoal-900 text-charcoal-900 dark:text-white">{s.name} ({s.locality})</option>
+                        <option key={s.id} value={s.id} className="bg-cream text-darktext">{s.name} ({s.locality})</option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Overall Rating</label>
+                    <label className="block text-[10px] font-bold text-mutedtext uppercase tracking-wider mb-2">Overall Rating</label>
                     <div className="flex space-x-1.5 pt-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -189,7 +185,7 @@ export default function ReviewsPage() {
                         >
                           <Star 
                             className={`w-6 h-6 ${
-                              star <= formRating ? 'fill-rosegold-500 text-rosegold-500' : 'text-rosegold-200'
+                              star <= formRating ? 'fill-rosegold-500 text-rosegold-500' : 'text-cream-dark'
                             }`} 
                           />
                         </button>
@@ -199,32 +195,32 @@ export default function ReviewsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Tags / Hashtags</label>
+                  <label className="block text-[10px] font-bold text-mutedtext uppercase tracking-wider mb-2">Tags / Hashtags</label>
                   <input
                     type="text"
                     value={formTagsText}
                     onChange={(e) => setFormTagsText(e.target.value)}
                     placeholder="e.g. HydraFacial, Luxury, FastStyling (separate with commas)"
-                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-border bg-cream placeholder-mutedtext focus:outline-none focus:border-plum text-darktext"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-2">Detailed Feedback</label>
+                  <label className="block text-[10px] font-bold text-mutedtext uppercase tracking-wider mb-2">Detailed Feedback</label>
                   <textarea
                     value={formComment}
                     onChange={(e) => setFormComment(e.target.value)}
                     required
                     rows={3}
                     placeholder="Write details on your experience, cleanliness, styling standards, or dermatologist consult..."
-                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-rosegold-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950 placeholder-charcoal-400 focus:outline-hidden focus:ring-1 focus:ring-rosegold-500 text-charcoal-900 dark:text-white"
+                    className="block w-full px-3 py-2.5 text-sm rounded-xl border border-border bg-cream placeholder-mutedtext focus:outline-none focus:border-plum text-darktext"
                   />
                 </div>
 
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="px-6 py-3 rounded-xl bg-linear-to-r from-rosegold-500 to-gold-metallic text-white font-semibold text-xs shadow-xs hover:scale-102 hover:shadow-md transition-all cursor-pointer"
+                    className="px-6 py-3 rounded-xl bg-plum hover:bg-plum-dark text-warmwhite font-bold text-xs shadow-xs transition-all cursor-pointer"
                   >
                     Submit Review
                   </button>
@@ -238,20 +234,20 @@ export default function ReviewsPage() {
 
         {/* Global reviews feed list */}
         <section className="space-y-6">
-          <h3 className="text-lg font-bold text-charcoal-950 dark:text-white border-b border-rosegold-100 dark:border-charcoal-800 pb-2">Recent Client Feedback</h3>
+          <h3 className="text-lg font-serif font-bold text-darktext border-b border-border pb-2">Recent Client Feedback</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {reviews.map((rev: any, idx: number) => (
               <div 
                 key={rev.id || idx}
-                className="p-5 rounded-2xl border border-rosegold-200/50 dark:border-charcoal-850 bg-white dark:bg-charcoal-900 shadow-2xs hover:border-rosegold-300 transition-colors flex flex-col justify-between space-y-4"
+                className="p-5 rounded-2xl border border-border bg-white shadow-xs hover:border-plum/20 transition-colors flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-sm text-charcoal-900 dark:text-white">{rev.author}</h4>
-                      <span className="text-[10px] text-charcoal-400 flex items-center gap-1 pt-0.5">
-                        <MapPin className="w-3.5 h-3.5 text-rosegold-550 shrink-0" />
+                      <h4 className="font-bold text-sm text-darktext">{rev.author}</h4>
+                      <span className="text-[10px] text-mutedtext flex items-center gap-1 pt-0.5">
+                        <MapPin className="w-3.5 h-3.5 text-mutedtext shrink-0" />
                         {rev.salonName}
                       </span>
                     </div>
@@ -262,25 +258,25 @@ export default function ReviewsPage() {
                           <Star key={i} className="w-3.5 h-3.5 fill-rosegold-500" />
                         ))}
                       </div>
-                      <span className="text-[10px] text-charcoal-400">{rev.date}</span>
+                      <span className="text-[10px] text-mutedtext">{rev.date}</span>
                     </div>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-charcoal-600 dark:text-rosegold-200 leading-relaxed font-light italic">
+                  <p className="text-xs sm:text-sm text-mutedtext leading-relaxed font-light italic">
                     &ldquo;{rev.comment}&rdquo;
                   </p>
                 </div>
 
-                <div className="flex justify-between items-center pt-3 border-t border-rosegold-100 dark:border-charcoal-800/80">
+                <div className="flex justify-between items-center pt-3 border-t border-border">
                   <div className="flex gap-1.5">
                     {rev.tags && rev.tags.map((tag: string) => (
-                      <span key={tag} className="text-[9px] font-semibold text-rosegold-500 px-2 py-0.5 rounded-full bg-rosegold-50 dark:bg-charcoal-950">
+                      <span key={tag} className="text-[9px] font-semibold text-plum px-2 py-0.5 rounded-full bg-plum/5">
                         {tag}
                       </span>
                     ))}
                   </div>
 
-                  <button className="text-[10px] font-semibold text-charcoal-400 hover:text-rosegold-500 flex items-center gap-1">
+                  <button className="text-[10px] font-semibold text-mutedtext hover:text-plum flex items-center gap-1 cursor-pointer">
                     <ThumbsUp className="w-3 h-3" />
                     Helpful
                   </button>
@@ -291,9 +287,7 @@ export default function ReviewsPage() {
           </div>
         </section>
 
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </ClientConsoleLayout>
   );
 }
