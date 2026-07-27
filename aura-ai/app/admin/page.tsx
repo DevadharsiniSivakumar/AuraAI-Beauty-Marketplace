@@ -50,7 +50,8 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
     deleteService,
     deleteReviewAdmin,
     updateUserRoleAdmin,
-    deleteUserAdmin
+    deleteUserAdmin,
+    seedDatabaseAdmin
   } = useApp();
   
   const [activeTab, setActiveTab] = useState<'overview' | 'salons' | 'bookings' | 'reviews' | 'services' | 'users'>(defaultTab);
@@ -529,6 +530,16 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
                       <UserCheck className="w-4.5 h-4.5" /> Moderate User Accounts
                     </p>
                     <p className="text-xs text-mutedtext leading-relaxed">Verify login profiles, administrative settings, and role structures.</p>
+                  </button>
+
+                  <button 
+                    onClick={seedDatabaseAdmin}
+                    className="p-4 border border-border hover:border-plum hover:bg-plum/5 rounded-2xl text-left transition-all duration-200 group cursor-pointer col-span-1 md:col-span-3 mt-2 bg-cream/10 border-dashed"
+                  >
+                    <p className="font-semibold text-sm text-plum flex items-center gap-1.5 mb-1">
+                      <span>⚡</span> Seed Sample Database (Firestore)
+                    </p>
+                    <p className="text-xs text-mutedtext leading-relaxed">Populate cloud Firestore collections (salons, services, bookings) with sample demo records in production mode.</p>
                   </button>
                 </div>
               </div>

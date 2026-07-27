@@ -131,6 +131,7 @@ interface AppContextType {
   deleteReviewAdmin: (salonId: string, reviewId: string) => Promise<void>;
   updateUserRoleAdmin: (userId: string, role: 'user' | 'admin') => Promise<void>;
   deleteUserAdmin: (userId: string) => Promise<void>;
+  seedDatabaseAdmin: () => Promise<void>;
   // Journey operations
   activeJourney: BeautyJourney | null;
   saveJourney: (journey: Omit<BeautyJourney, 'id' | 'userId' | 'progressPercent' | 'createdAt'>) => Promise<void>;
@@ -524,7 +525,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Combined selector that maps services back to their parent salons for user UI
   const salons = useMemo(() => {
-    return dbSalons.map((salon) => {
+    // Fall back to MOCK_SALONS if the database has not been seeded yet so that the landing page is not blank
+    const baseSalons = dbSalons.length > 0 ? dbSalons : MOCK_SALONS;
+
+    return baseSalons.map((salon) => {
       const salonServices = dbServices
         .filter((s) => s.salonId === salon.id)
         .map((s) => ({
@@ -536,9 +540,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           description: s.description || 'Verified salon catalog option.',
           isActive: s.isActive
         }));
+
+      // Fallback if services list is empty for this salon
+      const finalServices = salonServices.length > 0 
+        ? salonServices 
+        : (MOCK_SALONS.find(m => m.id === salon.id)?.services || []);
+
       return {
         ...salon,
-        services: salonServices
+        services: finalServices
       };
     });
   }, [dbSalons, dbServices]);
@@ -1316,6 +1326,107 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Seed Database Admin method (Populates Firestore with all sample data while authenticated)
+  const seedDatabaseAdmin = async () => {
+    if (IS_MOCK) {
+      localStorage.removeItem('aura_salons');
+      localStorage.removeItem('aura_services');
+      localStorage.removeItem('aura_bookings');
+      
+      const salonsOnly = MOCK_SALONS.map(({ services, ...s }) => s);
+      setDbSalons(salonsOnly);
+      localStorage.setItem('aura_salons', JSON.stringify(salonsOnly));
+
+      const initialServices: any[] = [];
+      MOCK_SALONS.forEach((salon) => {
+        salon.services.forEach((s) => {
+          initialServices.push({
+            serviceId: s.id,
+            salonId: salon.id,
+            serviceName: s.name,
+            price: s.price,
+            duration: s.duration,
+            category: s.category,
+            isActive: true,
+            createdAt: new Date().toISOString()
+          });
+        });
+      });
+      setDbServices(initialServices);
+      localStorage.setItem('aura_services', JSON.stringify(initialServices));
+      alert('Mock local storage database reset successfully!');
+      return;
+    }
+
+    try {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('../../lib/firebase');
+
+      console.log('Seeding salons and services to production Firestore...');
+      
+      // 1. Seed salons and their services
+      for (const salon of MOCK_SALONS) {
+        const { services, ...salonData } = salon;
+        await setDoc(doc(db, 'salons', salon.id), {
+          salonId: salon.id,
+          name: salonData.name,
+          category: salonData.isLuxury ? 'Luxury' : salonData.offersHomeService ? 'Home Service' : 'Budget',
+          location: salonData.locality,
+          address: salonData.address,
+          phone: salonData.phone,
+          description: salonData.description,
+          rating: salonData.rating,
+          reviewsCount: salonData.reviewsCount,
+          imageUrls: [salonData.image, ...salonData.gallery],
+          createdAt: new Date(),
+          reviews: salonData.reviews,
+          aiReviewSummary: salonData.aiReviewSummary,
+          matchScore: salonData.matchScore,
+          badges: salonData.badges,
+          status: 'Open'
+        });
+
+        // Seed services for this salon
+        for (const s of salon.services) {
+          await setDoc(doc(db, 'services', s.id), {
+            serviceId: s.id,
+            salonId: salon.id,
+            serviceName: s.name,
+            price: s.price,
+            duration: s.duration,
+            category: s.category,
+            isActive: true,
+            createdAt: new Date()
+          });
+        }
+      }
+
+      // 2. Seed initial mock booking
+      const initialId = 'mock-b-1';
+      await setDoc(doc(db, 'bookings', initialId), {
+        id: initialId,
+        salonId: 'bodycraft-indiranagar',
+        salonName: 'Bodycraft Salon & Spa',
+        serviceId: 'bc-facial-1',
+        serviceName: 'Advanced Hydra Facial',
+        price: 4500,
+        date: '2026-06-18',
+        time: '11:00 AM',
+        status: 'Confirmed',
+        createdAt: new Date().toISOString(),
+        userName: 'Aura User',
+        userEmail: 'user@auraai.com',
+        userId: 'user@auraai.com'
+      });
+
+      alert('Firestore database seeded successfully in production! Refreshing...');
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Failed to seed database:', error);
+      alert('Failed to seed database: ' + error.message);
+    }
+  };
+
   // Reactive User Memory Syncing & Computation
   useEffect(() => {
     if (salons.length === 0) return;
@@ -1436,6 +1547,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         deleteReviewAdmin,
         updateUserRoleAdmin,
         deleteUserAdmin,
+        seedDatabaseAdmin,
         activeJourney,
         saveJourney,
         updateJourneyStepStatus,

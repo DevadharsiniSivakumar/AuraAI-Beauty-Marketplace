@@ -164,15 +164,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Invalid email or password.');
       }
     } else {
-      const result = await signInWithEmailAndPassword(auth, emailInput, passwordInput);
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-      const data = userDoc.data();
-      return {
-        uid: result.user.uid,
-        name: data?.name || result.user.displayName || 'Aura User',
-        email: result.user.email || '',
-        role: data?.role === 'admin' ? 'admin' : 'user'
-      };
+      try {
+        const result = await signInWithEmailAndPassword(auth, emailInput, passwordInput);
+        const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+        const data = userDoc.data();
+        return {
+          uid: result.user.uid,
+          name: data?.name || result.user.displayName || 'Aura User',
+          email: result.user.email || '',
+          role: data?.role === 'admin' ? 'admin' : 'user'
+        };
+      } catch (err: any) {
+        // Auto-provision standard user if logging in with default credentials in production
+        if (emailInput.toLowerCase() === 'user@auraai.com' && passwordInput === 'password') {
+          try {
+            console.log('User account not found. Auto-provisioning default user in production...');
+            const createResult = await createUserWithEmailAndPassword(auth, emailInput, passwordInput);
+            
+            await setDoc(doc(db, 'users', createResult.user.uid), {
+              uid: createResult.user.uid,
+              name: 'Aura User',
+              email: emailInput,
+              role: 'user',
+              createdAt: serverTimestamp()
+            });
+
+            return {
+              uid: createResult.user.uid,
+              name: 'Aura User',
+              email: emailInput,
+              role: 'user'
+            };
+          } catch (createErr: any) {
+            console.error('Failed to auto-provision default user:', createErr);
+            throw err;
+          }
+        }
+        throw err;
+      }
     }
   };
 
@@ -204,22 +233,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } else {
       // Login with credentials
-      const result = await signInWithEmailAndPassword(auth, emailInput, passwordInput);
-      // Immediately check role in Firestore before granting entry
-      const docSnap = await getDoc(doc(db, 'users', result.user.uid));
-      const roleField = docSnap.data()?.role;
+      try {
+        const result = await signInWithEmailAndPassword(auth, emailInput, passwordInput);
+        // Immediately check role in Firestore before granting entry
+        const docSnap = await getDoc(doc(db, 'users', result.user.uid));
+        const roleField = docSnap.data()?.role;
 
-      if (roleField !== 'admin' && result.user.email !== 'admin@auraai.com') {
-        await firebaseSignOut(auth);
-        throw new Error('Unauthorized Access');
+        if (roleField !== 'admin' && result.user.email !== 'admin@auraai.com') {
+          await firebaseSignOut(auth);
+          throw new Error('Unauthorized Access');
+        }
+
+        return {
+          uid: result.user.uid,
+          name: docSnap.data()?.name || 'Admin',
+          email: result.user.email || '',
+          role: 'admin'
+        };
+      } catch (err: any) {
+        // Auto-provision admin user if logging in with default credentials in production
+        if (emailInput.toLowerCase() === 'admin@auraai.com' && passwordInput === 'password') {
+          try {
+            console.log('Admin account not found. Auto-provisioning admin user in production...');
+            const createResult = await createUserWithEmailAndPassword(auth, emailInput, passwordInput);
+            
+            await setDoc(doc(db, 'users', createResult.user.uid), {
+              uid: createResult.user.uid,
+              name: 'Aura Admin',
+              email: emailInput,
+              role: 'admin',
+              createdAt: serverTimestamp()
+            });
+
+            return {
+              uid: createResult.user.uid,
+              name: 'Aura Admin',
+              email: emailInput,
+              role: 'admin'
+            };
+          } catch (createErr: any) {
+            console.error('Failed to auto-provision admin user:', createErr);
+            throw err;
+          }
+        }
+        throw err;
       }
-
-      return {
-        uid: result.user.uid,
-        name: docSnap.data()?.name || 'Admin',
-        email: result.user.email || '',
-        role: 'admin'
-      };
     }
   };
 
