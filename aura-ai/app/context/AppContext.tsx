@@ -796,11 +796,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('aura_bookings', JSON.stringify(updated));
     } else {
       try {
-        const { doc, updateDoc } = await import('firebase/firestore');
+        const { doc, setDoc } = await import('firebase/firestore');
         const { db } = await import('../../lib/firebase');
-        await updateDoc(doc(db, 'bookings', bookingId), {
-          status
-        });
+        const targetBooking = bookings.find(b => b.id === bookingId);
+        if (targetBooking) {
+          await setDoc(doc(db, 'bookings', bookingId), {
+            ...targetBooking,
+            status
+          }, { merge: true });
+        }
       } catch (error: any) {
         console.error('Failed to update booking status in Firestore, falling back to local storage:', error);
         const updated = bookings.map(b => 
