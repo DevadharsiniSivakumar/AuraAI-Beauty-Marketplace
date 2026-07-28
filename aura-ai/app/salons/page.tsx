@@ -189,7 +189,16 @@ export default function SalonsPage() {
                 <div key={salon.id} className="group bg-white rounded-lg border border-border overflow-hidden hover:border-plum transition-colors duration-200 shadow-sm hover:shadow-md">
                   <Link href={`/salons/${salon.id}`} className="block">
                     <div className="aspect-[4/3] bg-border relative overflow-hidden">
-                      <div className="absolute inset-0 bg-sage opacity-20 group-hover:scale-105 transition-transform duration-500"></div>
+                      <img 
+                        src={salon.image} 
+                        alt={salon.name} 
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-sage opacity-10 group-hover:opacity-0 transition-opacity duration-500 pointer-events-none"></div>
                       
                       <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium text-darktext">
                         {salon.services[0]?.category || 'Beauty'}
