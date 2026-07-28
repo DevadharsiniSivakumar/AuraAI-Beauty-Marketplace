@@ -720,9 +720,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       time,
       status: 'Confirmed',
       createdAt: new Date().toISOString(),
-      userName: userProfile.name || 'Aura User',
-      userEmail: userProfile.email || '',
-      userId: userProfile.email || ''
+      userName: user?.name || userProfile.name || 'Aura User',
+      userEmail: user?.email || userProfile.email || '',
+      userId: user?.uid || userProfile.email || ''
     };
 
     if (IS_MOCK) {
