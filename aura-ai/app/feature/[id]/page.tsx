@@ -88,7 +88,7 @@ export default function FeatureShowcasePage() {
       const response = await fetch(`/api/features/${featureId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg.text, featureId, userProfile: {}, bookings: [] })
+        body: JSON.stringify({ message: userMsg.text, featureId, userProfile: {}, bookings: [], history: messages })
       });
 
       const data = await response.json();

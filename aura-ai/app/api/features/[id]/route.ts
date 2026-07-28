@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { detectIntent } from '../../../../lib/intentDetector';
-import { searchAndRank } from '../../../../lib/searchEngine';
+import { searchAndRank, getSalonsAndServices } from '../../../../lib/searchEngine';
+import { generateGroqResponse } from '../../../../lib/groq';
 
 export async function POST(request: Request, context: any) {
   try {
@@ -8,7 +8,7 @@ export async function POST(request: Request, context: any) {
     const pathParts = url.pathname.split('/');
     const featureId = pathParts[pathParts.length - 1]; // gets 'intent' from /api/features/intent
     
-    const { message, userProfile, bookings } = await request.json();
+    const { message, userProfile, bookings, history = [] } = await request.json();
 
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
@@ -63,20 +63,83 @@ export async function POST(request: Request, context: any) {
 
     // 5. Booking Concierge Feature
     if (featureId === 'booking') {
-      const timeMatch = message.match(/\b\d{1,2}:\d{2}\s*(?:am|pm)?\b|\b\d{1,2}\s*(?:am|pm)\b/i);
-      const time = timeMatch ? timeMatch[0].toUpperCase() : "10:00 AM";
-      
-      const date = message.toLowerCase().includes('tomorrow') ? 'Tomorrow' : 
-                   message.toLowerCase().includes('today') ? 'Today' : 'Requested Date';
-                   
-      const serviceMatch = message.match(/for (a|my) (haircut|spa|facial|massage)/i);
-      const service = serviceMatch ? serviceMatch[2] : "Precision Haircut";
-      
-      const salonMatch = message.match(/at (.*?) (salon|spa)/i);
-      const salon = salonMatch ? salonMatch[1] : "Selected Salon";
+      const msgLower = message.toLowerCase();
+      const lastMessage = history.length > 0 ? history[history.length - 1] : null;
+
+      // Check if this is a confirmation response
+      if (lastMessage?.role === 'assistant' && lastMessage.text.includes("Would you like me to confirm this booking?")) {
+        if (msgLower.includes("yes") || msgLower.includes("sure") || msgLower.includes("book") || msgLower.includes("confirm") || msgLower.includes("please")) {
+          // Extract JSON payload from the previous message
+          const jsonMatch = lastMessage.text.match(/```json\n([\s\S]*?)\n```/);
+          if (jsonMatch) {
+            try {
+              const payload = JSON.parse(jsonMatch[1]);
+              
+              // Trigger the email API
+              await fetch(`${url.origin}/api/send-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  customerName: userProfile?.name || 'Valued Guest',
+                  bookingId: `AUR-${Math.floor(Math.random() * 10000)}`,
+                  salonName: payload.salon,
+                  serviceName: payload.service,
+                  date: payload.date,
+                  time: payload.time,
+                  bookingStatus: 'Confirmed',
+                  userEmail: userProfile?.email || 'test@example.com'
+                })
+              }).catch(err => console.error("Email failed:", err));
+
+              return NextResponse.json({
+                reply: `Your appointment for **${payload.service}** at **${payload.salon}** on **${payload.date}** at **${payload.time}** has been successfully booked! 🎉\n\nI have sent a confirmation email to you with all the details. Have a wonderful day!`
+              });
+            } catch(e) {
+              console.error(e);
+            }
+          }
+        } else {
+           return NextResponse.json({ reply: "Booking cancelled. Let me know if you need help scheduling something else!" });
+        }
+      }
+
+      // If not confirming, parse the booking request with Groq
+      const systemPrompt = `You are a strict data extraction AI. Extract the requested appointment details from the user's message.
+Return ONLY a valid JSON object matching exactly this schema:
+{
+  "salon": "string (the salon name)",
+  "service": "string (the service name)",
+  "date": "string (the date, e.g., 'Tomorrow' or 'Next Tuesday')",
+  "time": "string (the time, e.g., '01:00 PM')"
+}
+If any piece of information is missing, make your best guess or return "Unknown". Do not include markdown \`\`\`json wrappers.`;
+
+      let parsed = { salon: "Unknown", service: "Unknown", date: "Unknown", time: "Unknown" };
+      try {
+        const groqResult = await generateGroqResponse([
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ], 'llama-3.3-70b-versatile', 500, { type: 'json_object' });
+        parsed = JSON.parse(groqResult);
+      } catch (err) {
+        console.error("Groq extraction failed", err);
+      }
+
+      // Fetch actual salon data to find the price
+      const allSalons = await getSalonsAndServices();
+      const matchedSalon = allSalons.find(s => s.name.toLowerCase().includes(parsed.salon.toLowerCase()));
+      let matchedService = null;
+      let priceText = "Price to be determined at salon";
+
+      if (matchedSalon) {
+        matchedService = matchedSalon.services.find(s => s.name.toLowerCase().includes(parsed.service.toLowerCase()));
+        if (matchedService) {
+           priceText = `₹${matchedService.price}`;
+        }
+      }
 
       return NextResponse.json({
-        reply: `I am the Booking Concierge. I have validated your requested date and time. Here is the drafted booking payload ready to be sent to the backend:\n\n\`\`\`json\n{\n  "status": "Draft",\n  "salon": "${salon}",\n  "service": "${service}",\n  "date": "${date}",\n  "time": "${time}",\n  "requiresConfirmation": true\n}\n\`\`\`\n\nWould you like me to confirm this booking?`
+        reply: `I am the Booking Concierge. I have validated your request.\n\nThe **${matchedService ? matchedService.name : parsed.service}** at **${matchedSalon ? matchedSalon.name : parsed.salon}** will cost approximately **${priceText}**.\n\nHere is the drafted booking payload ready to be sent to the backend:\n\n\`\`\`json\n{\n  "status": "Draft",\n  "salon": "${matchedSalon ? matchedSalon.name : parsed.salon}",\n  "service": "${matchedService ? matchedService.name : parsed.service}",\n  "date": "${parsed.date}",\n  "time": "${parsed.time}",\n  "estimatedPrice": "${priceText}",\n  "requiresConfirmation": true\n}\n\`\`\`\n\nWould you like me to confirm this booking?`
       });
     }
 
