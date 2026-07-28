@@ -340,6 +340,26 @@ export default function DashboardPage() {
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-in fade-in">
               
+              {/* AI Concierge Banner */}
+              <div className="bg-gradient-to-r from-plum to-plum-dark rounded-2xl p-6 md:p-8 text-warmwhite flex flex-col md:flex-row items-center justify-between shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-peach opacity-10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl"></div>
+                <div className="relative z-10 space-y-2 mb-6 md:mb-0">
+                  <h3 className="font-serif text-2xl font-bold flex items-center gap-2">
+                    <MessageSquare className="w-6 h-6 text-peach" />
+                    AI Concierge
+                  </h3>
+                  <p className="text-warmwhite/80 max-w-lg text-sm leading-relaxed">
+                    Need help planning your perfect beauty routine? Chat with our AI concierge for personalized recommendations, style advice, and instant answers.
+                  </p>
+                </div>
+                <Link 
+                  href="/concierge" 
+                  className="relative z-10 shrink-0 bg-white text-plum px-6 py-3 rounded-lg font-bold text-sm hover:bg-peach hover:text-white transition-all shadow-sm"
+                >
+                  Start Conversation
+                </Link>
+              </div>
+
               {/* Metrics Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-white p-6 rounded-2xl border border-border shadow-xs flex items-center gap-5 hover:shadow-md transition-shadow">

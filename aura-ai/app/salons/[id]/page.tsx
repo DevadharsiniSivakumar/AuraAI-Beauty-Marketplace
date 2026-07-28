@@ -99,7 +99,7 @@ export default function SalonDetailsPage() {
             <div className="w-full lg:w-[65%]">
               
               {/* Navigation */}
-              <div className="flex border-b border-border mb-8 sticky top-[72px] bg-cream z-30 pt-4">
+              <div className="flex border-b border-border mb-8 sticky top-0 bg-cream z-30 pt-4">
                 {['overview', 'services', 'reviews'].map((tab) => (
                   <button
                     key={tab}
@@ -239,7 +239,7 @@ export default function SalonDetailsPage() {
 
             {/* 35% Sticky Booking Panel */}
             <div className="w-full lg:w-[35%] relative">
-              <div className="sticky top-[100px] bg-white rounded-xl border border-border shadow-lg overflow-hidden">
+              <div className="sticky top-6 bg-white rounded-xl border border-border shadow-lg overflow-hidden">
                 <div className="bg-plum p-6 text-warmwhite">
                   <h3 className="text-xl font-medium mb-1">Book an appointment</h3>
                   <p className="text-blush opacity-90 text-sm">Select a service to continue</p>

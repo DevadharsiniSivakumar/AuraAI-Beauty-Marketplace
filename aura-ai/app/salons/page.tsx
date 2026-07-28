@@ -116,7 +116,7 @@ export default function SalonsPage() {
         </div>
 
         {/* Sticky Filter Toolbar */}
-        <div className="bg-white border-b border-border sticky top-[72px] z-40 px-4 sm:px-6 lg:px-8 py-3 shadow-sm">
+        <div className="bg-white border-b border-border sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-3 shadow-sm">
           <div className="max-w-7xl mx-auto flex flex-wrap gap-3 items-center">
             <span className="text-sm font-medium text-darktext mr-2 hidden md:inline-block">Filters:</span>
             

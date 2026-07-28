@@ -56,7 +56,7 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
         </div>
         
         {/* Navigation Sidebar List */}
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
           {isAuthenticated ? (
             <>
               <Link 
@@ -84,18 +84,6 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
               </Link>
 
               <Link 
-                href="/dashboard?tab=bookings"
-                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-                  activeSidebarItem === 'bookings' 
-                    ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
-                    : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
-                }`}
-              >
-                <Calendar className="w-4 h-4 text-peach" />
-                My Bookings
-              </Link>
-
-              <Link 
                 href="/dashboard?tab=saved"
                 className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
                   activeSidebarItem === 'saved' 
@@ -105,6 +93,18 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
               >
                 <Heart className="w-4 h-4 text-peach" />
                 Saved Salons
+              </Link>
+
+              <Link 
+                href="/dashboard?tab=bookings"
+                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
+                  activeSidebarItem === 'bookings' 
+                    ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
+                    : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
+                }`}
+              >
+                <Calendar className="w-4 h-4 text-peach" />
+                My Bookings
               </Link>
 
               <Link 
@@ -119,19 +119,7 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
                 Beauty Journey
               </Link>
 
-              <Link 
-                href="/profile"
-                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-                  activeSidebarItem === 'profile' 
-                    ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
-                    : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
-                }`}
-              >
-                <User className="w-4 h-4 text-peach" />
-                My Profile
-              </Link>
-
-              <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
+              <div className="pt-2 border-t border-plum-dark/45 my-2"></div>
 
               <Link 
                 href="/advisor"
@@ -143,18 +131,6 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
               >
                 <Camera className="w-4 h-4 text-peach animate-pulse" />
                 Selfie Scanner
-              </Link>
-
-              <Link 
-                href="/concierge"
-                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-                  activeSidebarItem === 'concierge' 
-                    ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
-                    : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
-                }`}
-              >
-                <MessageSquare className="w-4 h-4 text-peach" />
-                AI Concierge
               </Link>
 
               <Link 
@@ -173,7 +149,7 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
             <>
               {/* Disabled/Locked items for guests */}
               <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
-              {['Overview', 'Explore Salons', 'My Bookings', 'Saved Salons', 'Beauty Journey', 'My Profile', 'Selfie Scanner', 'AI Concierge', 'Compare Salons'].map((item) => (
+              {['Overview', 'Explore Salons', 'Saved Salons', 'My Bookings', 'Beauty Journey', 'Selfie Scanner', 'Compare Salons'].map((item) => (
                 <Link
                   key={item}
                   href="/login"
