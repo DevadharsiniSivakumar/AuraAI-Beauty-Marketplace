@@ -26,7 +26,7 @@ import {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { 
     userProfile, 
     updateProfile, 
