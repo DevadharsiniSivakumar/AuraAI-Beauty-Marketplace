@@ -120,8 +120,8 @@ interface AppContextType {
   removeFavorite: (salonId: string) => void;
   isFavorite: (salonId: string) => boolean;
   // Salon CRUD operations
-  addSalon: (salonData: any, imageFiles: File[]) => Promise<void>;
-  updateSalon: (salonId: string, salonData: any, imageFiles: File[], existingUrls?: string[]) => Promise<void>;
+  addSalon: (salonData: any, imageFiles: File[], imageUrls?: string[]) => Promise<void>;
+  updateSalon: (salonId: string, salonData: any, imageFiles: File[], imageUrls?: string[]) => Promise<void>;
   deleteSalon: (salonId: string) => Promise<void>;
   // Service CRUD operations
   addService: (serviceData: any, salonId: string) => Promise<void>;
@@ -927,61 +927,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Add Salon method (Firestore or localStorage fallback)
-  const addSalon = async (salonData: any, imageFiles: File[] = []) => {
+  const addSalon = async (salonData: any, imageFiles: File[] = [], imageUrls: string[] = []) => {
     const salonId = salonData.id || `salon-${Date.now()}`;
-    let imageUrls: string[] = [];
+    let finalUrls: string[] = [...imageUrls];
 
-    if (imageFiles && imageFiles.length > 0) {
+    if (imageFiles && imageFiles.length > 0 && !IS_MOCK) {
+      // ONLY process files if we are in REAL Firebase Cloud storage mode!
+      finalUrls = [];
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         if (!file) continue;
-        let url = '';
-        if (IS_MOCK) {
-          // Compress large base64 image on context side
-          url = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              const img = new Image();
-              img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 400;
-                const scale = MAX_WIDTH / img.width;
-                canvas.width = MAX_WIDTH;
-                canvas.height = img.height * scale;
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                  resolve(canvas.toDataURL('image/jpeg', 0.6));
-                } else {
-                  resolve(event.target?.result as string);
-                }
-              };
-              img.src = event.target?.result as string;
-            };
-            reader.readAsDataURL(file);
-          });
-        } else {
-          try {
-            const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-            const { storage } = await import('../../lib/firebase');
-            const storageRef = ref(storage, `salons/${salonId}/${i}_${file.name}`);
-            const uploadResult = await uploadBytes(storageRef, file);
-            url = await getDownloadURL(uploadResult.ref);
-          } catch (storageErr: any) {
-            console.error('Firebase Storage failed, falling back to data URL:', storageErr);
-            url = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.readAsDataURL(file);
-            });
-          }
+        try {
+          const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+          const { storage } = await import('../../lib/firebase');
+          const storageRef = ref(storage, `salons/${salonId}/${i}_${file.name}`);
+          const uploadResult = await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(uploadResult.ref);
+          finalUrls.push(url);
+        } catch (storageErr: any) {
+          console.error('Firebase Storage failed, falling back to data URL:', storageErr);
         }
-        imageUrls.push(url);
       }
     }
 
-    if (imageUrls.length === 0) {
-      imageUrls = [
+    if (finalUrls.length === 0) {
+      finalUrls = [
         'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
         'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop',
         'https://images.unsplash.com/photo-1600948836101-f9ffdb5965e5?q=80&w=600&auto=format&fit=crop',
@@ -998,8 +968,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       location: salonData.location,
       locality: salonData.locality || salonData.location.split(',')[0].trim() as any,
       address: salonData.address,
-      image: imageUrls[0],
-      gallery: imageUrls,
+      image: finalUrls[0],
+      gallery: finalUrls,
       description: salonData.description,
       isLuxury: salonData.category === 'Luxury',
       offersHomeService: salonData.category === 'Home Service',
@@ -1048,58 +1018,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Edit Salon method
-  const updateSalon = async (salonId: string, salonData: any, imageFiles: File[] = [], existingUrls: string[] = []) => {
-    let imageUrls: string[] = [...existingUrls];
+  const updateSalon = async (salonId: string, salonData: any, imageFiles: File[] = [], imageUrls: string[] = []) => {
+    let finalUrls: string[] = [...imageUrls];
 
-    if (imageFiles && imageFiles.length > 0) {
-      const newUrls: string[] = [];
+    if (imageFiles && imageFiles.length > 0 && !IS_MOCK) {
+      finalUrls = [];
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         if (!file) continue;
-        let url = '';
-        if (IS_MOCK) {
-          url = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              const img = new Image();
-              img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 400;
-                const scale = MAX_WIDTH / img.width;
-                canvas.width = MAX_WIDTH;
-                canvas.height = img.height * scale;
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                  resolve(canvas.toDataURL('image/jpeg', 0.6));
-                } else {
-                  resolve(event.target?.result as string);
-                }
-              };
-              img.src = event.target?.result as string;
-            };
-            reader.readAsDataURL(file);
-          });
-        } else {
-          try {
-            const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-            const { storage } = await import('../../lib/firebase');
-            const storageRef = ref(storage, `salons/${salonId}/update_${i}_${file.name}`);
-            const uploadResult = await uploadBytes(storageRef, file);
-            url = await getDownloadURL(uploadResult.ref);
-          } catch (storageErr: any) {
-            console.error('Firebase Storage failed, falling back to data URL:', storageErr);
-            url = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.readAsDataURL(file);
-            });
-          }
+        try {
+          const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+          const { storage } = await import('../../lib/firebase');
+          const storageRef = ref(storage, `salons/${salonId}/update_${i}_${file.name}`);
+          const uploadResult = await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(uploadResult.ref);
+          finalUrls.push(url);
+        } catch (storageErr: any) {
+          console.error('Firebase Storage failed, falling back to data URL:', storageErr);
         }
-        if (url) newUrls.push(url);
-      }
-      if (newUrls.length > 0) {
-        imageUrls = newUrls; // Override gallery with newly selected files
       }
     }
 
@@ -1111,8 +1047,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       location: salonData.location,
       locality: salonData.locality || salonData.location.split(',')[0].trim() as any,
       address: salonData.address,
-      image: imageUrls[0] || currentSalon?.image || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
-      gallery: imageUrls.length > 0 ? imageUrls : (currentSalon?.gallery || []),
+      image: finalUrls[0] || currentSalon?.image || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
+      gallery: finalUrls.length > 0 ? finalUrls : (currentSalon?.gallery || []),
       description: salonData.description,
       isLuxury: salonData.category === 'Luxury',
       offersHomeService: salonData.category === 'Home Service',

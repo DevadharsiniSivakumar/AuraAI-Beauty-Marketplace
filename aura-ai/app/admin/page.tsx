@@ -246,10 +246,9 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
 
     try {
       if (editingSalon) {
-        const existingCloudUrls = imagePreviewUrls.filter(url => url && (url.startsWith('http') || url.startsWith('https')));
-        await updateSalon(salonFormData.id, salonFormData, selectedImageFiles.filter(Boolean), existingCloudUrls);
+        await updateSalon(salonFormData.id, salonFormData, selectedImageFiles.filter(Boolean), imagePreviewUrls.filter(Boolean));
       } else {
-        await addSalon(salonFormData, selectedImageFiles.filter(Boolean));
+        await addSalon(salonFormData, selectedImageFiles.filter(Boolean), imagePreviewUrls.filter(Boolean));
       }
       setIsSalonModalOpen(false);
     } catch (err) {
