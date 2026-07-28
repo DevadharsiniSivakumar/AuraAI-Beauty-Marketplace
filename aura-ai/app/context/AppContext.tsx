@@ -120,8 +120,8 @@ interface AppContextType {
   removeFavorite: (salonId: string) => void;
   isFavorite: (salonId: string) => boolean;
   // Salon CRUD operations
-  addSalon: (salonData: any, imageFiles: File[], imageUrls?: string[]) => Promise<void>;
-  updateSalon: (salonId: string, salonData: any, imageFiles: File[], imageUrls?: string[]) => Promise<void>;
+  addSalon: (salonData: any, imageFile: File | null, imageUrl?: string) => Promise<void>;
+  updateSalon: (salonId: string, salonData: any, imageFile: File | null, imageUrl?: string) => Promise<void>;
   deleteSalon: (salonId: string) => Promise<void>;
   // Service CRUD operations
   addService: (serviceData: any, salonId: string) => Promise<void>;
@@ -927,37 +927,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Add Salon method (Firestore or localStorage fallback)
-  const addSalon = async (salonData: any, imageFiles: File[] = [], imageUrls: string[] = []) => {
+  const addSalon = async (salonData: any, imageFile: File | null, imageUrl?: string) => {
     const salonId = salonData.id || `salon-${Date.now()}`;
-    let finalUrls: string[] = [...imageUrls];
+    let finalUrl = imageUrl || salonData.image || '';
 
-    if (imageFiles && imageFiles.length > 0 && !IS_MOCK) {
-      // ONLY process files if we are in REAL Firebase Cloud storage mode!
-      finalUrls = [];
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        if (!file) continue;
+    if (imageFile && !IS_MOCK) {
+      // If we already have a compressed base64 string, store it directly to Firestore to bypass Vercel Storage CORS policy
+      if (imageUrl && imageUrl.startsWith('data:image/')) {
+        finalUrl = imageUrl;
+      } else {
         try {
           const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
           const { storage } = await import('../../lib/firebase');
-          const storageRef = ref(storage, `salons/${salonId}/${i}_${file.name}`);
-          const uploadResult = await uploadBytes(storageRef, file);
-          const url = await getDownloadURL(uploadResult.ref);
-          finalUrls.push(url);
+          const storageRef = ref(storage, `salons/${salonId}/${imageFile.name}`);
+          const uploadResult = await uploadBytes(storageRef, imageFile);
+          finalUrl = await getDownloadURL(uploadResult.ref);
         } catch (storageErr: any) {
-          console.error('Firebase Storage failed, falling back to data URL:', storageErr);
+          console.error('Firebase Storage failed, keeping base64 content:', storageErr);
         }
       }
     }
 
-    if (finalUrls.length === 0) {
-      finalUrls = [
-        'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1600948836101-f9ffdb5965e5?q=80&w=600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=600&auto=format&fit=crop'
-      ];
+    if (!finalUrl) {
+      finalUrl = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop';
     }
 
     const newSalon = {
@@ -968,8 +960,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       location: salonData.location,
       locality: salonData.locality || salonData.location.split(',')[0].trim() as any,
       address: salonData.address,
-      image: finalUrls[0],
-      gallery: finalUrls,
+      image: finalUrl,
+      gallery: [finalUrl],
       description: salonData.description,
       isLuxury: salonData.category === 'Luxury',
       offersHomeService: salonData.category === 'Home Service',
@@ -984,7 +976,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (IS_MOCK) {
       const updated = [...dbSalons, newSalon];
       setDbSalons(updated);
-      localStorage.setItem('aura_salons', JSON.stringify(updated));
+      try {
+        localStorage.setItem('aura_salons', JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to write to localStorage:', e);
+      }
     } else {
       try {
         const { doc, setDoc } = await import('firebase/firestore');
@@ -1011,30 +1007,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to add salon to Firestore, falling back to local storage:', error);
         const updated = [...dbSalons, newSalon];
         setDbSalons(updated);
-        localStorage.setItem('aura_salons', JSON.stringify(updated));
+        try {
+          localStorage.setItem('aura_salons', JSON.stringify(updated));
+        } catch (e) {
+          console.error(e);
+        }
         alert('Could not save salon to cloud. It has been saved locally on your device.');
       }
     }
   };
 
   // Edit Salon method
-  const updateSalon = async (salonId: string, salonData: any, imageFiles: File[] = [], imageUrls: string[] = []) => {
-    let finalUrls: string[] = [...imageUrls];
+  const updateSalon = async (salonId: string, salonData: any, imageFile: File | null, imageUrl?: string) => {
+    let finalUrl = imageUrl || salonData.image;
 
-    if (imageFiles && imageFiles.length > 0 && !IS_MOCK) {
-      finalUrls = [];
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        if (!file) continue;
+    if (imageFile && !IS_MOCK) {
+      // If we already have a compressed base64 string, store it directly to Firestore to bypass Vercel Storage CORS policy
+      if (imageUrl && imageUrl.startsWith('data:image/')) {
+        finalUrl = imageUrl;
+      } else {
         try {
           const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
           const { storage } = await import('../../lib/firebase');
-          const storageRef = ref(storage, `salons/${salonId}/update_${i}_${file.name}`);
-          const uploadResult = await uploadBytes(storageRef, file);
-          const url = await getDownloadURL(uploadResult.ref);
-          finalUrls.push(url);
+          const storageRef = ref(storage, `salons/${salonId}/update_${imageFile.name}`);
+          const uploadResult = await uploadBytes(storageRef, imageFile);
+          finalUrl = await getDownloadURL(uploadResult.ref);
         } catch (storageErr: any) {
-          console.error('Firebase Storage failed, falling back to data URL:', storageErr);
+          console.error('Firebase Storage failed, keeping base64 content:', storageErr);
         }
       }
     }
@@ -1047,8 +1046,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       location: salonData.location,
       locality: salonData.locality || salonData.location.split(',')[0].trim() as any,
       address: salonData.address,
-      image: finalUrls[0] || currentSalon?.image || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
-      gallery: finalUrls.length > 0 ? finalUrls : (currentSalon?.gallery || []),
+      image: finalUrl || currentSalon?.image || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
+      gallery: finalUrl ? [finalUrl] : (currentSalon?.gallery || []),
       description: salonData.description,
       isLuxury: salonData.category === 'Luxury',
       offersHomeService: salonData.category === 'Home Service',
@@ -1060,7 +1059,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (IS_MOCK) {
       const updated = dbSalons.map(s => s.id === salonId ? updatedSalon : s);
       setDbSalons(updated);
-      localStorage.setItem('aura_salons', JSON.stringify(updated));
+      try {
+        localStorage.setItem('aura_salons', JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to write to localStorage:', e);
+      }
     } else {
       try {
         const { doc, updateDoc } = await import('firebase/firestore');
@@ -1080,7 +1083,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to update salon in Firestore, falling back to local storage:', error);
         const updated = dbSalons.map(s => s.id === salonId ? updatedSalon : s);
         setDbSalons(updated);
-        localStorage.setItem('aura_salons', JSON.stringify(updated));
+        try {
+          localStorage.setItem('aura_salons', JSON.stringify(updated));
+        } catch (e) {
+          console.error(e);
+        }
         alert('Could not update salon in cloud. The changes have been saved locally on your device.');
       }
     }
