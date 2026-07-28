@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import ClientConsoleLayout from '../components/ClientConsoleLayout';
 import { useApp } from '../context/AppContext';
+import { Sparkles, Star, MapPin, ThumbsUp, Activity, Check, AlertCircle } from 'lucide-react';
 
 export default function ComparePage() {
   const { salons } = useApp();
@@ -39,11 +40,50 @@ export default function ComparePage() {
     }
   }, [selectedIds, isLoaded]);
 
+  const { userProfile } = useApp();
+  const [preferenceQuery, setPreferenceQuery] = useState('');
+  const [comparing, setComparing] = useState(false);
+  const [aiReport, setAiReport] = useState<any | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleAiCompare = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!preferenceQuery.trim() || compareSalons.length === 0) return;
+
+    setComparing(true);
+    setAiReport(null);
+    setErrorMsg('');
+
+    try {
+      const res = await fetch('/api/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: preferenceQuery,
+          salons: compareSalons,
+          memoryContext: userProfile ? `User Location: ${userProfile.location || 'Bangalore'}. Face: ${userProfile.faceShape || ''}. Skin: ${userProfile.skinTone || ''}. Hair: ${userProfile.hairType || ''}. Budget: ${userProfile.preferredBudget || ''}` : ''
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to run AI comparison');
+      }
+
+      const data = await res.json();
+      setAiReport(data);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || 'Failed to analyze compared salons.');
+    } finally {
+      setComparing(false);
+    }
+  };
+
   const compareSalons = selectedIds.map(id => salons.find(s => s.id === id)).filter(Boolean) as any[];
 
   return (
     <ClientConsoleLayout activeSidebarItem="compare" headerTitle="Compare Salons">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full animate-in fade-in">
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
             <h1 className="font-serif text-3xl md:text-4xl text-darktext mb-2">Compare Salons</h1>
@@ -76,6 +116,135 @@ export default function ComparePage() {
               Browse All Salons
             </Link>
           </div>
+        </div>
+
+        {/* AI Compare Preferences Section */}
+        <div className="bg-white rounded-2xl border border-border p-6 shadow-xs mb-8 space-y-4">
+          <div className="space-y-1">
+            <h3 className="font-serif font-bold text-darktext text-lg flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-plum animate-pulse" />
+              Aura AI Smart Comparison
+            </h3>
+            <p className="text-xs text-mutedtext">
+              Type your personal preferences (e.g., budget range, specific skincare treatments, wedding preps) to let Aura AI analyze and pick the best match for you.
+            </p>
+          </div>
+
+          <form onSubmit={handleAiCompare} className="space-y-4">
+            <textarea
+              value={preferenceQuery}
+              onChange={(e) => setPreferenceQuery(e.target.value)}
+              placeholder="e.g. I need a luxury bridal facial and nail art for my wedding, with excellent reviews and a budget under ₹6000..."
+              className="w-full bg-cream border border-border text-darktext text-sm rounded-xl p-4 focus:outline-none focus:border-plum resize-none"
+              rows={3}
+              required
+            />
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={comparing || compareSalons.length === 0}
+                className="px-5 py-3 bg-plum text-warmwhite rounded-xl hover:bg-plum-dark text-xs font-bold transition-all disabled:opacity-50 disabled:bg-border cursor-pointer flex items-center gap-2"
+              >
+                {comparing ? (
+                  <>
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-warmwhite border-t-transparent animate-spin"></div>
+                    Running AI Comparison...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-peach animate-pulse" />
+                    Compare with Aura AI
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* AI Comparison Output Report */}
+          {aiReport && (
+            <div className="mt-6 border-t border-border pt-6 space-y-6 animate-in fade-in duration-300">
+              {/* Highlight Recommendation */}
+              <div className="p-5 bg-plum/5 border border-plum/10 rounded-2xl space-y-2">
+                <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-plum text-warmwhite tracking-widest uppercase flex items-center gap-1.5 w-fit">
+                  <Sparkles className="w-3.5 h-3.5 text-peach animate-pulse" />
+                  Aura's Pick
+                </span>
+                <h4 className="text-lg font-serif font-bold text-darktext mt-2">
+                  {aiReport.recommendation.recommendedSalonName}
+                </h4>
+                <p className="text-xs text-mutedtext leading-relaxed font-light">
+                  {aiReport.recommendation.reasonText}
+                </p>
+              </div>
+
+              {/* Scorecard Table */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-darktext flex items-center gap-1.5 font-serif">
+                    <Activity className="w-4 h-4 text-plum" />
+                    Dynamic Scorecard
+                  </h4>
+                  <div className="space-y-3">
+                    {(aiReport.feature1Comparison || []).map((item: any, idx: number) => (
+                      <div key={idx} className="p-4 rounded-xl border border-border bg-cream/10 space-y-2">
+                        <div className="flex justify-between items-start gap-2">
+                          <h5 className="font-bold text-xs text-darktext">{item.salonName}</h5>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-peach/20 text-plum border border-peach/30 uppercase tracking-wider">
+                            {item.aiRecommendationBadge}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-[10px] text-mutedtext pt-1">
+                          <div>
+                            <span className="font-semibold">Rating:</span> ★{item.rating}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Price:</span> {item.priceRange}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Reviews:</span> {item.reviewScore}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Review Insights */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-darktext flex items-center gap-1.5 font-serif">
+                    <ThumbsUp className="w-4 h-4 text-plum" />
+                    Review Sentiment Intelligence
+                  </h4>
+                  <div className="space-y-4">
+                    {(aiReport.feature2ReviewIntelligence || []).map((item: any, idx: number) => (
+                      <div key={idx} className="space-y-2 border-b border-border/60 pb-3 last:border-0 last:pb-0">
+                        <h5 className="font-bold text-xs text-darktext">{item.salonName} ({item.overallSentiment} Sentiment)</h5>
+                        <div className="space-y-1">
+                          <div className="flex items-start gap-1 text-[10px] text-sage font-medium">
+                            <span className="text-xs">✓</span>
+                            <span>Strengths: {item.topStrengths.join(', ')}</span>
+                          </div>
+                          {item.commonComplaints.length > 0 && (
+                            <div className="flex items-start gap-1 text-[10px] text-rose font-medium">
+                              <span className="text-xs">✕</span>
+                              <span>Complaints: {item.commonComplaints.join(', ')}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {errorMsg && (
+            <div className="p-4 bg-rose/10 border border-rose/20 text-rose text-xs font-semibold rounded-xl flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              {errorMsg}
+            </div>
+          )}
         </div>
 
         {compareSalons.length > 0 ? (

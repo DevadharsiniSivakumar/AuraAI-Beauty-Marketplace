@@ -211,9 +211,17 @@ export default function DashboardPage() {
                 : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
             }`}
           >
-            <LayoutDashboard className="w-4 h-4" />
+            <LayoutDashboard className="w-4 h-4 text-peach" />
             Overview
           </button>
+
+          <Link 
+            href="/salons"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <Store className="w-4 h-4 text-peach" />
+            Explore Salons
+          </Link>
 
           <button 
             onClick={() => setActiveTab('bookings')}
@@ -223,7 +231,7 @@ export default function DashboardPage() {
                 : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
             }`}
           >
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4 text-peach" />
             My Bookings
           </button>
 
@@ -235,7 +243,7 @@ export default function DashboardPage() {
                 : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
             }`}
           >
-            <Heart className="w-4 h-4" />
+            <Heart className="w-4 h-4 text-peach" />
             Saved Salons
           </button>
 
@@ -247,9 +255,17 @@ export default function DashboardPage() {
                 : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
             }`}
           >
-            <Compass className="w-4 h-4" />
+            <Compass className="w-4 h-4 text-peach" />
             Beauty Journey
           </button>
+
+          <Link 
+            href="/profile"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <User className="w-4 h-4 text-peach" />
+            My Profile
+          </Link>
 
           <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
 
