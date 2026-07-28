@@ -93,6 +93,20 @@ export default function FeatureShowcasePage() {
 
       const data = await response.json();
       
+      if (data.newBooking) {
+        try {
+          const saved = localStorage.getItem('aura_bookings');
+          const bookingsArray = saved ? JSON.parse(saved) : [];
+          bookingsArray.unshift(data.newBooking);
+          localStorage.setItem('aura_bookings', JSON.stringify(bookingsArray));
+          
+          // Also dispatch event so other tabs/components update instantly
+          window.dispatchEvent(new Event('storage'));
+        } catch(err) {
+          console.error('Failed to save to local storage', err);
+        }
+      }
+
       setMessages(prev => [...prev, {
         role: 'assistant',
         text: data.reply,

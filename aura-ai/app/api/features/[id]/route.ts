@@ -78,20 +78,25 @@ export async function POST(request: Request, context: any) {
             try {
               const payload = JSON.parse(jsonMatch[1]);
               
+              const newBookingData = {
+                  id: `mock-b-${Date.now()}`,
+                  userId: userProfile?.uid || userProfile?.email || 'guest_123',
+                  userName: userProfile?.name || 'Aura User',
+                  userEmail: userProfile?.email || '',
+                  salonId: payload.salonId || 'unknown',
+                  serviceId: payload.serviceId || 'unknown',
+                  salonName: payload.salon,
+                  serviceName: payload.service,
+                  date: payload.date,
+                  time: payload.time,
+                  status: 'Confirmed',
+                  price: payload.estimatedPrice ? parseFloat(payload.estimatedPrice.replace(/[^0-9.]/g, '')) || 0 : 0,
+                  createdAt: new Date().toISOString()
+              };
+
               try {
                 if (!IS_MOCK) {
-                   await addDoc(collection(db, 'bookings'), {
-                      userId: userProfile?.uid || 'guest_123',
-                      salonId: payload.salonId || 'unknown',
-                      serviceId: payload.serviceId || 'unknown',
-                      salonName: payload.salon,
-                      serviceName: payload.service,
-                      date: payload.date,
-                      time: payload.time,
-                      status: 'Confirmed',
-                      price: payload.estimatedPrice ? parseFloat(payload.estimatedPrice.replace(/[^0-9.]/g, '')) || 0 : 0,
-                      createdAt: new Date().toISOString()
-                   });
+                   await addDoc(collection(db, 'bookings'), newBookingData);
                 }
               } catch(dbErr) {
                  console.error("Firestore booking write failed:", dbErr);
@@ -116,7 +121,8 @@ export async function POST(request: Request, context: any) {
               const emailStatus = emailResponse.ok ? "I have sent a confirmation email to you with all the details." : "*(Note: Email dispatch skipped because email server credentials are not configured in Vercel env, but your booking is confirmed in the database!)*";
 
               return NextResponse.json({
-                reply: `Your appointment for **${payload.service}** at **${payload.salon}** on **${payload.date}** at **${payload.time}** has been successfully booked! 🎉\n\n${emailStatus} Have a wonderful day!`
+                reply: `Your appointment for **${payload.service}** at **${payload.salon}** on **${payload.date}** at **${payload.time}** has been successfully booked! 🎉\n\n${emailStatus} Have a wonderful day!`,
+                newBooking: newBookingData
               });
             } catch(e) {
               console.error(e);
@@ -128,12 +134,13 @@ export async function POST(request: Request, context: any) {
       }
 
       // If not confirming, parse the booking request with Groq
-      const systemPrompt = `You are a strict data extraction AI. Extract the requested appointment details from the user's message.
+      const systemPrompt = `You are a strict data extraction AI for a salon booking system. Today's date is ${new Date().toISOString().split('T')[0]}.
+Extract the requested appointment details from the user's message.
 Return ONLY a valid JSON object matching exactly this schema:
 {
   "salon": "string (the salon name)",
   "service": "string (the service name)",
-  "date": "string (the date, e.g., 'Tomorrow' or 'Next Tuesday')",
+  "date": "string (Resolve the date to a real calendar date format YYYY-MM-DD based on today's date)",
   "time": "string (the time, e.g., '01:00 PM')"
 }
 If any piece of information is missing, make your best guess or return "Unknown". Do not include markdown \`\`\`json wrappers.`;
