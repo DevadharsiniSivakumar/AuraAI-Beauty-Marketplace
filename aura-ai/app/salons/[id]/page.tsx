@@ -35,13 +35,11 @@ export default function SalonDetailsPage() {
   // Group services by category
   const categories = Array.from(new Set(salon.services.map(s => s.category)));
   
-  const selectedService = salon.services.find(s => s.id === selectedServiceId) || salon.services[0];
+  const selectedService = salon.services.find(s => s.id === selectedServiceId) || null;
 
   const handleBook = () => {
     if (selectedServiceId) {
       router.push(`/booking?salon=${salon.id}&service=${selectedServiceId}`);
-    } else {
-      router.push(`/booking?salon=${salon.id}&service=${salon.services[0].id}`);
     }
   };
 
@@ -92,30 +90,7 @@ export default function SalonDetailsPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-          {/* Gallery */}
-          <div className="mb-12">
-            <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-3 h-[400px]">
-              {/* Large Image */}
-              <div className="col-span-2 row-span-2 bg-sage/20 rounded-l-xl overflow-hidden relative border border-border">
-                <div className="absolute inset-0 bg-sage opacity-10"></div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-30 text-sage">Main Image</div>
-              </div>
-              {/* Small Images */}
-              <div className="col-span-1 row-span-1 bg-lavender/20 relative border border-border border-l-0"><div className="absolute inset-0 flex items-center justify-center opacity-30 text-lavender">Interior</div></div>
-              <div className="col-span-1 row-span-1 bg-coral/20 rounded-tr-xl relative border border-border border-l-0"><div className="absolute inset-0 flex items-center justify-center opacity-30 text-coral">Products</div></div>
-              <div className="col-span-1 row-span-1 bg-peach/20 relative border border-border border-l-0 border-t-0"><div className="absolute inset-0 flex items-center justify-center opacity-30 text-peach">Staff</div></div>
-              <div className="col-span-1 row-span-1 bg-rose/20 rounded-br-xl relative border border-border border-l-0 border-t-0"><div className="absolute inset-0 flex items-center justify-center opacity-30 text-rose">Exterior</div></div>
-            </div>
-            
-            {/* Mobile Swipeable Gallery */}
-            <div className="md:hidden flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 -mx-4 px-4 scrollbar-hide">
-              {[1,2,3,4].map(i => (
-                <div key={i} className="min-w-[85vw] aspect-[4/3] bg-sage/20 rounded-lg snap-center relative border border-border">
-                  <div className="absolute inset-0 flex items-center justify-center opacity-30 text-sage">Image {i}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+
 
           {/* Content Split Layout */}
           <div className="flex flex-col lg:flex-row gap-12 relative">
@@ -304,7 +279,12 @@ export default function SalonDetailsPage() {
 
                   <button 
                     onClick={handleBook}
-                    className="w-full bg-plum text-warmwhite py-4 rounded-lg font-medium hover:bg-plum-dark transition-colors shadow-sm text-lg"
+                    disabled={!selectedServiceId}
+                    className={`w-full py-4 rounded-lg font-medium transition-colors shadow-sm text-lg ${
+                      selectedServiceId 
+                        ? 'bg-plum text-warmwhite hover:bg-plum-dark' 
+                        : 'bg-border text-mutedtext cursor-not-allowed'
+                    }`}
                   >
                     Continue to Booking
                   </button>
