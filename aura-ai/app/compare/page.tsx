@@ -379,11 +379,8 @@ export default function ComparePage() {
         ) : (
           <div className="bg-white border border-border rounded-xl p-12 text-center shadow-sm">
             <span className="text-4xl mb-4 block">⚖️</span>
-            <h3 className="text-xl font-medium text-darktext mb-2">Nothing to compare</h3>
-            <p className="text-mutedtext mb-6">Select salons from the explore page to see them side by side.</p>
-            <Link href="/salons" className="px-6 py-3 bg-plum text-warmwhite rounded-md font-medium hover:bg-plum-dark transition-colors shadow-sm inline-block">
-              Explore Salons
-            </Link>
+            <h3 className="text-xl font-medium text-darktext mb-2">No salons added to compare</h3>
+            <p className="text-mutedtext text-xs">Select salons from the explore list or the dropdown to see them compared side by side.</p>
           </div>
         )}
       </div>

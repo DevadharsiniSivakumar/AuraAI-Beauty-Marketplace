@@ -76,6 +76,8 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
     category: 'Budget', // Luxury, Home Service, Budget
     status: 'Open'
   });
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
   // Service modal states
   const [selectedSalonId, setSelectedSalonId] = useState<string>('');
@@ -186,6 +188,8 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
       category: 'Budget',
       status: 'Open'
     });
+    setSelectedImageFile(null);
+    setImagePreviewUrl(null);
     setIsSalonModalOpen(true);
   };
 
@@ -201,6 +205,8 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
       category: salon.isLuxury ? 'Luxury' : salon.offersHomeService ? 'Home Service' : 'Budget',
       status: salon.status || 'Open'
     });
+    setSelectedImageFile(null);
+    setImagePreviewUrl(salon.image || null);
     setIsSalonModalOpen(true);
   };
 
@@ -208,9 +214,9 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
     e.preventDefault();
     try {
       if (editingSalon) {
-        await updateSalon(salonFormData.id, salonFormData, null);
+        await updateSalon(salonFormData.id, salonFormData, selectedImageFile);
       } else {
-        await addSalon(salonFormData, null);
+        await addSalon(salonFormData, selectedImageFile);
       }
       setIsSalonModalOpen(false);
     } catch (err) {
@@ -1007,6 +1013,50 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
                     <option value="Open">Open</option>
                     <option value="Closed">Closed</option>
                   </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-mutedtext uppercase mb-1">Salon Display Image</label>
+                <div className="flex items-center gap-4">
+                  {imagePreviewUrl ? (
+                    <div className="w-16 h-16 rounded-xl border border-border overflow-hidden relative shrink-0">
+                      <img src={imagePreviewUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedImageFile(null);
+                          setImagePreviewUrl(null);
+                        }}
+                        className="absolute inset-0 bg-black/40 text-white font-bold text-xs flex items-center justify-center hover:opacity-100 opacity-0 transition-opacity"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 bg-cream/40 rounded-xl border border-dashed border-border flex items-center justify-center text-mutedtext text-xs font-bold shrink-0">
+                      No Image
+                    </div>
+                  )}
+                  <label className="px-4 py-2 border border-border rounded-xl bg-cream/20 text-xs font-bold hover:bg-cream cursor-pointer text-darktext transition-colors">
+                    Choose Image File
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setSelectedImageFile(file);
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setImagePreviewUrl(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
                 </div>
               </div>
 
