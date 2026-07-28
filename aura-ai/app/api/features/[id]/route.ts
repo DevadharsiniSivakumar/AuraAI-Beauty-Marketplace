@@ -120,19 +120,24 @@ If any piece of information is missing, make your best guess or return "Unknown"
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ], 'llama-3.3-70b-versatile', 500, { type: 'json_object' });
-        parsed = JSON.parse(groqResult);
+        const parsedJson = JSON.parse(groqResult);
+        parsed = { ...parsed, ...parsedJson };
+        if (!parsed.salon) parsed.salon = "Unknown";
+        if (!parsed.service) parsed.service = "Unknown";
+        if (!parsed.date) parsed.date = "Unknown";
+        if (!parsed.time) parsed.time = "Unknown";
       } catch (err) {
         console.error("Groq extraction failed", err);
       }
 
       // Fetch actual salon data to find the price
       const allSalons = await getSalonsAndServices();
-      const matchedSalon = allSalons.find(s => s.name.toLowerCase().includes(parsed.salon.toLowerCase()));
+      const matchedSalon = allSalons.find(s => s.name && parsed.salon && parsed.salon !== "Unknown" && s.name.toLowerCase().includes(parsed.salon.toLowerCase()));
       let matchedService = null;
       let priceText = "Price to be determined at salon";
 
       if (matchedSalon) {
-        matchedService = matchedSalon.services.find(s => s.name.toLowerCase().includes(parsed.service.toLowerCase()));
+        matchedService = matchedSalon.services.find(s => s.name && parsed.service && parsed.service !== "Unknown" && s.name.toLowerCase().includes(parsed.service.toLowerCase()));
         if (matchedService) {
            priceText = `₹${matchedService.price}`;
         }
@@ -146,7 +151,7 @@ If any piece of information is missing, make your best guess or return "Unknown"
     return NextResponse.json({ reply: `Unrecognized feature: ${featureId}` });
 
   } catch (error: any) {
-    console.error(`Error in feature API [${params.id}]:`, error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error(`Error in feature API:`, error);
+    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
   }
 }
