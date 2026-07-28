@@ -202,7 +202,7 @@ export default function DashboardPage() {
         </div>
         
         {/* Navigation Sidebar List */}
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
           <button 
             onClick={() => setActiveTab('overview')}
             className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
@@ -224,18 +224,6 @@ export default function DashboardPage() {
           </Link>
 
           <button 
-            onClick={() => setActiveTab('bookings')}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
-              activeTab === 'bookings' 
-                ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach' 
-                : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
-            }`}
-          >
-            <Calendar className="w-4 h-4 text-peach" />
-            My Bookings
-          </button>
-
-          <button 
             onClick={() => setActiveTab('saved')}
             className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
               activeTab === 'saved' 
@@ -245,6 +233,18 @@ export default function DashboardPage() {
           >
             <Heart className="w-4 h-4 text-peach" />
             Saved Salons
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('bookings')}
+            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+              activeTab === 'bookings' 
+                ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach' 
+                : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
+            }`}
+          >
+            <Calendar className="w-4 h-4 text-peach" />
+            My Bookings
           </button>
 
           <button 
@@ -267,22 +267,12 @@ export default function DashboardPage() {
             My Profile
           </Link>
 
-          <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
-
           <Link 
             href="/advisor"
             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
           >
             <Camera className="w-4 h-4 text-peach" />
             Selfie Scanner
-          </Link>
-
-          <Link 
-            href="/concierge"
-            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
-          >
-            <MessageSquare className="w-4 h-4 text-peach" />
-            AI Concierge
           </Link>
 
           <Link 

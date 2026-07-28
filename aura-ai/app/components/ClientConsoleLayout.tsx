@@ -119,8 +119,6 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
                 Beauty Journey
               </Link>
 
-              <div className="pt-2 border-t border-plum-dark/45 my-2"></div>
-
               <Link 
                 href="/advisor"
                 className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
