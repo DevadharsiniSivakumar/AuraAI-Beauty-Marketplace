@@ -288,6 +288,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Load Salons, Services, and Bookings
     if (IS_MOCK) {
+      // Cache bust to force image updates
+      if (localStorage.getItem('aura_mock_version') !== '1.1') {
+        localStorage.removeItem('aura_salons');
+        localStorage.removeItem('aura_services');
+        localStorage.setItem('aura_mock_version', '1.1');
+      }
+
       // 1. Salons
       const savedSalons = localStorage.getItem('aura_salons');
       if (savedSalons) {
