@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
+import { useApp } from '../../context/AppContext';
 import {
   LayoutDashboard,
   Calendar,
@@ -33,6 +34,7 @@ export default function FeatureShowcasePage() {
   const featureId = params?.id as string || 'intent';
   
   const { user, logout } = useAuth();
+  const { addBooking } = useApp();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -95,15 +97,15 @@ export default function FeatureShowcasePage() {
       
       if (data.newBooking) {
         try {
-          const saved = localStorage.getItem('aura_bookings');
-          const bookingsArray = saved ? JSON.parse(saved) : [];
-          bookingsArray.unshift(data.newBooking);
-          localStorage.setItem('aura_bookings', JSON.stringify(bookingsArray));
-          
-          // Also dispatch event so other tabs/components update instantly
-          window.dispatchEvent(new Event('storage'));
+          // Use the globally integrated addBooking which perfectly respects Firebase Auth and Client Session
+          await addBooking(
+            data.newBooking.salonId, 
+            data.newBooking.serviceId, 
+            data.newBooking.date, 
+            data.newBooking.time
+          );
         } catch(err) {
-          console.error('Failed to save to local storage', err);
+          console.error('Failed to save booking via context', err);
         }
       }
 

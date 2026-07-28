@@ -94,14 +94,6 @@ export async function POST(request: Request, context: any) {
                   createdAt: new Date().toISOString()
               };
 
-              try {
-                if (!IS_MOCK) {
-                   await addDoc(collection(db, 'bookings'), newBookingData);
-                }
-              } catch(dbErr) {
-                 console.error("Firestore booking write failed:", dbErr);
-              }
-
               // Trigger the email API
               const emailResponse = await fetch(`${url.origin}/api/send-email`, {
                 method: 'POST',
