@@ -34,7 +34,7 @@ export default function FeatureShowcasePage() {
   const featureId = params?.id as string || 'intent';
   
   const { user, logout } = useAuth();
-  const { addBooking } = useApp();
+  const { addBooking, userProfile } = useApp();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -90,7 +90,7 @@ export default function FeatureShowcasePage() {
       const response = await fetch(`/api/features/${featureId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg.text, featureId, userProfile: {}, bookings: [], history: messages })
+        body: JSON.stringify({ message: userMsg.text, featureId, userProfile: userProfile || {}, bookings: [], history: messages })
       });
 
       const data = await response.json();
