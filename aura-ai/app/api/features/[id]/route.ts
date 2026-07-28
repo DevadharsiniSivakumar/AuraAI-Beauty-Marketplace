@@ -56,12 +56,25 @@ export async function POST(request: Request, context: any) {
 
     // 4. Review Intelligence Feature
     if (featureId === 'review') {
-      const match = message.match(/compare (.*?) and (.*)/i);
-      const s1 = match ? match[1] : "Salon A (Bodycraft)";
-      const s2 = match ? match[2] : "Salon B (Play Salon)";
-      return NextResponse.json({
-        reply: `I am the Review Intelligence agent. Based on analyzing hundreds of user reviews for these salons:\n\n**${s1}**\n- *Pros*: Excellent Hydra Facial, highly professional.\n- *Cons*: Weekend wait times can be long.\n- *Sentiment*: 92% Positive\n\n**${s2}**\n- *Pros*: Great precision haircuts, premium vibe.\n- *Cons*: Higher price point.\n- *Sentiment*: 88% Positive`
-      });
+      const systemPrompt = `You are a Review Intelligence AI for Aura, a beauty marketplace. 
+The user is asking for reviews, sentiment, or a comparison of specific salons or services.
+Based on their message, dynamically generate a realistic-sounding review summary for the salons they mentioned. 
+Include formatting like **Pros**, **Cons**, and **Sentiment score (out of 100%)**.
+Make the review sound professional and data-driven (e.g. "Based on analyzing 142 reviews...").`;
+      
+      try {
+        const groqResult = await generateGroqResponse([
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ], 'llama-3.3-70b-versatile', 500, { type: 'text' });
+        
+        return NextResponse.json({
+          reply: `I am the Review Intelligence agent.\n\n${groqResult}`
+        });
+      } catch (err) {
+        console.error("Groq review generation failed", err);
+        return NextResponse.json({ reply: "I'm sorry, I couldn't analyze the reviews at this moment." });
+      }
     }
 
     // 5. Booking Concierge Feature
