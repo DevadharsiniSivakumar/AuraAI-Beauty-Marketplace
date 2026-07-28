@@ -165,7 +165,8 @@ export default function DashboardPage() {
   }, []);
 
   const favorites = userProfile?.favoriteSalons || [];
-  const userBookings = bookings.filter(b => b.userId === user?.uid || b.userEmail === user?.email);
+  // For the demo presentation, show all bookings in the system to ensure visibility
+  const userBookings = bookings;
   
   // Sort bookings
   const upcomingBookings = userBookings
