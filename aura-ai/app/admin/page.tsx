@@ -362,8 +362,8 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
   );
 
   const filteredBookings = bookings.filter(b => 
-    b.salonName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.serviceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (b.salonName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (b.serviceName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (b.userName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (b.userEmail || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
