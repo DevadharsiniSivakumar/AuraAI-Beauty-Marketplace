@@ -377,9 +377,9 @@ export default function StyleAdvisor() {
               <p className="text-xs font-bold text-darktext">{userName}</p>
               <p className="text-[10px] text-mutedtext">{user?.email || 'Authenticated client'}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-plum text-warmwhite flex items-center justify-center font-bold text-sm shadow-md border-2 border-peach">
+            <Link href="/profile" className="w-10 h-10 rounded-full bg-plum text-warmwhite flex items-center justify-center font-bold text-sm shadow-md border-2 border-peach hover:scale-105 transition-transform cursor-pointer">
               {userInitials}
-            </div>
+            </Link>
           </div>
         </header>
 

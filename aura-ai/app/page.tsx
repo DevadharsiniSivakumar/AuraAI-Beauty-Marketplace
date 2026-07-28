@@ -193,7 +193,7 @@ export default function Home() {
               <p className="text-blush opacity-90 text-lg max-w-md leading-relaxed">
                 Tell Aura your budget, preferred area and what you are looking for.
               </p>
-              <Link href="/advisor" className="mt-4 bg-warmwhite text-plum px-8 py-3 rounded-md font-medium hover:bg-cream transition-colors">
+              <Link href="/concierge" className="mt-4 bg-warmwhite text-plum px-8 py-3 rounded-md font-medium hover:bg-cream transition-colors">
                 Ask Aura
               </Link>
             </div>

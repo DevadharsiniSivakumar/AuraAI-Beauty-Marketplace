@@ -3,5 +3,5 @@
 import AdminDashboard from '../page';
 
 export default function AdminDashboardPage() {
-  return <AdminDashboard defaultTab="bookings" />;
+  return <AdminDashboard defaultTab="overview" />;
 }

@@ -219,8 +219,9 @@ export default function ProfilePage() {
   // Map favorite salons list
   const favoriteSalonsObj = salons.filter(s => userProfile.favoriteSalons.includes(s.id));
 
-  // Sort bookings newest first
-  const sortedBookings = [...bookings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Sort and filter bookings newest first
+  const userBookings = bookings.filter(b => b.userId === user?.uid || b.userEmail === user?.email);
+  const sortedBookings = [...userBookings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Filter reviews authored by this user
   interface ProfileReview {
