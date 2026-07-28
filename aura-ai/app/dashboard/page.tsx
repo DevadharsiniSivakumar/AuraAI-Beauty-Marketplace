@@ -259,13 +259,6 @@ export default function DashboardPage() {
             Beauty Journey
           </button>
 
-          <Link 
-            href="/profile"
-            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
-          >
-            <User className="w-4 h-4 text-peach" />
-            My Profile
-          </Link>
 
           <Link 
             href="/advisor"

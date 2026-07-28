@@ -118,43 +118,49 @@ export default function ConciergePage() {
         </div>
         
         {/* Navigation Sidebar List */}
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
           <Link 
             href="/dashboard?tab=overview"
             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
           >
-            <LayoutDashboard className="w-4 h-4" />
+            <LayoutDashboard className="w-4 h-4 text-peach" />
             Overview
           </Link>
 
           <Link 
-            href="/dashboard?tab=bookings"
+            href="/salons"
             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
           >
-            <Calendar className="w-4 h-4" />
-            My Bookings
+            <Store className="w-4 h-4 text-peach" />
+            Explore Salons
           </Link>
 
           <Link 
             href="/dashboard?tab=saved"
             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
           >
-            <Heart className="w-4 h-4" />
+            <Heart className="w-4 h-4 text-peach" />
             Saved Salons
+          </Link>
+
+          <Link 
+            href="/dashboard?tab=bookings"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
+          >
+            <Calendar className="w-4 h-4 text-peach" />
+            My Bookings
           </Link>
 
           <Link 
             href="/dashboard?tab=journey"
             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
           >
-            <Compass className="w-4 h-4" />
+            <Compass className="w-4 h-4 text-peach" />
             Beauty Journey
           </Link>
 
-          <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
-
           <Link 
-            href="/advisor?tab=scanner"
+            href="/advisor"
             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
           >
             <Camera className="w-4 h-4 text-peach" />
@@ -162,19 +168,12 @@ export default function ConciergePage() {
           </Link>
 
           <Link 
-            href="/advisor?tab=planner"
+            href="/compare"
             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/75 hover:bg-cream/5 hover:text-white"
           >
-            <Scissors className="w-4 h-4 text-peach" />
-            Journey Planner
+            <TrendingUp className="w-4 h-4 text-peach" />
+            Compare Salons
           </Link>
-
-          <button 
-            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-left bg-cream/15 text-white shadow-xs border-l-4 border-peach"
-          >
-            <MessageSquare className="w-4 h-4 text-peach" />
-            AI Concierge
-          </button>
         </nav>
 
         {/* Sidebar Footer Operations */}
