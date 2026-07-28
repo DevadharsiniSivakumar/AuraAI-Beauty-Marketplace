@@ -76,8 +76,34 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
     category: 'Budget', // Luxury, Home Service, Budget
     status: 'Open'
   });
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+
+  // Canvas-based image compression utility for localStorage storage quota safety
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 400;
+          const scale = MAX_WIDTH / img.width;
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.6));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Service modal states
   const [selectedSalonId, setSelectedSalonId] = useState<string>('');
@@ -188,8 +214,8 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
       category: 'Budget',
       status: 'Open'
     });
-    setSelectedImageFile(null);
-    setImagePreviewUrl(null);
+    setSelectedImageFiles([]);
+    setImagePreviewUrls([]);
     setIsSalonModalOpen(true);
   };
 
@@ -205,18 +231,25 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
       category: salon.isLuxury ? 'Luxury' : salon.offersHomeService ? 'Home Service' : 'Budget',
       status: salon.status || 'Open'
     });
-    setSelectedImageFile(null);
-    setImagePreviewUrl(salon.image || null);
+    setSelectedImageFiles([]);
+    setImagePreviewUrls(salon.gallery || (salon.image ? [salon.image] : []));
     setIsSalonModalOpen(true);
   };
 
   const handleSalonFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validPreviews = imagePreviewUrls.filter(Boolean);
+    if (validPreviews.length < 5) {
+      alert(`Please upload at least 5 images to publish this salon registry (${validPreviews.length}/5 uploaded).`);
+      return;
+    }
+
     try {
       if (editingSalon) {
-        await updateSalon(salonFormData.id, salonFormData, selectedImageFile);
+        const existingCloudUrls = imagePreviewUrls.filter(url => url && (url.startsWith('http') || url.startsWith('https')));
+        await updateSalon(salonFormData.id, salonFormData, selectedImageFiles.filter(Boolean), existingCloudUrls);
       } else {
-        await addSalon(salonFormData, selectedImageFile);
+        await addSalon(salonFormData, selectedImageFiles.filter(Boolean));
       }
       setIsSalonModalOpen(false);
     } catch (err) {
@@ -1017,47 +1050,68 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-mutedtext uppercase mb-1">Salon Display Image</label>
-                <div className="flex items-center gap-4">
-                  {imagePreviewUrl ? (
-                    <div className="w-16 h-16 rounded-xl border border-border overflow-hidden relative shrink-0">
-                      <img src={imagePreviewUrl} alt="Preview" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedImageFile(null);
-                          setImagePreviewUrl(null);
-                        }}
-                        className="absolute inset-0 bg-black/40 text-white font-bold text-xs flex items-center justify-center hover:opacity-100 opacity-0 transition-opacity"
+                <label className="block text-xs font-bold text-mutedtext uppercase mb-1">
+                  Salon Images (At least 5 images required)
+                </label>
+                <div className="grid grid-cols-5 gap-2">
+                  {[0, 1, 2, 3, 4].map((index) => {
+                    const preview = imagePreviewUrls[index];
+                    return (
+                      <div 
+                        key={index}
+                        className="aspect-square bg-cream/40 rounded-xl border border-dashed border-border flex flex-col items-center justify-center relative overflow-hidden group"
                       >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 bg-cream/40 rounded-xl border border-dashed border-border flex items-center justify-center text-mutedtext text-xs font-bold shrink-0">
-                      No Image
-                    </div>
-                  )}
-                  <label className="px-4 py-2 border border-border rounded-xl bg-cream/20 text-xs font-bold hover:bg-cream cursor-pointer text-darktext transition-colors">
-                    Choose Image File
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setSelectedImageFile(file);
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setImagePreviewUrl(reader.result as string);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                  </label>
+                        {preview ? (
+                          <>
+                            <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
+                                setSelectedImageFiles(prev => prev.filter((_, i) => i !== index));
+                              }}
+                              className="absolute inset-0 bg-black/40 text-white font-bold text-[9px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          </>
+                        ) : (
+                          <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-1 text-center">
+                            <span className="text-[9px] text-mutedtext font-bold uppercase tracking-wider">Slot {index + 1}</span>
+                            <span className="text-[8px] text-mutedtext">Click to Add</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  // Compress file to avoid browser localStorage quota limits
+                                  const compressedBase64 = await compressImage(file);
+                                  setImagePreviewUrls(prev => {
+                                    const next = [...prev];
+                                    next[index] = compressedBase64;
+                                    return next;
+                                  });
+                                  setSelectedImageFiles(prev => {
+                                    const next = [...prev];
+                                    next[index] = file;
+                                    return next;
+                                  });
+                                }
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
+                {imagePreviewUrls.filter(Boolean).length < 5 && (
+                  <p className="text-[10px] text-rose font-bold mt-1">
+                    * Please upload all 5 images to publish. ({imagePreviewUrls.filter(Boolean).length}/5 uploaded)
+                  </p>
+                )}
               </div>
 
               <div>
