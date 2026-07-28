@@ -54,9 +54,9 @@ export const MOCK_SALONS: Salon[] = [
     location: 'Indiranagar, Bangalore',
     locality: 'Indiranagar',
     address: 'No. 70, 100 Feet Rd, Hal 2nd Stage, Indiranagar, Bengaluru, 560038',
-    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
+    image: '/salons/bodycraft-salon.jpg',
     gallery: [
-      'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop',
+      '/salons/bodycraft-salon.jpg',
       'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1600948836101-f9ffda59d151?q=80&w=600&auto=format&fit=crop'
     ],
@@ -130,9 +130,9 @@ export const MOCK_SALONS: Salon[] = [
     location: 'Koramangala, Bangalore',
     locality: 'Koramangala',
     address: 'No. 36, 1st Main Rd, Koramangala 5th Block, Bengaluru, 560095',
-    image: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=600&auto=format&fit=crop',
+    image: '/salons/bounce-salon.jpg',
     gallery: [
-      'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=600&auto=format&fit=crop',
+      '/salons/bounce-salon.jpg',
       'https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?q=80&w=600&auto=format&fit=crop'
     ],
     description: 'Young, vibrant, and always keeping up with globally trending styles. Bounce Koramangala is a hotspot for youth seeking creative hair coloring, organic scalp therapy, and high-fashion nail makeovers.',
@@ -165,9 +165,9 @@ export const MOCK_SALONS: Salon[] = [
     location: 'Jayanagar, Bangalore',
     locality: 'Jayanagar',
     address: 'Building 14, 11th Main Road, Jayanagar 4th Block, Bengaluru, 560011',
-    image: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop',
+    image: '/salons/toni-guy.jpg',
     gallery: [
-      'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop',
+      '/salons/toni-guy.jpg',
       'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop'
     ],
     description: 'An international brand delivering standardized excellence. Known worldwide for precision haircuts, customized hair spa therapies, and texture treatments like Keratin and cystine.',
@@ -200,9 +200,9 @@ export const MOCK_SALONS: Salon[] = [
     location: 'HSR Layout, Bangalore',
     locality: 'HSR Layout',
     address: 'No. 24, 27th Main Rd, Sector 1, HSR Layout, Bengaluru, 560102',
-    image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop',
+    image: '/salons/ylg-salon.jpg',
     gallery: [
-      'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop'
+      '/salons/ylg-salon.jpg'
     ],
     description: 'You Look Great (YLG) is a household brand in Bangalore offering extremely value-for-money combo packs, express waxing, and premium facial therapies in a clean and safe environment.',
     isLuxury: false,
@@ -234,9 +234,9 @@ export const MOCK_SALONS: Salon[] = [
     location: 'Lavelle Road, Bangalore',
     locality: 'Lavelle Road',
     address: 'Ground Floor, Prestige Sunrise, Lavelle Road, Bengaluru, 560001',
-    image: 'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?q=80&w=600&auto=format&fit=crop',
+    image: '/salons/mirror-within.jpg',
     gallery: [
-      'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?q=80&w=600&auto=format&fit=crop',
+      '/salons/mirror-within.jpg',
       'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop'
     ],
     description: 'An exclusive boutique salon offering bespoke luxury. Known for personalized consultations where only one client is attended to at a time. Specializes in luxury French haircare (Kérastase) and organic facial oils.',
