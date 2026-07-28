@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { doc, setDoc } from 'firebase/firestore';
-import { db, IS_MOCK } from '../../lib/firebase';
+import { db, IS_MOCK } from '../../../lib/firebase';
 import {
   LayoutDashboard,
   Calendar,
