@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { detectIntent } from '../../../../lib/intentDetector';
 import { searchAndRank, getSalonsAndServices } from '../../../../lib/searchEngine';
 import { generateGroqResponse } from '../../../../lib/groq';
