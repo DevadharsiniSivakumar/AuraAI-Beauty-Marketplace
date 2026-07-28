@@ -336,14 +336,14 @@ export default function DashboardPage() {
                   </Link>
 
                   {/* Salon Matchmaker */}
-                  <Link href="/feature/recommendation" className="bg-gradient-to-br from-peach to-peach/80 p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
+                  <Link href="https://aura-beautyplace.vercel.app/compare" className="bg-gradient-to-br from-peach to-peach/80 p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
                     <MapPin className="w-8 h-8 text-plum mb-4 group-hover:scale-110 transition-transform" />
                     <h4 className="font-serif font-bold text-lg mb-1">Salon Matchmaker</h4>
                     <p className="text-xs text-darktext/80">Ranks and filters the best salon options based on exact constraints.</p>
                   </Link>
 
                   {/* Beauty Planner */}
-                  <Link href="/feature/journey" className="bg-gradient-to-br from-sage to-sage-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
+                  <Link href="/dashboard?tab=journey" className="bg-gradient-to-br from-sage to-sage-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
                     <Compass className="w-8 h-8 text-plum mb-4 group-hover:scale-110 transition-transform" />
                     <h4 className="font-serif font-bold text-lg mb-1">Beauty Planner</h4>
                     <p className="text-xs text-darktext/80">Generates a multi-step timeline for major events like weddings.</p>
