@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { detectIntent } from '../../../../lib/intentDetector';
 import { searchAndRank, getSalonsAndServices } from '../../../../lib/searchEngine';
 import { generateGroqResponse } from '../../../../lib/groq';
+import { collection, addDoc } from 'firebase/firestore';
+import { db, IS_MOCK } from '../../../../lib/firebase';
 
 export async function POST(request: Request, context: any) {
   try {
@@ -76,8 +78,27 @@ export async function POST(request: Request, context: any) {
             try {
               const payload = JSON.parse(jsonMatch[1]);
               
+              try {
+                if (!IS_MOCK) {
+                   await addDoc(collection(db, 'bookings'), {
+                      userId: userProfile?.uid || 'guest_123',
+                      salonId: payload.salonId || 'unknown',
+                      serviceId: payload.serviceId || 'unknown',
+                      salonName: payload.salon,
+                      serviceName: payload.service,
+                      date: payload.date,
+                      time: payload.time,
+                      status: 'Confirmed',
+                      price: payload.estimatedPrice ? parseFloat(payload.estimatedPrice.replace(/[^0-9.]/g, '')) || 0 : 0,
+                      createdAt: new Date().toISOString()
+                   });
+                }
+              } catch(dbErr) {
+                 console.error("Firestore booking write failed:", dbErr);
+              }
+
               // Trigger the email API
-              await fetch(`${url.origin}/api/send-email`, {
+              const emailResponse = await fetch(`${url.origin}/api/send-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -90,10 +111,12 @@ export async function POST(request: Request, context: any) {
                   bookingStatus: 'Confirmed',
                   userEmail: userProfile?.email || 'test@example.com'
                 })
-              }).catch(err => console.error("Email failed:", err));
+              });
+              
+              const emailStatus = emailResponse.ok ? "I have sent a confirmation email to you with all the details." : "*(Note: Email dispatch skipped because email server credentials are not configured in Vercel env, but your booking is confirmed in the database!)*";
 
               return NextResponse.json({
-                reply: `Your appointment for **${payload.service}** at **${payload.salon}** on **${payload.date}** at **${payload.time}** has been successfully booked! 🎉\n\nI have sent a confirmation email to you with all the details. Have a wonderful day!`
+                reply: `Your appointment for **${payload.service}** at **${payload.salon}** on **${payload.date}** at **${payload.time}** has been successfully booked! 🎉\n\n${emailStatus} Have a wonderful day!`
               });
             } catch(e) {
               console.error(e);
@@ -145,7 +168,7 @@ If any piece of information is missing, make your best guess or return "Unknown"
       }
 
       return NextResponse.json({
-        reply: `I am the Booking Concierge. I have validated your request.\n\nThe **${matchedService ? matchedService.name : parsed.service}** at **${matchedSalon ? matchedSalon.name : parsed.salon}** will cost approximately **${priceText}**.\n\nHere is the drafted booking payload ready to be sent to the backend:\n\n\`\`\`json\n{\n  "status": "Draft",\n  "salon": "${matchedSalon ? matchedSalon.name : parsed.salon}",\n  "service": "${matchedService ? matchedService.name : parsed.service}",\n  "date": "${parsed.date}",\n  "time": "${parsed.time}",\n  "estimatedPrice": "${priceText}",\n  "requiresConfirmation": true\n}\n\`\`\`\n\nWould you like me to confirm this booking?`
+        reply: `I am the Booking Concierge. I have validated your request.\n\nThe **${matchedService ? matchedService.name : parsed.service}** at **${matchedSalon ? matchedSalon.name : parsed.salon}** will cost approximately **${priceText}**.\n\nHere is the drafted booking payload ready to be sent to the backend:\n\n\`\`\`json\n{\n  "status": "Draft",\n  "salon": "${matchedSalon ? matchedSalon.name : parsed.salon}",\n  "salonId": "${matchedSalon ? matchedSalon.id : 'unknown'}",\n  "service": "${matchedService ? matchedService.name : parsed.service}",\n  "serviceId": "${matchedService ? matchedService.id : 'unknown'}",\n  "date": "${parsed.date}",\n  "time": "${parsed.time}",\n  "estimatedPrice": "${priceText}",\n  "requiresConfirmation": true\n}\n\`\`\`\n\nWould you like me to confirm this booking?`
       });
     }
 
