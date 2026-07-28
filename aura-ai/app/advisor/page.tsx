@@ -26,7 +26,8 @@ import {
   Compass,
   ArrowLeft,
   LogOut,
-  MessageSquare
+  MessageSquare,
+  Store
 } from 'lucide-react';
 
 export default function StyleAdvisor() {

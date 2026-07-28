@@ -15,7 +15,9 @@ import {
   ArrowLeft,
   LogOut,
   Sparkles,
-  Send
+  Send,
+  Store,
+  TrendingUp
 } from 'lucide-react';
 
 interface Message {
