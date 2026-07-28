@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import { detectIntent } from '../../../../lib/intentDetector';
 import { searchAndRank } from '../../../../lib/searchEngine';
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, context: any) {
   try {
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const featureId = pathParts[pathParts.length - 1]; // gets 'intent' from /api/features/intent
+    
     const { message, userProfile, bookings } = await request.json();
-    const featureId = params.id;
 
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
