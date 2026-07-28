@@ -74,6 +74,7 @@ export default function SalonsPage() {
       
       if (category) {
         filtered = filtered.filter(s => 
+          s.categories?.some((c: string) => c.toLowerCase() === category.toLowerCase()) || 
           s.services.some(svc => svc.category.toLowerCase() === category.toLowerCase())
         );
       }
@@ -141,7 +142,9 @@ export default function SalonsPage() {
               <option value="hair">Hair</option>
               <option value="skin">Skin</option>
               <option value="bridal">Bridal</option>
+              <option value="nails">Nails</option>
               <option value="spa">Spa</option>
+              <option value="premium">Premium</option>
             </select>
 
             <select 

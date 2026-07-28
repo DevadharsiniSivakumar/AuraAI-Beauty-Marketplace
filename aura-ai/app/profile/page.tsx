@@ -314,7 +314,7 @@ export default function ProfilePage() {
                     : 'border-transparent text-charcoal-400 hover:text-charcoal-650 dark:hover:text-white'
                 }`}
               >
-                Bookings ({bookings.length})
+                Bookings ({userBookings.length})
               </button>
               <button
                 type="button"

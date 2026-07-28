@@ -73,7 +73,8 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
     address: '',
     phone: '',
     description: '',
-    category: 'Budget', // Luxury, Home Service, Budget
+    category: 'Budget', // legacy
+    categories: [] as string[],
     status: 'Open'
   });
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
@@ -229,6 +230,7 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
       phone: salon.phone || '',
       description: salon.description || '',
       category: salon.isLuxury ? 'Luxury' : salon.offersHomeService ? 'Home Service' : 'Budget',
+      categories: salon.categories || [],
       status: salon.status || 'Open'
     });
     setSelectedImageFile(null);
@@ -989,18 +991,35 @@ export default function AdminPage({ defaultTab = 'overview' }: { defaultTab?: 'o
                     <option value="Lavelle Road">Lavelle Road</option>
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-mutedtext uppercase mb-1">Service Category</label>
-                  <select 
-                    value={salonFormData.category}
-                    onChange={(e) => setSalonFormData({ ...salonFormData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-xl bg-cream/30 text-sm focus:outline-none focus:border-plum"
-                  >
-                    <option value="Luxury">Luxury</option>
-                    <option value="Home Service">Home Service</option>
-                    <option value="Budget">Budget</option>
-                  </select>
+              <div>
+                <label className="block text-xs font-bold text-mutedtext uppercase mb-1">Salon Categories</label>
+                <div className="flex flex-wrap gap-2">
+                  {['Hair', 'Skin', 'Bridal', 'Nails', 'Spa', 'Premium'].map(cat => {
+                    const isSelected = salonFormData.categories.includes(cat.toLowerCase());
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          const lowerCat = cat.toLowerCase();
+                          if (isSelected) {
+                            setSalonFormData({ ...salonFormData, categories: salonFormData.categories.filter(c => c !== lowerCat) });
+                          } else {
+                            setSalonFormData({ ...salonFormData, categories: [...salonFormData.categories, lowerCat] });
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                          isSelected 
+                            ? 'bg-plum text-warmwhite border-plum' 
+                            : 'bg-cream/30 text-mutedtext border-border hover:border-plum/50'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

@@ -389,7 +389,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     reviews: salonData.reviews,
                     aiReviewSummary: salonData.aiReviewSummary,
                     matchScore: salonData.matchScore,
-                    badges: salonData.badges
+                    badges: salonData.badges,
+                    categories: salonData.categories || []
                   });
                 }
               } else {
@@ -413,6 +414,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     aiReviewSummary: data.aiReviewSummary || { pros: [], cons: [], summary: '' },
                     matchScore: data.matchScore || 95,
                     badges: data.badges || [],
+                    categories: data.categories || [],
                     status: data.status || 'Open'
                   };
                 });
@@ -553,8 +555,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ? salonServices 
         : (MOCK_SALONS.find(m => m.id === salon.id)?.services || []);
 
+      // Auto-generate categories based on services if not explicitly set
+      let categories = salon.categories || [];
+      if (categories.length === 0) {
+        const uniqueCategories = new Set(finalServices.map((s: any) => s.category.toLowerCase()));
+        categories = Array.from(uniqueCategories);
+      } else {
+        categories = categories.map((c: string) => c.toLowerCase());
+      }
+
       return {
         ...salon,
+        categories,
         services: finalServices
       };
     });

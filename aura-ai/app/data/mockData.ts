@@ -42,6 +42,7 @@ export interface Salon {
   };
   matchScore: number;
   badges: string[];
+  categories?: string[];
   status?: string;
 }
 

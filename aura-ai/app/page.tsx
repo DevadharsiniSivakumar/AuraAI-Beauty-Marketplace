@@ -22,12 +22,12 @@ export default function Home() {
 
   // Categories with their semantic colors
   const categories = [
-    { name: 'Hair', color: 'bg-plum/10', textColor: 'text-plum' },
-    { name: 'Skin', color: 'bg-coral/10', textColor: 'text-coral' },
-    { name: 'Bridal', color: 'bg-rose/10', textColor: 'text-rose' },
-    { name: 'Nails', color: 'bg-lavender/10', textColor: 'text-lavender' },
-    { name: 'Spa', color: 'bg-sage/10', textColor: 'text-sage' },
-    { name: 'Premium', color: 'bg-gold/10', textColor: 'text-gold' },
+    { name: 'Hair', color: 'bg-plum/10', textColor: 'text-plum', image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=400&auto=format&fit=crop' },
+    { name: 'Skin', color: 'bg-coral/10', textColor: 'text-coral', image: 'https://images.unsplash.com/photo-1512496015851-a1fafb38a6f4?q=80&w=400&auto=format&fit=crop' },
+    { name: 'Bridal', color: 'bg-rose/10', textColor: 'text-rose', image: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=400&auto=format&fit=crop' },
+    { name: 'Nails', color: 'bg-lavender/10', textColor: 'text-lavender', image: 'https://images.unsplash.com/photo-1519014816548-bf5fe059e98b?q=80&w=400&auto=format&fit=crop' },
+    { name: 'Spa', color: 'bg-sage/10', textColor: 'text-sage', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=400&auto=format&fit=crop' },
+    { name: 'Premium', color: 'bg-gold/10', textColor: 'text-gold', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=400&auto=format&fit=crop' },
   ];
 
   return (
@@ -113,9 +113,8 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((cat, i) => (
               <Link key={cat.name} href={`/salons?category=${cat.name.toLowerCase()}`} className="group flex flex-col gap-3">
-                <div className={`w-full aspect-square rounded-lg ${cat.color} flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.02] border border-border`}>
-                  {/* Subtle visual area instead of identical icons */}
-                  <div className={`w-12 h-12 rounded-full bg-white opacity-50`}></div>
+                <div className={`w-full aspect-square rounded-lg ${cat.color} overflow-hidden flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.02] border border-border relative`}>
+                  <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="flex justify-between items-center">
                   <span className={`font-medium ${cat.textColor}`}>{cat.name}</span>
@@ -139,7 +138,8 @@ export default function Home() {
               {salons.slice(0, 3).map((salon) => (
                 <Link key={salon.id} href={`/salons/${salon.id}`} className="group block bg-white rounded-lg border border-border overflow-hidden hover:border-plum transition-colors duration-200">
                   <div className="aspect-[4/3] bg-border-dark relative overflow-hidden">
-                    <div className="absolute inset-0 bg-sage opacity-20 group-hover:scale-105 transition-transform duration-500"></div>
+                    <img src={salon.image} alt={salon.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium text-darktext">
                       {salon.services[0]?.category || 'Hair & Beauty'}
                     </div>
@@ -243,8 +243,8 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {salons.slice(1, 5).map(salon => (
               <Link key={salon.id} href={`/salons/${salon.id}`} className="group flex flex-col gap-3">
-                <div className="aspect-square bg-border-dark rounded-lg overflow-hidden border border-border">
-                  <div className="w-full h-full bg-peach opacity-20 group-hover:scale-105 transition-transform duration-300"></div>
+                <div className="aspect-square bg-border-dark rounded-lg overflow-hidden border border-border relative">
+                  <img src={salon.image} alt={salon.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
                 <div>
                   <h4 className="font-medium text-darktext">{salon.name}</h4>
