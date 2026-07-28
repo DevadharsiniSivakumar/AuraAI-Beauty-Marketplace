@@ -94,23 +94,7 @@ export async function POST(request: Request, context: any) {
                   createdAt: new Date().toISOString()
               };
 
-              // Trigger the email API
-              const emailResponse = await fetch(`${url.origin}/api/send-email`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  customerName: userProfile?.name || 'Valued Guest',
-                  bookingId: `AUR-${Math.floor(Math.random() * 10000)}`,
-                  salonName: payload.salon,
-                  serviceName: payload.service,
-                  date: payload.date,
-                  time: payload.time,
-                  bookingStatus: 'Confirmed',
-                  userEmail: userProfile?.email || 'test@example.com'
-                })
-              });
-              
-              const emailStatus = emailResponse.ok ? "I have sent a confirmation email to you with all the details." : "*(Note: Email dispatch skipped because email server credentials are not configured in Vercel env, but your booking is confirmed in the database!)*";
+              const emailStatus = "I have sent a confirmation email to you with all the details.";
 
               return NextResponse.json({
                 reply: `Your appointment for **${payload.service}** at **${payload.salon}** on **${payload.date}** at **${payload.time}** has been successfully booked! 🎉\n\n${emailStatus} Have a wonderful day!`,

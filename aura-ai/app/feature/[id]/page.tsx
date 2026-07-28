@@ -98,7 +98,7 @@ export default function FeatureShowcasePage() {
       if (data.newBooking) {
         try {
           // Use the globally integrated addBooking, passing fallbacks to guarantee success even if DB doesn't match perfectly.
-          await addBooking(
+          const result = await addBooking(
             data.newBooking.salonId, 
             data.newBooking.serviceId, 
             data.newBooking.date, 
@@ -106,7 +106,29 @@ export default function FeatureShowcasePage() {
             data.newBooking.salonName,
             data.newBooking.serviceName
           );
-        } catch(err) {
+
+          if (result) {
+            // Trigger confirmation email from frontend, identical to manual booking
+            try {
+              fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  customerName: result.userName,
+                  bookingId: result.id,
+                  salonName: result.salonName,
+                  serviceName: result.serviceName,
+                  date: result.date,
+                  time: result.time,
+                  bookingStatus: 'Confirmed',
+                  userEmail: result.userEmail
+                })
+              });
+            } catch (err) {
+              console.error("Error triggering email send:", err);
+            }
+          }
+        } catch (err) {
           console.error('Failed to save booking via context', err);
         }
       }
