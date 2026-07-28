@@ -323,24 +323,54 @@ export default function DashboardPage() {
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-in fade-in">
               
-              {/* AI Concierge Banner */}
-              <div className="bg-gradient-to-r from-plum to-plum-dark rounded-2xl p-6 md:p-8 text-warmwhite flex flex-col md:flex-row items-center justify-between shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-peach opacity-10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl"></div>
-                <div className="relative z-10 space-y-2 mb-6 md:mb-0">
-                  <h3 className="font-serif text-2xl font-bold flex items-center gap-2">
-                    <MessageSquare className="w-6 h-6 text-peach" />
-                    AI Concierge
-                  </h3>
-                  <p className="text-warmwhite/80 max-w-lg text-sm leading-relaxed">
-                    Need help planning your perfect beauty routine? Chat with our AI concierge for personalized recommendations, style advice, and instant answers.
-                  </p>
+              {/* AI Features Showcase Grid */}
+              <div className="space-y-4">
+                <h3 className="font-serif text-xl font-bold text-darktext border-b border-border pb-2">AI Features Showcase</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  
+                  {/* Intent Analyzer */}
+                  <Link href="/feature/intent" className="bg-gradient-to-br from-plum to-plum-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-warmwhite group">
+                    <MessageSquare className="w-8 h-8 text-peach mb-4 group-hover:scale-110 transition-transform" />
+                    <h4 className="font-serif font-bold text-lg mb-1">Intent Analyzer</h4>
+                    <p className="text-xs text-warmwhite/80">Extracts user intent and specific constraints from natural language.</p>
+                  </Link>
+
+                  {/* Salon Matchmaker */}
+                  <Link href="/feature/recommendation" className="bg-gradient-to-br from-peach to-peach/80 p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
+                    <MapPin className="w-8 h-8 text-plum mb-4 group-hover:scale-110 transition-transform" />
+                    <h4 className="font-serif font-bold text-lg mb-1">Salon Matchmaker</h4>
+                    <p className="text-xs text-darktext/80">Ranks and filters the best salon options based on exact constraints.</p>
+                  </Link>
+
+                  {/* Beauty Planner */}
+                  <Link href="/feature/journey" className="bg-gradient-to-br from-sage to-sage-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
+                    <Compass className="w-8 h-8 text-plum mb-4 group-hover:scale-110 transition-transform" />
+                    <h4 className="font-serif font-bold text-lg mb-1">Beauty Planner</h4>
+                    <p className="text-xs text-darktext/80">Generates a multi-step timeline for major events like weddings.</p>
+                  </Link>
+
+                  {/* Review Intelligence */}
+                  <Link href="/feature/review" className="bg-gradient-to-br from-lavender to-lavender-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
+                    <Star className="w-8 h-8 text-plum mb-4 group-hover:scale-110 transition-transform" />
+                    <h4 className="font-serif font-bold text-lg mb-1">Review Intelligence</h4>
+                    <p className="text-xs text-darktext/80">Analyzes and compares sentiments and pros/cons across top salons.</p>
+                  </Link>
+
+                  {/* Booking Concierge */}
+                  <Link href="/feature/booking" className="bg-gradient-to-br from-rose to-rose-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-warmwhite group">
+                    <Calendar className="w-8 h-8 text-cream mb-4 group-hover:scale-110 transition-transform" />
+                    <h4 className="font-serif font-bold text-lg mb-1">Booking Concierge</h4>
+                    <p className="text-xs text-warmwhite/80">Validates dates and schedules secure appointments seamlessly.</p>
+                  </Link>
+
+                  {/* Selfie Scanner */}
+                  <Link href="/advisor" className="bg-gradient-to-br from-white to-cream p-6 rounded-2xl border-2 border-plum/20 shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
+                    <Camera className="w-8 h-8 text-plum mb-4 group-hover:scale-110 transition-transform" />
+                    <h4 className="font-serif font-bold text-lg mb-1">Selfie Scanner</h4>
+                    <p className="text-xs text-mutedtext">Uses computer vision to extract face shapes and skin profiles.</p>
+                  </Link>
+
                 </div>
-                <Link 
-                  href="/concierge" 
-                  className="relative z-10 shrink-0 bg-white text-plum px-6 py-3 rounded-lg font-bold text-sm hover:bg-peach hover:text-white transition-all shadow-sm"
-                >
-                  Start Conversation
-                </Link>
               </div>
 
               {/* Metrics Grid */}
