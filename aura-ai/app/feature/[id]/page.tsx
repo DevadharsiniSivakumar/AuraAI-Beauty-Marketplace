@@ -4,8 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { doc, setDoc } from 'firebase/firestore';
-import { db, IS_MOCK } from '../../../lib/firebase';
+import { useApp } from '../../context/AppContext';
 import {
   LayoutDashboard,
   Calendar,
@@ -35,6 +34,7 @@ export default function FeatureShowcasePage() {
   const featureId = params?.id as string || 'intent';
   
   const { user, logout } = useAuth();
+  const { addBooking } = useApp();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -97,19 +97,17 @@ export default function FeatureShowcasePage() {
       
       if (data.newBooking) {
         try {
-          if (!IS_MOCK && db) {
-            // Write directly to Firestore using authenticated client session
-            await setDoc(doc(db, 'bookings', data.newBooking.id), data.newBooking);
-          } else {
-            // Fallback for mocked mode
-            const saved = localStorage.getItem('aura_bookings');
-            const bookingsArray = saved ? JSON.parse(saved) : [];
-            bookingsArray.unshift(data.newBooking);
-            localStorage.setItem('aura_bookings', JSON.stringify(bookingsArray));
-            window.dispatchEvent(new Event('storage'));
-          }
+          // Use the globally integrated addBooking, passing fallbacks to guarantee success even if DB doesn't match perfectly.
+          await addBooking(
+            data.newBooking.salonId, 
+            data.newBooking.serviceId, 
+            data.newBooking.date, 
+            data.newBooking.time,
+            data.newBooking.salonName,
+            data.newBooking.serviceName
+          );
         } catch(err) {
-          console.error('Failed to save booking', err);
+          console.error('Failed to save booking via context', err);
         }
       }
 

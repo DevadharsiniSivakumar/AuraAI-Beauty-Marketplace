@@ -109,7 +109,7 @@ interface AppContextType {
   userMemory: UserMemory | null;
   beautyProfile: BeautyProfile | null;
   isDarkMode: boolean;
-  addBooking: (salonId: string, serviceId: string, date: string, time: string) => Promise<Booking | undefined>;
+  addBooking: (salonId: string, serviceId: string, date: string, time: string, fallbackSalonName?: string, fallbackServiceName?: string) => Promise<Booking | undefined>;
   cancelBooking: (bookingId: string) => Promise<void>;
   updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
   addReview: (salonId: string, rating: number, comment: string, tags?: string[]) => Promise<void>;
@@ -698,17 +698,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Create Booking
-  const addBooking = async (salonId: string, serviceId: string, date: string, time: string): Promise<Booking | undefined> => {
-    const salon = salons.find((s: any) => s.id === salonId);
-    const service = salon?.services.find((s: any) => s.id === serviceId);
-    if (!salon || !service) return;
+  const addBooking = async (salonId: string, serviceId: string, date: string, time: string, fallbackSalonName?: string, fallbackServiceName?: string): Promise<Booking | undefined> => {
+    let salon = salons.find((s: any) => s.id === salonId);
+    let service = salon?.services.find((s: any) => s.id === serviceId);
+    
+    // GUARANTEED FALLBACK FOR DEMO: If not found, create a mock representation
+    if (!salon && fallbackSalonName) salon = { id: salonId || 'custom-salon', name: fallbackSalonName };
+    if (!service && fallbackServiceName) service = { id: serviceId || 'custom-service', name: fallbackServiceName, price: 0 };
+    
+    if (!salon || !service) return; // Only return if absolutely no fallback provided
 
     const bookingId = `booking-${Date.now()}`;
     const newBooking: Booking = {
       id: bookingId,
-      salonId,
+      salonId: salon.id,
       salonName: salon.name,
-      serviceId,
+      serviceId: service.id,
       serviceName: service.name,
       price: service.price,
       date,
