@@ -15,12 +15,14 @@ import {
   LogOut,
   Store,
   TrendingUp,
-  Lock
+  Lock,
+  User,
+  ArrowLeft
 } from 'lucide-react';
 
 interface ClientConsoleLayoutProps {
   children: React.ReactNode;
-  activeSidebarItem: 'explore' | 'overview' | 'bookings' | 'saved' | 'journey' | 'scanner' | 'planner' | 'concierge' | 'compare';
+  activeSidebarItem: 'explore' | 'overview' | 'bookings' | 'saved' | 'journey' | 'scanner' | 'planner' | 'concierge' | 'compare' | 'profile';
   headerTitle?: string;
 }
 
@@ -55,18 +57,6 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
         
         {/* Navigation Sidebar List */}
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
-          <Link 
-            href="/salons"
-            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-              activeSidebarItem === 'explore' 
-                ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
-                : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
-            }`}
-          >
-            <Store className="w-4 h-4 text-peach" />
-            Explore Salons
-          </Link>
-
           {isAuthenticated ? (
             <>
               <Link 
@@ -77,8 +67,20 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
                     : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
                 }`}
               >
-                <LayoutDashboard className="w-4 h-4" />
+                <LayoutDashboard className="w-4 h-4 text-peach" />
                 Overview
+              </Link>
+
+              <Link 
+                href="/salons"
+                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
+                  activeSidebarItem === 'explore' 
+                    ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
+                    : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
+                }`}
+              >
+                <Store className="w-4 h-4 text-peach" />
+                Explore Salons
               </Link>
 
               <Link 
@@ -89,7 +91,7 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
                     : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
                 }`}
               >
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 text-peach" />
                 My Bookings
               </Link>
 
@@ -101,7 +103,7 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
                     : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
                 }`}
               >
-                <Heart className="w-4 h-4" />
+                <Heart className="w-4 h-4 text-peach" />
                 Saved Salons
               </Link>
 
@@ -113,8 +115,20 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
                     : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
                 }`}
               >
-                <Compass className="w-4 h-4" />
+                <Compass className="w-4 h-4 text-peach" />
                 Beauty Journey
+              </Link>
+
+              <Link 
+                href="/profile"
+                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
+                  activeSidebarItem === 'profile' 
+                    ? 'bg-cream/15 text-white shadow-xs border-l-4 border-peach font-bold' 
+                    : 'text-warmwhite/75 hover:bg-cream/5 hover:text-white'
+                }`}
+              >
+                <User className="w-4 h-4 text-peach" />
+                My Profile
               </Link>
 
               <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
@@ -159,14 +173,14 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
             <>
               {/* Disabled/Locked items for guests */}
               <div className="pt-4 border-t border-plum-dark/45 my-2"></div>
-              {['Overview', 'My Bookings', 'Saved Salons', 'Beauty Journey', 'Selfie Scanner', 'AI Concierge', 'Compare Salons'].map((item) => (
+              {['Overview', 'Explore Salons', 'My Bookings', 'Saved Salons', 'Beauty Journey', 'My Profile', 'Selfie Scanner', 'AI Concierge', 'Compare Salons'].map((item) => (
                 <Link
                   key={item}
                   href="/login"
                   className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold rounded-xl transition-all duration-200 text-warmwhite/40 hover:bg-cream/5 hover:text-warmwhite/60 cursor-pointer"
                 >
                   <span className="flex items-center gap-3">
-                    <Lock className="w-4 h-4 text-warmwhite/40" />
+                    <Lock className="w-4 h-4 shrink-0 text-peach/50" />
                     {item}
                   </span>
                 </Link>
@@ -177,33 +191,31 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
 
         {/* Sidebar Footer Operations */}
         <div className="p-4 border-t border-plum-dark/50 space-y-1.5 flex-shrink-0">
-          {isAuthenticated ? (
-            <>
-              <button 
-                onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose hover:text-rose-dark transition-colors rounded-lg hover:bg-rose/10 text-left cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" />
-                Log Out Account
-              </button>
-            </>
-          ) : (
-            <Link 
-              href="/login"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-white transition-all duration-200 rounded-xl bg-cream/15 hover:bg-cream/25 text-center justify-center shadow-xs"
+          <Link 
+            href="/"
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-warmwhite/75 hover:text-white transition-colors rounded-lg hover:bg-cream/5 text-left"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Marketplace
+          </Link>
+          {isAuthenticated && (
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose hover:text-rose-dark transition-colors rounded-lg hover:bg-rose/10 text-left cursor-pointer"
             >
-              Sign In to Account
-            </Link>
+              <LogOut className="w-4 h-4" />
+              Log Out Account
+            </button>
           )}
         </div>
       </aside>
 
       {/* Main Workspace */}
-      <div className="flex-grow flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         
         {/* Top Header */}
-        <header className="h-20 bg-white border-b border-border flex items-center justify-between px-8 flex-shrink-0 shadow-xs z-10 w-full">
-          <h2 className="text-xl font-serif font-bold text-darktext capitalize flex items-center gap-2">
+        <header className="h-20 bg-white border-b border-border flex items-center justify-between px-8 flex-shrink-0 shadow-xs z-10">
+          <h2 className="text-xl font-serif font-bold text-darktext capitalize">
             {headerTitle}
           </h2>
           
@@ -213,9 +225,12 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
                 <p className="text-xs font-bold text-darktext">{userName}</p>
                 <p className="text-[10px] text-mutedtext">{user?.email || 'Authenticated client'}</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-plum text-warmwhite flex items-center justify-center font-bold text-sm shadow-md border-2 border-peach">
+              <Link 
+                href="/profile"
+                className="w-10 h-10 rounded-full bg-plum text-warmwhite flex items-center justify-center font-bold text-sm shadow-md border-2 border-peach hover:scale-105 transition-transform cursor-pointer"
+              >
                 {userInitials}
-              </div>
+              </Link>
             </div>
           ) : (
             <Link 

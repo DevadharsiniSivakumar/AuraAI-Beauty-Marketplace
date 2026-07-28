@@ -24,6 +24,37 @@ export default function SalonsPage() {
   // Fake loading state to show skeletons
   const [isLoading, setIsLoading] = useState(true);
 
+  // Compare states
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [isCompareLoaded, setIsCompareLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aura_compare_ids');
+      if (saved) {
+        try {
+          setCompareIds(JSON.parse(saved));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      setIsCompareLoaded(true);
+    }
+  }, []);
+
+  const handleCompareToggle = (id: string) => {
+    let updated;
+    if (compareIds.includes(id)) {
+      updated = compareIds.filter(x => x !== id);
+    } else {
+      updated = [...compareIds, id];
+    }
+    setCompareIds(updated);
+    localStorage.setItem('aura_compare_ids', JSON.stringify(updated));
+  };
+
+  const isComparing = (id: string) => compareIds.includes(id);
+
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => {
@@ -190,12 +221,36 @@ export default function SalonsPage() {
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="mt-3 pt-3 border-t border-border flex justify-between items-center">
-                        <p className="text-sm text-darktext line-clamp-1">{salon.services[0]?.name}</p>
-                        <span className="text-sm font-medium">₹{salon.services[0]?.price}</span>
-                      </div>
                     </Link>
+                    
+                    <div className="mt-3 pt-3 border-t border-border flex justify-between items-center font-sans">
+                      <div className="flex flex-col">
+                        <p className="text-[10px] text-mutedtext">Starting from</p>
+                        <p className="text-sm font-bold text-darktext">₹{salon.services[0]?.price}</p>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCompareToggle(salon.id);
+                          }}
+                          className={`text-[10px] px-2.5 py-1.5 rounded-lg border font-bold transition-all cursor-pointer ${
+                            isComparing(salon.id)
+                              ? 'bg-plum/10 text-plum border-plum/20'
+                              : 'bg-cream/40 hover:bg-cream text-mutedtext border-border'
+                          }`}
+                        >
+                          {isComparing(salon.id) ? '✓ Added' : '+ Compare'}
+                        </button>
+                        <Link
+                          href={`/salons/${salon.id}`}
+                          className="text-[10px] px-3 py-1.5 rounded-lg bg-plum hover:bg-plum-dark text-warmwhite font-bold transition-colors font-sans"
+                        >
+                          View &rarr;
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -214,7 +269,18 @@ export default function SalonsPage() {
               </button>
             </div>
           )}
-        </div>
+        {compareIds.length > 0 && (
+          <div className="fixed bottom-6 right-6 bg-plum text-white px-5 py-3.5 rounded-full shadow-lg z-50 flex items-center gap-3 animate-in slide-in-from-bottom duration-300">
+            <span className="text-xs font-bold font-sans">{compareIds.length} Salons Selected</span>
+            <Link 
+              href="/compare"
+              className="text-xs font-bold bg-peach hover:bg-peach-light text-plum px-3 py-1.5 rounded-full transition-colors font-sans"
+            >
+              Compare Now &rarr;
+            </Link>
+          </div>
+        )}
+      </div>
     </ClientConsoleLayout>
   );
 }

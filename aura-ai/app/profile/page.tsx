@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import ClientConsoleLayout from '../components/ClientConsoleLayout';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -236,10 +235,8 @@ export default function ProfilePage() {
   const userReviews = (reviews as unknown as ProfileReview[]).filter(r => r.author === userProfile.name);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <ClientConsoleLayout activeSidebarItem="profile" headerTitle="My Account Profile">
+      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
@@ -1034,9 +1031,7 @@ export default function ProfilePage() {
 
         </div>
 
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </ClientConsoleLayout>
   );
 }

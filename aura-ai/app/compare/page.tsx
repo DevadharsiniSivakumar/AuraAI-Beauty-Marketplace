@@ -8,26 +8,74 @@ import { useApp } from '../context/AppContext';
 export default function ComparePage() {
   const { salons } = useApp();
   
-  // By default, just compare the first 3 salons for demo purposes if none selected via state
-  const [selectedIds, setSelectedIds] = useState<string[]>([
-    salons[0]?.id,
-    salons[1]?.id,
-    salons[2]?.id
-  ].filter(Boolean) as string[]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aura_compare_ids');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setSelectedIds(parsed);
+          } else {
+            setSelectedIds([salons[0]?.id, salons[1]?.id].filter(Boolean));
+          }
+        } catch (e) {
+          console.error(e);
+          setSelectedIds([salons[0]?.id, salons[1]?.id].filter(Boolean));
+        }
+      } else {
+        setSelectedIds([salons[0]?.id, salons[1]?.id].filter(Boolean));
+      }
+      setIsLoaded(true);
+    }
+  }, [salons]);
+
+  React.useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('aura_compare_ids', JSON.stringify(selectedIds));
+    }
+  }, [selectedIds, isLoaded]);
 
   const compareSalons = selectedIds.map(id => salons.find(s => s.id === id)).filter(Boolean) as any[];
 
   return (
     <ClientConsoleLayout activeSidebarItem="compare" headerTitle="Compare Salons">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        <div className="mb-8 flex justify-between items-end">
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
             <h1 className="font-serif text-3xl md:text-4xl text-darktext mb-2">Compare Salons</h1>
-            <p className="text-mutedtext">Side-by-side analysis of your selected options.</p>
+            <p className="text-mutedtext text-xs">Side-by-side analysis of your selected options.</p>
           </div>
-          <Link href="/salons" className="text-plum text-sm font-medium hover:underline">
-            + Add another salon
-          </Link>
+          <div className="flex flex-wrap items-center gap-3.5 w-full sm:w-auto">
+            <select
+              onChange={(e) => {
+                const id = e.target.value;
+                if (id && !selectedIds.includes(id)) {
+                  setSelectedIds(prev => [...prev, id]);
+                }
+                e.target.value = ''; // Reset dropdown selection
+              }}
+              className="bg-white border border-border text-darktext text-xs font-bold rounded-xl px-4 py-2.5 focus:outline-none focus:border-plum shadow-xs cursor-pointer"
+            >
+              <option value="">+ Add Salon to Compare</option>
+              {salons
+                .filter(s => !selectedIds.includes(s.id))
+                .map(s => (
+                  <option key={s.id} value={s.id}>{s.name} ({s.locality})</option>
+                ))
+              }
+            </select>
+
+            <Link 
+              href="/salons" 
+              className="text-xs font-bold bg-plum hover:bg-plum-dark text-warmwhite px-4 py-2.5 rounded-xl transition-all shadow-xs font-sans text-center"
+            >
+              Browse All Salons
+            </Link>
+          </div>
         </div>
 
         {compareSalons.length > 0 ? (
