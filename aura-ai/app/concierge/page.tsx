@@ -92,7 +92,7 @@ export default function ConciergePage() {
       
       setMessages(prev => [...prev, {
         role: 'assistant',
-        text: data.reply,
+        text: data.reply || data.response || "Sorry, I couldn't generate a response.",
         recommendations: data.recommendations,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
