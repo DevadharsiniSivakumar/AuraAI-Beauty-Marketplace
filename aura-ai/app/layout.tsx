@@ -3,6 +3,7 @@ import "./globals.css";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 import RouteGuard from "./components/RouteGuard";
+import GlobalChatbot from "./components/GlobalChatbot";
 
 export const metadata: Metadata = {
   title: "Aura | Beauty Appointments",
@@ -32,6 +33,7 @@ export default function RootLayout({
           <RouteGuard>
             <AppProvider>
               {children}
+              <GlobalChatbot />
             </AppProvider>
           </RouteGuard>
         </AuthProvider>

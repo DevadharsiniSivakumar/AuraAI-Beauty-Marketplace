@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import GlobalChatbot from './GlobalChatbot';
 import {
   LayoutDashboard,
   Calendar,
@@ -222,8 +221,6 @@ export default function ClientConsoleLayout({ children, activeSidebarItem, heade
           {children}
         </main>
       </div>
-
-      <GlobalChatbot />
     </div>
   );
 }

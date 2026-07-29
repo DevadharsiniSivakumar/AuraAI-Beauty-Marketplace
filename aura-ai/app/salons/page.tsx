@@ -282,7 +282,7 @@ export default function SalonsPage() {
             </div>
           )}
         {compareIds.length > 0 && (
-          <div className="fixed bottom-6 right-6 bg-plum text-white px-5 py-3.5 rounded-full shadow-lg z-50 flex items-center gap-3 animate-in slide-in-from-bottom duration-300">
+          <div className="fixed bottom-24 right-6 bg-plum text-white px-5 py-3.5 rounded-full shadow-lg z-50 flex items-center gap-3 animate-in slide-in-from-bottom duration-300">
             <span className="text-xs font-bold font-sans">{compareIds.length} Salons Selected</span>
             <Link 
               href="/compare"
