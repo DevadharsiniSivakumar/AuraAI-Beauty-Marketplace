@@ -90,11 +90,10 @@ export async function POST(request: Request) {
       lowerQuery.includes(' vs ');
 
     const isRecommendationRequested = 
-      (parsedQuery.intent === 'service_search' ||
-       parsedQuery.intent === 'salon_search' ||
-       parsedQuery.intent === 'salon_comparison' ||
-       parsedQuery.intent === 'booking_help') &&
-      isExplicitRecommendationQuery;
+      parsedQuery.intent === 'service_search' ||
+      parsedQuery.intent === 'salon_search' ||
+      parsedQuery.intent === 'salon_comparison' ||
+      ((parsedQuery.intent === 'booking_help' || parsedQuery.intent === 'general_query') && isExplicitRecommendationQuery);
 
     const recommendations = isRecommendationRequested
       ? await searchAndRank(parsedQuery, clientProfile, clientBookings)

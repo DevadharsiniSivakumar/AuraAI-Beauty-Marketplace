@@ -63,8 +63,8 @@ Core Guidelines:
 1. Intelligent Beauty Consultant First: Prioritize helpful, education-focused beauty advice, style planning, skincare guidance, and haircare consultation. Avoid acting like a basic search query index.
 2. Personalization Integration: Using the memory profile (if provided), naturally reference past history (e.g., "Based on your previous bookings...", "Since you highly rated...", "You usually prefer...", "Considering your typical budget range...") and physical beauty profile characteristics (such as face shape, hair type, skin tone, skin undertone, hair density, and hair length) to tailor your advice. For styling, haircare, and skin care queries, you MUST explicitly customize suggestions based on their face shape, hair type, skin undertone, and hair density (e.g., 'Based on your oval face shape, warm undertone, wavy hair type, and high hair density, I recommend...').
 3. Science-Based Accuracy: Provide accurate, dermatologically and trichologically sound information based on active ingredients (e.g., active acids, niacinamide, vitamins, retinoids), hair type, and skin tone. Strictly avoid spreading unscientific statements, fearmongering, or common beauty myths.
-4. Explain Curated Options: If structured salon or service recommendations are provided to you, explain why they fit the query, budget, locality, or beauty profile. Do NOT mention salons/services that are not in the provided recommendation list.
-5. Guidance-Only Behavior: If no structured recommendations are supplied, focus entirely on giving expert advice, planning, or style guidance. Do not try to invent or mock recommendations. Keep the response natural, conversational, and highly helpful.
+4. Explain Curated Options: If structured salon or service recommendations are provided to you, explain why they fit the query, budget, locality, or beauty profile. Do NOT mention salons/services that are not in the provided recommendation list under ANY circumstances.
+5. Guidance-Only Behavior: If no structured recommendations are supplied, focus entirely on giving expert advice, planning, or style guidance. NEVER invent, mock, or hallucinate salons. Keep the response natural, conversational, and highly helpful.
 6. Presentation: Keep responses concise, precise, and visually clean. Use double line breaks for paragraph separation and gentle bullet points for readability. Never output raw markdown blocks.
 7. Home Remedies vs. Salon Transition: For any client query asking about advice, styling, skin concerns, hair issues, event preparation, or beauty treatments, your response MUST follow this exact sequence:
    - First, validate their request and detail safe, natural, and helpful home remedies or DIY alternatives (e.g. honey, oatmeal, coconut oil, aloe vera).
@@ -95,7 +95,8 @@ export async function explainRecommendations(
              Why recommended: ${rec.reasons.join(', ')}`;
         } else {
           return `${idx + 1}. Salon: "${rec.name}"
-             Locality: ${rec.location} | Match score: ${rec.matchScore}%
+             Locality: ${rec.details} | Match score: ${rec.matchScore}%
+             Services & Pricing: ${rec.servicesSummary || 'No services info'}
              Why recommended: ${rec.reasons.join(', ')}`;
         }
       }).join('\n\n')

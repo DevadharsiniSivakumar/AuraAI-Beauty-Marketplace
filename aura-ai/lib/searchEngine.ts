@@ -12,6 +12,7 @@ export interface RecommendationResult {
   matchScore: number;
   reasons: string[];
   memoryIndicator?: string;
+  servicesSummary?: string; // Quick list of services for the prompt
 }
 
 /**
@@ -309,10 +310,17 @@ export async function searchAndRank(
         reasons.push('Matches premium budget settings');
       }
 
-      // Reviews summary context
-      if (salon.aiReviewSummary?.pros?.length > 0) {
-        reasons.push(`Highly reviewed for: ${salon.aiReviewSummary.pros[0]}`);
+      // Favorite list memory check
+      if (userFavSalons.includes(salon.id)) {
+        score += 10;
+        memoryIndicator = 'From your saved favorite salons';
       }
+
+      // Build services summary
+      const servicesSummary = salon.services
+        .slice(0, 5)
+        .map(s => `${s.name} (₹${s.price})`)
+        .join(', ');
 
       results.push({
         type: 'salon',
@@ -321,7 +329,8 @@ export async function searchAndRank(
         details: salon.locality,
         matchScore: Math.min(score, 99),
         reasons,
-        memoryIndicator
+        memoryIndicator,
+        servicesSummary
       });
     });
   }
