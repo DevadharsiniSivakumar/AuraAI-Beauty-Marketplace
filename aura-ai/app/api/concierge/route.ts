@@ -149,6 +149,41 @@ export async function POST(request: Request) {
       }
     }
 
+    // 2.5 Generate Review Analysis
+    let reviewAnalysis = undefined;
+    if (parsedQuery.intent === 'review_analysis' || lowerQuery.includes('review')) {
+      try {
+        const { getSalonsAndServices } = await import('../../../lib/searchEngine');
+        const allSalons = await getSalonsAndServices();
+        let targetSalons = allSalons;
+        
+        if (parsedQuery.queriedSalons.length > 0) {
+          targetSalons = allSalons.filter(s => parsedQuery.queriedSalons.includes(s.id));
+        } else if (recommendations.length > 0) {
+          const recIds = recommendations.map(r => r.salonId || r.id);
+          targetSalons = allSalons.filter(s => recIds.includes(s.id));
+        }
+        
+        if (targetSalons.length > 2) {
+          targetSalons = targetSalons.slice(0, 2); // Keep scope manageable
+        }
+
+        const hasApiKey = !!process.env.GROQ_API_KEY;
+        if (hasApiKey && targetSalons.length > 0) {
+          try {
+            const { generateReviewAnalysis } = await import('../../../lib/groq');
+            reviewAnalysis = await generateReviewAnalysis(targetSalons);
+            // Ensure intent is correctly set for the narrator
+            parsedQuery.intent = 'review_analysis';
+          } catch (apiErr) {
+            console.error('Groq review analysis failed:', apiErr);
+          }
+        }
+      } catch (err) {
+        console.error('Error generating review analysis in concierge route:', err);
+      }
+    }
+
     // 3. Generate Groq Narrative Explanation
     let aiResponse = '';
     const hasApiKey = !!process.env.GROQ_API_KEY;
@@ -160,7 +195,8 @@ export async function POST(request: Request) {
           message,
           parsedQuery.intent,
           recommendations,
-          memoryContext
+          memoryContext,
+          reviewAnalysis
         );
       } catch (apiError: any) {
         console.error('Groq API Error, falling back to simulated explanation:', apiError);
@@ -174,9 +210,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       requestId: `req-fallback-${Date.now()}`,
       intent: parsedQuery.intent,
-      agentsUsed: ['intent', recommendations.length > 0 ? 'recommendation' : 'narrator'],
+      agentsUsed: ['intent', recommendations.length > 0 ? 'recommendation' : 'narrator', reviewAnalysis ? 'review' : ''].filter(Boolean),
       recommendations,
       comparison,
+      reviewAnalysis,
       response: aiResponse,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });

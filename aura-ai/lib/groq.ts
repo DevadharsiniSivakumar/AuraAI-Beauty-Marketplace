@@ -82,6 +82,7 @@ export async function explainRecommendations(
   intent: string,
   recommendations: any[],
   memoryContext?: string,
+  reviewAnalysis?: any,
   model?: string
 ): Promise<string> {
   const systemPrompt = getLuxurySystemPrompt(userName, intent, memoryContext);
@@ -100,18 +101,23 @@ export async function explainRecommendations(
       }).join('\n\n')
     : 'None. No salon or service matches were requested or found.';
 
-  const userPrompt = recommendations.length > 0
+  let contextBlocks = '';
+  if (recommendations.length > 0) {
+    contextBlocks += `\nStructured Matches Found:\n${recommendationsText}\n`;
+  }
+  if (reviewAnalysis) {
+    contextBlocks += `\nReview Intelligence Analysis:\n${JSON.stringify(reviewAnalysis, null, 2)}\n`;
+  }
+
+  const userPrompt = contextBlocks.trim().length > 0
     ? `Client Query: "${userQuery}"
 Detected Intent: "${intent}"
-
-Structured Matches Found:
-${recommendationsText}
-
-Aura, please explain these recommendations to the client, explaining why they match their profile or search query.`
+${contextBlocks}
+Aura, please synthesize this information into a cohesive, premium consultation narrative. Introduce the recommendations or review insights naturally without mentioning technical AI agents.`
     : `Client Query: "${userQuery}"
 Detected Intent: "${intent}"
 
-No matching recommendations were requested or provided.
+No matching recommendations or reviews were requested or provided.
 Aura, please answer the client's query directly as an expert beauty consultant. Provide scientific, helpful guidance, education, or style tips as appropriate, without recommending specific salons.`;
 
   const messages: GroqMessage[] = [
@@ -420,4 +426,47 @@ Please generate the structured comparison JSON based on the metrics.`;
   ];
 
   return generateGroqResponse(messages, 'llama-3.3-70b-versatile', 2500, { type: 'json_object' });
+}
+
+/**
+ * Generate Review Intelligence analysis using Groq.
+ */
+export async function generateReviewAnalysis(
+  targetSalons: any[]
+): Promise<any> {
+  const systemPrompt = `You are the Review Intelligence Agent for Aura beauty platform.
+Your task is to analyze real customer reviews for the target salons.
+Highlight repeated patterns, specific strengths, weaknesses, and service-specific feedback.
+If a salon has very few or no reviews, call this out honestly.
+You MUST respond with a single valid JSON object matching this schema:
+{
+  "overallSummary": string,
+  "salonsFeedback": [
+    {
+      "salonName": string,
+      "overallSentiment": "Positive" | "Neutral" | "Negative",
+      "evidenceCount": number,
+      "topStrengths": string[],
+      "repeatedComplaints": string[],
+      "serviceSpecificThemes": string[]
+    }
+  ]
+}`;
+
+  const reviewsPayload = targetSalons.map(salon => ({
+    salonName: salon.name,
+    reviewsCount: salon.reviews?.length || 0,
+    rating: salon.rating,
+    reviews: (salon.reviews || []).slice(0, 5).map((r: any) => ({ rating: r.rating, comment: r.comment }))
+  }));
+
+  const userPrompt = `Target Salons & Reviews:\n${JSON.stringify(reviewsPayload, null, 2)}`;
+  
+  const messages: GroqMessage[] = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+
+  const responseStr = await generateGroqResponse(messages, 'llama-3.3-70b-versatile', 1500, { type: 'json_object' });
+  return JSON.parse(responseStr);
 }
