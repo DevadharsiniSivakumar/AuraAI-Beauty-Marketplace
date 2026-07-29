@@ -234,7 +234,8 @@ class AIOrchestrator:
             f"{json.dumps(context_data, indent=2)}\n\n"
             f"Please synthesize this into a single, cohesive, premium consultation narrative. "
             f"Introduce the recommendations, beauty journey steps, review insights, or booking actions "
-            f"pleasingly, matching your luxurious tone. Do not mention technical agent names."
+            f"pleasingly, matching your luxurious tone. Do not mention technical agent names.\n"
+            f"IMPORTANT: When presenting Review Intelligence or Salon comparisons, do NOT use markdown formatting like asterisks (*) or hashes (#). Format it as clean, simple conversational prose."
         )
 
         messages = [

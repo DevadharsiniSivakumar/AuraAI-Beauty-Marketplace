@@ -92,11 +92,11 @@ export async function analyzeSelfieImage(base64Image: string): Promise<BeautyPro
   const promptText = `You are a professional dermatological and hair care AI vision engine.
 Analyze the uploaded selfie image and extract:
 1. Face Shape (e.g. Oval, Round, Square, Heart, Oblong, Diamond)
-2. Hair Type (e.g. 1A Straight, 2C Wavy, 3B Curly, 4C Coily)
+2. Hair Type (e.g. 1A Straight, 2C Wavy, 3B Curly, 4C Coily) - BE VERY PRECISE AND ACCURATE.
 3. Hair Density (e.g. Low, Medium, High)
 4. Skin Tone (e.g. Fair, Medium, Olive, Deep, Bronze)
 5. Skin Undertone (e.g. Cool, Warm, Neutral)
-6. Beauty Profile Summary (An elegant 2-3 sentence luxury beauty description outlining features. Keep it positive and professional.)
+6. Beauty Profile Summary (An elegant 2-3 sentence luxury beauty description outlining features. MUST EXPLICITLY state the Skin Condition here, e.g., acne-prone face, oily, dry, normal, or clear skin, and re-iterate the hair type accurately. Keep it positive and professional.)
 7. Recommended Hairstyles (An array of exactly 3 suitable hairstyles)
 8. Recommended Treatments (An array of exactly 3 suitable skin or hair salon treatments, e.g. Hydra Facial, Keratin Treatment, Hair Spa)
 9. Recommended Makeup Styles (An array of exactly 3 suitable makeup styling/color suggestions)

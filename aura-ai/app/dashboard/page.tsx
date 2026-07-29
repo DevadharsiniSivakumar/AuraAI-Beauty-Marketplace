@@ -343,11 +343,11 @@ export default function DashboardPage() {
                   </Link>
 
                   {/* Beauty Planner */}
-                  <Link href="/dashboard?tab=journey" className="bg-gradient-to-br from-sage to-sage-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
+                  <button onClick={() => setActiveTab('journey')} className="text-left w-full bg-gradient-to-br from-sage to-sage-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
                     <Compass className="w-8 h-8 text-plum mb-4 group-hover:scale-110 transition-transform" />
                     <h4 className="font-serif font-bold text-lg mb-1">Beauty Planner</h4>
                     <p className="text-xs text-darktext/80">Generates a multi-step timeline for major events like weddings.</p>
-                  </Link>
+                  </button>
 
                   {/* Review Intelligence */}
                   <Link href="/feature/review" className="bg-gradient-to-br from-lavender to-lavender-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">
