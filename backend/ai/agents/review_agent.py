@@ -97,24 +97,7 @@ class ReviewAgent(BaseAgent):
                 state.agent_results["review_analysis"] = analysis
                 return state
             except Exception as e:
-                logger.error(f"Error in LLM review analysis: {e}. Falling back to rule-based summary.")
-        
-        # Fallback implementation
-        salons_feedback = []
-        for salon in target_salons:
-            summary_info = salon.get("aiReviewSummary", {})
-            reviews = salon.get("reviews", [])
-            salons_feedback.append({
-                "salonName": salon.get("name"),
-                "overallSentiment": "Positive" if salon.get("rating", 0) >= 4.7 else "Neutral",
-                "evidenceCount": len(reviews),
-                "topStrengths": summary_info.get("pros", ["Friendly staff", "Clean environment"])[:3],
-                "repeatedComplaints": summary_info.get("cons", ["Weekend waiting times"])[:1],
-                "serviceSpecificThemes": summary_info.get("popularServices", ["Facial"])
-            })
-
-        state.agent_results["review_analysis"] = {
-            "overallSummary": f"Consensus analysis compiled from {len(target_salons)} salons based on local database review indicators.",
-            "salonsFeedback": salons_feedback
-        }
-        return state
+                logger.error(f"Error in LLM review analysis: {e}. Cannot proceed.")
+                raise e
+        else:
+            raise RuntimeError("No API key configured. Live AI requires an API key.")

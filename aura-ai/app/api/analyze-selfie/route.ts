@@ -109,24 +109,16 @@ export async function POST(request: Request) {
     ];
 
     if (hasApiKey) {
-      try {
-        const result = await analyzeSelfieImage(image);
-        
-        // If the vision engine detected a validation error, return it
-        if (result.error) {
-          return NextResponse.json({ error: result.error }, { status: 422 });
-        }
-
-        return NextResponse.json(result);
-      } catch (err: any) {
-        console.error('Error invoking vision analyzer, falling back to curated simulation:', err);
-        const index = image.length % curatedProfiles.length;
-        return NextResponse.json(curatedProfiles[index]);
+      const result = await analyzeSelfieImage(image);
+      
+      // If the vision engine detected a validation error, return it
+      if (result.error) {
+        return NextResponse.json({ error: result.error }, { status: 422 });
       }
+
+      return NextResponse.json(result);
     } else {
-      console.warn('No vision API keys found. Operating in simulated fallback mode.');
-      const index = image.length % curatedProfiles.length;
-      return NextResponse.json(curatedProfiles[index]);
+      throw new Error('No vision API keys found. Live AI requires an API key.');
     }
 
   } catch (error: any) {
