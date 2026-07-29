@@ -178,8 +178,8 @@ class BeautyProfileService:
                     recommendedMakeupStyles=data.get("recommendedMakeupStyles", [])
                 )
             except Exception as e:
-                logger.error(f"Error invoking vision analyzer, falling back to curated simulation: {e}")
-                return cls.get_fallback_profile(len(base64_image))
+                logger.error(f"Error invoking vision analyzer: {e}")
+                raise e
         else:
-            logger.warning("No vision API keys found. Operating in simulated fallback mode.")
-            return cls.get_fallback_profile(len(base64_image))
+            logger.warning("No vision API keys found.")
+            raise ValueError("No vision API keys found. Live AI requires an API key.")
