@@ -326,14 +326,31 @@ export default function DashboardPage() {
               {/* AI Features Showcase Grid */}
               <div className="space-y-4">
                 <h3 className="font-serif text-xl font-bold text-darktext border-b border-border pb-2">AI Features Showcase</h3>
+                
+                {/* AI Concierge Banner */}
+                <div className="bg-gradient-to-r from-plum to-[#2D1F3F] p-8 rounded-2xl shadow-lg relative overflow-hidden mb-6 flex flex-col md:flex-row items-center justify-between">
+                  <div className="z-10 text-white max-w-2xl">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Sparkles className="w-6 h-6 text-peach animate-pulse" />
+                      <h3 className="font-serif text-2xl font-bold">Multi-Agent AI Concierge</h3>
+                    </div>
+                    <p className="text-warmwhite/90 text-sm mb-6 leading-relaxed">
+                      Your unified beauty intelligence platform. Acting as a master orchestrator, the Concierge automatically handles <span className="font-semibold text-peach">review intelligence, salon comparisons, intent analysis, and personalized beauty planning</span>. 
+                      It runs silently in the background, routing your queries to specialized agents and returning clear, actionable answers.
+                    </p>
+                    {/* The concierge is also available globally via the bottom right floating widget */}
+                  </div>
+                  <div className="z-10 mt-6 md:mt-0">
+                    <Link href="/concierge" className="bg-peach text-plum font-bold px-6 py-3 rounded-full hover:bg-white transition-colors shadow-md flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5" />
+                      Open Full Screen Chat
+                    </Link>
+                  </div>
+                  {/* Decorative background element */}
+                  <div className="absolute -right-20 -top-20 w-64 h-64 bg-peach rounded-full opacity-10 blur-3xl"></div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  
-                  {/* Intent Analyzer */}
-                  <Link href="/feature/intent" className="bg-gradient-to-br from-plum to-plum-dark p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-warmwhite group">
-                    <MessageSquare className="w-8 h-8 text-peach mb-4 group-hover:scale-110 transition-transform" />
-                    <h4 className="font-serif font-bold text-lg mb-1">Intent Analyzer</h4>
-                    <p className="text-xs text-warmwhite/80">Extracts user intent and specific constraints from natural language.</p>
-                  </Link>
 
                   {/* Salon Matchmaker */}
                   <Link href="https://aura-beautyplace.vercel.app/compare" className="bg-gradient-to-br from-peach to-peach/80 p-6 rounded-2xl shadow-md hover:shadow-lg transition-transform hover:-translate-y-1 text-darktext group">

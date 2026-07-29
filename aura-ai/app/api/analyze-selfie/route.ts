@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const hasApiKey = !!(process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.OPENAI_API_KEY);
+    const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.GOOGLE_API_KEY || process.env.OPENAI_API_KEY);
 
     // Pre-curated, premium luxury beauty profiles for simulated fallbacks
     const curatedProfiles = [
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
 
     if (hasApiKey) {
       const result = await analyzeSelfieImage(image);
-      
+
       // If the vision engine detected a validation error, return it
       if (result.error) {
         return NextResponse.json({ error: result.error }, { status: 422 });
@@ -123,8 +123,8 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Error in analyze-selfie endpoint:', error);
-    return NextResponse.json({ 
-      error: 'Selfie analysis failed.', 
+    return NextResponse.json({
+      error: 'Selfie analysis failed.',
       details: error.message || String(error)
     }, { status: 500 });
   }
