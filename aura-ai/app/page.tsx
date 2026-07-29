@@ -23,9 +23,9 @@ export default function Home() {
   // Categories with their semantic colors
   const categories = [
     { name: 'Hair', color: 'bg-plum/10', textColor: 'text-plum', image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=400&auto=format&fit=crop' },
-    { name: 'Skin', color: 'bg-coral/10', textColor: 'text-coral', image: 'https://images.unsplash.com/photo-1512496015851-a1fafb38a6f4?q=80&w=400&auto=format&fit=crop' },
+    { name: 'Skin', color: 'bg-coral/10', textColor: 'text-coral', image: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=400&auto=format&fit=crop' },
     { name: 'Bridal', color: 'bg-rose/10', textColor: 'text-rose', image: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=400&auto=format&fit=crop' },
-    { name: 'Nails', color: 'bg-lavender/10', textColor: 'text-lavender', image: 'https://images.unsplash.com/photo-1519014816548-bf5fe059e98b?q=80&w=400&auto=format&fit=crop' },
+    { name: 'Nails', color: 'bg-lavender/10', textColor: 'text-lavender', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=400&auto=format&fit=crop' },
     { name: 'Spa', color: 'bg-sage/10', textColor: 'text-sage', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=400&auto=format&fit=crop' },
     { name: 'Premium', color: 'bg-gold/10', textColor: 'text-gold', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=400&auto=format&fit=crop' },
   ];
