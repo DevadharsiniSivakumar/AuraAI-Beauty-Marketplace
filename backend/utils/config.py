@@ -25,7 +25,7 @@ class Settings:
     GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
     # Llama 3.2 vision fallback
     GROQ_VISION_MODEL: str = os.getenv("GROQ_VISION_MODEL", "llama-3.2-90b-vision-preview")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
     # Provider setting (e.g. "groq", "gemini", "openai")
