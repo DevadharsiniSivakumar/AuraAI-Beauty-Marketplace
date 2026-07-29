@@ -85,12 +85,12 @@ export default function Home() {
             <div className="w-full md:w-[45%] relative h-[400px] md:h-[500px]">
               {/* Main Image */}
               <div className="absolute top-0 right-0 w-[85%] h-[90%] bg-border-dark rounded-lg overflow-hidden shadow-sm">
-                <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=800&auto=format&fit=crop" alt="Luxury Salon Interior" className="w-full h-full object-cover" />
+                <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800&auto=format&fit=crop" alt="Vibrant Spa Interior" className="w-full h-full object-cover" />
               </div>
               {/* Supporting Image */}
               <div className="absolute bottom-0 left-0 w-[55%] h-[45%] bg-white rounded-lg p-2 shadow-sm border border-border">
                 <div className="w-full h-full bg-peach flex items-center justify-center rounded overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?q=80&w=600&auto=format&fit=crop" alt="Stylist at work" className="w-full h-full object-cover" />
+                  <img src="https://images.unsplash.com/photo-1596704017254-9b121068fb31?q=80&w=600&auto=format&fit=crop" alt="Vibrant Beauty" className="w-full h-full object-cover" />
                 </div>
               </div>
               {/* Real Data Element */}
