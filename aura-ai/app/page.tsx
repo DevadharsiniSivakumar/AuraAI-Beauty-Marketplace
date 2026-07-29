@@ -25,7 +25,7 @@ export default function Home() {
     { name: 'Hair', color: 'bg-plum/10', textColor: 'text-plum', image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=400&auto=format&fit=crop' },
     { name: 'Skin', color: 'bg-coral/10', textColor: 'text-coral', image: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=400&auto=format&fit=crop' },
     { name: 'Bridal', color: 'bg-rose/10', textColor: 'text-rose', image: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=400&auto=format&fit=crop' },
-    { name: 'Nails', color: 'bg-lavender/10', textColor: 'text-lavender', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=400&auto=format&fit=crop' },
+    { name: 'Nails', color: 'bg-lavender/10', textColor: 'text-lavender', image: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=400&auto=format&fit=crop' },
     { name: 'Spa', color: 'bg-sage/10', textColor: 'text-sage', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=400&auto=format&fit=crop' },
     { name: 'Premium', color: 'bg-gold/10', textColor: 'text-gold', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=400&auto=format&fit=crop' },
   ];
@@ -83,17 +83,14 @@ export default function Home() {
 
             {/* Right 45% */}
             <div className="w-full md:w-[45%] relative h-[400px] md:h-[500px]">
-              {/* Main Image Placeholder */}
+              {/* Main Image */}
               <div className="absolute top-0 right-0 w-[85%] h-[90%] bg-border-dark rounded-lg overflow-hidden shadow-sm">
-                {/* Simulated image content */}
-                <div className="w-full h-full bg-sage flex items-center justify-center opacity-30">
-                  <span className="text-sage text-opacity-80 font-medium">Salon Interior</span>
-                </div>
+                <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=800&auto=format&fit=crop" alt="Luxury Salon Interior" className="w-full h-full object-cover" />
               </div>
-              {/* Supporting Image Placeholder */}
+              {/* Supporting Image */}
               <div className="absolute bottom-0 left-0 w-[55%] h-[45%] bg-white rounded-lg p-2 shadow-sm border border-border">
-                <div className="w-full h-full bg-peach flex items-center justify-center rounded overflow-hidden opacity-40">
-                  <span className="text-peach text-opacity-80 font-medium text-sm">Stylist</span>
+                <div className="w-full h-full bg-peach flex items-center justify-center rounded overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?q=80&w=600&auto=format&fit=crop" alt="Stylist at work" className="w-full h-full object-cover" />
                 </div>
               </div>
               {/* Real Data Element */}
@@ -113,13 +110,12 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((cat, i) => (
               <Link key={cat.name} href={`/salons?category=${cat.name.toLowerCase()}`} className="group flex flex-col gap-3">
-                <div className={`w-full aspect-square rounded-lg ${cat.color} overflow-hidden flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.02] border border-border relative`}>
-                  <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                <div className="w-full aspect-square rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.02] border border-border relative overflow-hidden bg-cream">
+                  <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className={`font-medium ${cat.textColor}`}>{cat.name}</span>
-                  {/* Fake count just for layout realism, but using length to imply data */}
-                  <span className="text-xs text-mutedtext">{12 + i * 3}</span>
+                <div className="flex justify-start items-center">
+                  <span className={`font-semibold ${cat.textColor}`}>{cat.name}</span>
                 </div>
               </Link>
             ))}
