@@ -91,15 +91,33 @@ class IntentAgent(BaseAgent):
             data = json.loads(cleaned)
             
             # Map LLM entities to match existing fallback fields
+            llm_salons = data.get("entities", {}).get("salon_names", [])
+            mapped_salons = fallback_data["queriedSalons"].copy()
+            if isinstance(llm_salons, list):
+                # Simple mapping heuristic
+                for s in llm_salons:
+                    s_low = s.lower()
+                    if "bounce" in s_low and "bounce-salon-koramangala" not in mapped_salons:
+                        mapped_salons.append("bounce-salon-koramangala")
+                    elif "play" in s_low and "play-salon" not in mapped_salons:
+                        mapped_salons.append("play-salon")
+                    elif "bodycraft" in s_low and "bodycraft-salon-spa" not in mapped_salons:
+                        mapped_salons.append("bodycraft-salon-spa")
+
+            # Force review_analysis intent if the user explicitly asks for reviews
+            primary_intent = data.get("primaryIntent", fallback_data["intent"])
+            if "review" in state.message.lower() and primary_intent != "review_analysis":
+                primary_intent = "review_analysis"
+
             mapped_data = {
-                "intent": data.get("primaryIntent", fallback_data["intent"]),
+                "intent": primary_intent,
                 "secondaryIntents": data.get("secondaryIntents", []),
                 "locality": data.get("entities", {}).get("location") or fallback_data["locality"],
                 "maxPrice": data.get("entities", {}).get("budget") or fallback_data["maxPrice"],
                 "isLuxury": "luxury" in str(data.get("entities", {}).get("preferences", "")).lower() or fallback_data["isLuxury"],
                 "offersHomeService": "home" in str(data.get("entities", {}).get("preferences", "")).lower() or fallback_data["offersHomeService"],
                 "serviceKeywords": [data.get("entities", {}).get("service")] if data.get("entities", {}).get("service") else fallback_data["serviceKeywords"],
-                "queriedSalons": fallback_data["queriedSalons"] # Resolve ids from standard patterns
+                "queriedSalons": mapped_salons
             }
             
             # Merge extracted entities into state
