@@ -1,5 +1,5 @@
 export interface ParsedQuery {
-  intent: 'service_search' | 'salon_search' | 'salon_comparison' | 'beauty_planning' | 'style_advice' | 'booking_help' | 'general_query';
+  intent: 'service_search' | 'salon_search' | 'salon_comparison' | 'beauty_planning' | 'style_advice' | 'booking_help' | 'review_analysis' | 'general_query';
   locality: string | null;
   maxPrice: number | null;
   isLuxury: boolean;
@@ -73,6 +73,8 @@ export function detectIntent(query: string): ParsedQuery {
 
   if (text.includes('compare') || text.includes('versus') || text.includes(' vs ') || text.includes('difference between') || (queriedSalons.length >= 2)) {
     intent = 'salon_comparison';
+  } else if (text.includes('review') || text.includes('feedback') || text.includes('rating') || text.includes('experiences')) {
+    intent = 'review_analysis';
   } else if (text.includes('book') || text.includes('appointment') || text.includes('schedule') || text.includes('cancel') || text.includes('reserve') || text.includes('visit')) {
     intent = 'booking_help';
   } else if (text.includes('wedding') || text.includes('marriage') || text.includes('event') || text.includes('party') || text.includes('plan') || text.includes('bridal') || text.includes('bride')) {
