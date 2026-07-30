@@ -343,7 +343,7 @@ export default function DashboardPage() {
                   <div className="z-10 mt-6 md:mt-0">
                     <Link href="/concierge" className="bg-peach text-plum font-bold px-6 py-3 rounded-full hover:bg-white transition-colors shadow-md flex items-center gap-2">
                       <MessageSquare className="w-5 h-5" />
-                      Open Full Screen Chat
+                      Try Now
                     </Link>
                   </div>
                   {/* Decorative background element */}
