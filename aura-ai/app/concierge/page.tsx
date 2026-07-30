@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 import {
   LayoutDashboard,
   Calendar,
@@ -30,6 +31,7 @@ interface Message {
 export default function ConciergePage() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { userProfile, bookings, beautyProfile, userMemory } = useApp();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -85,7 +87,14 @@ export default function ConciergePage() {
       const response = await fetch('/api/concierge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg.text, context: "concierge" })
+        body: JSON.stringify({ 
+          message: userMsg.text, 
+          context: "concierge",
+          userProfile,
+          bookings,
+          beautyProfile,
+          userMemory
+        })
       });
 
       const data = await response.json();
