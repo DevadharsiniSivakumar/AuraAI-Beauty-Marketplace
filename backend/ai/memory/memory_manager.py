@@ -162,3 +162,76 @@ class MemoryManager:
                     raise
             
         return memory
+
+    @staticmethod
+    async def update_explicit_preferences(user_id: str, new_preferences: Dict[str, Any], current_memory: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Updates the explicit preferences and beauty context extracted by the Memory Agent,
+        and persists them to Firestore.
+        """
+        memory = current_memory.copy()
+        raw_mem = memory.get("raw_memory", {})
+
+        # Merge extracted explicit preferences
+        if "budget" in new_preferences:
+            budget_val = new_preferences["budget"]
+            if isinstance(budget_val, (int, float)):
+                raw_mem["averageBudget"] = budget_val
+                memory.setdefault("explicit_preferences", {})["preferredBudget"] = f"Around ₹{budget_val}"
+
+        if "preferredLocations" in new_preferences:
+            locs = new_preferences["preferredLocations"]
+            if isinstance(locs, list):
+                raw_mem["preferredLocations"] = list(set(raw_mem.get("preferredLocations", []) + locs))
+                memory.setdefault("explicit_preferences", {})["preferredLocations"] = raw_mem["preferredLocations"]
+
+        if "allergies" in new_preferences:
+            allergies = new_preferences["allergies"]
+            if isinstance(allergies, list):
+                # We can store allergies in raw_memory explicitly
+                raw_mem["allergies"] = list(set(raw_mem.get("allergies", []) + allergies))
+                
+        if "hairType" in new_preferences:
+            raw_mem["hairType"] = new_preferences["hairType"]
+            
+        if "dislikedServices" in new_preferences:
+            disliked = new_preferences["dislikedServices"]
+            if isinstance(disliked, list):
+                raw_mem["dislikedServices"] = list(set(raw_mem.get("dislikedServices", []) + disliked))
+                memory.setdefault("beauty_context", {})["dislikedServices"] = raw_mem["dislikedServices"]
+
+        memory["raw_memory"] = raw_mem
+
+        # Update context summary string to reflect new data
+        try:
+            from models.user import UserMemory
+            # Filter out interaction context before rebuilding
+            cleaned_mem = raw_mem.copy()
+            cleaned_mem.pop("interaction_context", None)
+            
+            # ensure valid parsing
+            user_mem_obj = UserMemory(**cleaned_mem)
+            context_str = MemoryService.build_user_memory_context(user_mem_obj)
+            memory["context_summary"] = context_str
+        except Exception as e:
+            logger.warning(f"Could not rebuild context summary after memory extraction: {e}")
+
+        # Persist memory map in Firestore users/{uid}
+        if not should_use_mock() and user_id and not user_id.startswith("anonymous_"):
+            db = get_firestore_client()
+            try:
+                raw_mem["lastUpdated"] = datetime.utcnow().isoformat() + "Z"
+                
+                # Package up full memory payload
+                ai_mem_payload = raw_mem.copy()
+                ai_mem_payload["interaction_context"] = memory.get("interaction_context", {})
+                
+                doc_ref = db.collection("users").document(user_id)
+                doc_ref.set({"aiMemory": ai_mem_payload}, merge=True)
+                logger.info(f"Successfully persisted EXPLICIT AI memory for user {user_id} in Firestore.")
+            except Exception as e:
+                logger.error(f"Error persisting explicit user memory in Firestore: {e}")
+                if os.getenv("ALLOW_MOCK_AI_DATA_FALLBACK", "false").lower() == "false":
+                    raise
+            
+        return memory

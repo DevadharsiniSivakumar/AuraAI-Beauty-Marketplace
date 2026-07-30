@@ -5,6 +5,7 @@ from ai.agents.recommendation_agent import RecommendationAgent
 from ai.agents.review_agent import ReviewAgent
 from ai.agents.journey_agent import JourneyAgent
 from ai.agents.booking_agent import BookingAgent
+from ai.agents.memory_agent import MemoryAgent
 
 class AgentRegistry:
     def __init__(self):
@@ -16,6 +17,7 @@ class AgentRegistry:
         self.register("review", ReviewAgent())
         self.register("journey", JourneyAgent())
         self.register("booking", BookingAgent())
+        self.register("memory", MemoryAgent())
 
     def register(self, name: str, agent: BaseAgent):
         self._agents[name] = agent

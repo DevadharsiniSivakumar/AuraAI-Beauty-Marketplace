@@ -76,6 +76,14 @@ class AIOrchestrator:
         elif state.intent in ["salon_search", "service_search", "style_advice"]:
             state.intent = "salon_recommendation"
 
+        # 3.5 Run Memory Agent to extract any explicit preferences
+        try:
+            memory_agent = agent_registry.get_agent("memory")
+            state = await memory_agent.run(state)
+        except Exception as e:
+            logger.error(f"Memory Agent failed: {e}")
+            state.errors.append(f"Memory Agent failed: {str(e)}")
+
         # 4. Specialized Agent Routing & Execution
         logger.info(f"Orchestrator routing query. Primary: '{state.intent}', Secondary: {state.secondary_intents}")
 
