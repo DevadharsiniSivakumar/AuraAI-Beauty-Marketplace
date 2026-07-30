@@ -44,10 +44,11 @@ class MemoryManager:
                     
                     db_beauty_profile = data.get("beautyProfile")
                 
-                # Fetch bookings
+                # Fetch bookings from top-level 'bookings' collection
                 try:
-                    bookings_ref = db.collection("users").document(user_id).collection("bookings")
-                    bookings_docs = bookings_ref.get()
+                    from google.cloud.firestore_v1.base_query import FieldFilter
+                    bookings_ref = db.collection("bookings").where(filter=FieldFilter("userId", "==", user_id))
+                    bookings_docs = bookings_ref.stream()
                     for b_doc in bookings_docs:
                         b_data = b_doc.to_dict()
                         b_data["id"] = b_doc.id
@@ -55,13 +56,13 @@ class MemoryManager:
                 except Exception as e:
                     logger.warning(f"Failed to fetch bookings from db: {e}")
 
-                # Fetch journeys
+                # Fetch journeys from top-level 'beauty_journeys' collection
                 try:
-                    journeys_ref = db.collection("users").document(user_id).collection("journeys")
-                    journeys_docs = journeys_ref.get()
-                    for j_doc in journeys_docs:
-                        j_data = j_doc.to_dict()
-                        j_data["id"] = j_doc.id
+                    journey_ref = db.collection("beauty_journeys").document(user_id)
+                    journey_doc = journey_ref.get()
+                    if journey_doc.exists:
+                        j_data = journey_doc.to_dict()
+                        j_data["id"] = journey_doc.id
                         db_journeys.append(j_data)
                 except Exception as e:
                     logger.warning(f"Failed to fetch journeys from db: {e}")
