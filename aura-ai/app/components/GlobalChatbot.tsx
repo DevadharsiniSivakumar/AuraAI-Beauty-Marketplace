@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -25,6 +26,7 @@ export default function GlobalChatbot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const { user } = useAuth();
+  const { userProfile, bookings, beautyProfile, userMemory } = useApp();
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,7 +56,14 @@ export default function GlobalChatbot() {
       const response = await fetch('/api/concierge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg.text, context: "global_concierge" })
+        body: JSON.stringify({ 
+          message: userMsg.text, 
+          context: "global_concierge",
+          userProfile,
+          bookings,
+          beautyProfile,
+          userMemory
+        })
       });
 
       const data = await response.json();
