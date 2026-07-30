@@ -236,7 +236,12 @@ class AIOrchestrator:
             "reviewAnalysis": state.agent_results.get("review_analysis"),
             "journeyPlan": state.journey_plan,
             "bookingDraft": state.booking_draft,
-            "bookingPrompt": state.agent_results.get("booking", {}).get("prompt") if state.agent_results.get("booking") else None
+            "bookingPrompt": state.agent_results.get("booking", {}).get("prompt") if state.agent_results.get("booking") else None,
+            "userHistoryFromDatabase": {
+                "activeJourneys": state.memory.get("real_journeys", []),
+                "pastBookings": state.memory.get("real_bookings", []),
+                "beautyProfileData": state.memory.get("real_beauty_profile", {})
+            }
         }
         
         user_prompt = (
@@ -245,6 +250,7 @@ class AIOrchestrator:
             f"Please synthesize this into a single, cohesive, premium consultation narrative. "
             f"Introduce the recommendations, beauty journey steps, review insights, or booking actions "
             f"pleasingly, matching your luxurious tone. Do not mention technical agent names.\n"
+            f"CRITICAL: If the user asks about their past bookings, active beauty journeys, or beauty profile, you MUST read the 'userHistoryFromDatabase' object above and answer them accurately based on that exact data.\n"
             f"IMPORTANT: When presenting Review Intelligence or Salon comparisons, do NOT use markdown formatting like asterisks (*) or hashes (#). Format it as clean, simple conversational prose."
         )
 

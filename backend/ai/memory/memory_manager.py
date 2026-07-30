@@ -18,6 +18,9 @@ class MemoryManager:
         """
         user_mem_obj = None
         loaded_from_firestore = False
+        db_bookings = []
+        db_journeys = []
+        db_beauty_profile = None
 
         # Load from Firestore if authenticated user and Firestore is active
         if not should_use_mock() and user_id and not user_id.startswith("anonymous_"):
@@ -38,6 +41,31 @@ class MemoryManager:
                             logger.info(f"Loaded persistent AI memory from Firestore for user: {user_id}")
                         except Exception as parse_err:
                             logger.warning(f"Error parsing persistent AI memory: {parse_err}. Will recalculate.")
+                    
+                    db_beauty_profile = data.get("beautyProfile")
+                
+                # Fetch bookings
+                try:
+                    bookings_ref = db.collection("users").document(user_id).collection("bookings")
+                    bookings_docs = bookings_ref.get()
+                    for b_doc in bookings_docs:
+                        b_data = b_doc.to_dict()
+                        b_data["id"] = b_doc.id
+                        db_bookings.append(b_data)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch bookings from db: {e}")
+
+                # Fetch journeys
+                try:
+                    journeys_ref = db.collection("users").document(user_id).collection("journeys")
+                    journeys_docs = journeys_ref.get()
+                    for j_doc in journeys_docs:
+                        j_data = j_doc.to_dict()
+                        j_data["id"] = j_doc.id
+                        db_journeys.append(j_data)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch journeys from db: {e}")
+
             except Exception as db_err:
                 logger.error(f"Failed to query Firestore user memory: {db_err}")
                 if os.getenv("ALLOW_MOCK_AI_DATA_FALLBACK", "false").lower() == "false":
@@ -114,7 +142,10 @@ class MemoryManager:
                 "bookingHistoryCount": len(user_mem_obj.bookingHistory),
                 "lastBookingDate": user_mem_obj.bookingHistory[0].date if user_mem_obj.bookingHistory else None
             },
-            "interaction_context": interaction_context
+            "interaction_context": interaction_context,
+            "real_bookings": db_bookings,
+            "real_journeys": db_journeys,
+            "real_beauty_profile": db_beauty_profile
         }
 
     @staticmethod
