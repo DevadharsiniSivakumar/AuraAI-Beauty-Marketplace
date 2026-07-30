@@ -70,7 +70,9 @@ class ConciergeService:
         intent = "general_query"
         has_vs = "compare" in text or "versus" in text or " vs " in text or "difference between" in text
         
-        if has_vs or len(queried_salons) >= 2:
+        if any(x in text for x in ["my journey", "my past", "my history", "my booking", "my profile", "my preference", "past booking", "ongoing journey"]):
+            intent = "memory_inquiry"
+        elif has_vs or len(queried_salons) >= 2:
             intent = "salon_comparison"
         elif any(x in text for x in ["book", "appointment", "schedule", "cancel", "reserve", "visit"]):
             intent = "booking_help"

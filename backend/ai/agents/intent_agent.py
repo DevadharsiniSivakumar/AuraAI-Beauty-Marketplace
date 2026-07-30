@@ -40,6 +40,7 @@ class IntentAgent(BaseAgent):
             "- service_discovery: exploring types of haircuts, facials, or treatment options\n"
             "- salon_comparison: compare two or more salons/services side-by-side\n"
             "- beauty_question: general advice about skin/hair ingredients or routines\n"
+            "- memory_inquiry: explicitly asking about past bookings, existing beauty journeys, personal history, or beauty profile\n"
             "- general_conversation: greetings, basic questions about Aura, chit chat\n\n"
             "Entities to extract (if present):\n"
             "- service: specific treatment or service requested (e.g. 'bridal makeup', 'hydra facial')\n"
