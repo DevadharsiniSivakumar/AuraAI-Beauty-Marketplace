@@ -113,7 +113,8 @@ class ConciergeService:
             "   - First, validate their request and detail safe, natural, and helpful home remedies or DIY alternatives (e.g. honey, oatmeal, coconut oil, aloe vera).\n"
             "   - Second, gently and pleasingly explain the limitations or challenges of doing it at home (e.g. lack of professional-grade extraction tools, risk of skin barrier damage/infection, lower efficacy, or lack of specialist equipment).\n"
             "   - Third, convincingly suggest relevant professional salon treatments from the provided matches/catalog (especially doorstep home services if listed), explaining why they are a superior, stress-free, and safe alternative.\n"
-            "Ensure all your replies are convincing, pleasing, and highly relevant to the query."
+            "Ensure all your replies are convincing, pleasing, and highly relevant to the query.\n"
+            "IMPORTANT FORMATTING: Use bullet points where appropriate (like for summaries, booking lists, or recommendations) to make your response easy to read."
         )
 
     @classmethod

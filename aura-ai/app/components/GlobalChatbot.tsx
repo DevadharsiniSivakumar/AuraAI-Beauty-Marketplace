@@ -59,6 +59,7 @@ export default function GlobalChatbot() {
         body: JSON.stringify({ 
           message: userMsg.text, 
           context: "global_concierge",
+          chatHistory: messages.slice(-4).map(m => ({ role: m.role, content: m.text })),
           userProfile,
           bookings,
           beautyProfile,

@@ -70,7 +70,8 @@ Core Guidelines:
    - First, validate their request and detail safe, natural, and helpful home remedies or DIY alternatives (e.g. honey, oatmeal, coconut oil, aloe vera).
    - Second, gently and pleasingly explain the limitations or challenges of doing it at home (e.g. lack of professional-grade extraction tools, risk of skin barrier damage/infection, lower efficacy, or lack of specialist equipment).
    - Third, convincingly suggest relevant professional salon treatments from the provided matches/catalog (especially doorstep home services if listed), explaining why they are a superior, stress-free, and safe alternative.
-Ensure all your replies are convincing, pleasing, and highly relevant to the query.`;
+Ensure all your replies are convincing, pleasing, and highly relevant to the query.
+IMPORTANT FORMATTING: Use bullet points where appropriate (like for summaries, booking lists, or recommendations) to make your response easy to read.`;
 }
 
 /**
@@ -83,6 +84,7 @@ export async function explainRecommendations(
   recommendations: any[],
   memoryContext?: string,
   reviewAnalysis?: any,
+  chatHistory?: any[],
   model?: string
 ): Promise<string> {
   const systemPrompt = getLuxurySystemPrompt(userName, intent, memoryContext);
@@ -122,9 +124,19 @@ No matching recommendations or reviews were requested or provided.
 Aura, please answer the client's query directly as an expert beauty consultant. Provide scientific, helpful guidance, education, or style tips as appropriate, without recommending specific salons.`;
 
   const messages: GroqMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt }
+    { role: 'system', content: systemPrompt }
   ];
+
+  if (chatHistory && chatHistory.length > 0) {
+    for (const msg of chatHistory) {
+      // Don't include the exact current message if it's already in history
+      if (msg.content !== userQuery) {
+         messages.push({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.content });
+      }
+    }
+  }
+
+  messages.push({ role: 'user', content: userPrompt });
 
   return generateGroqResponse(messages, model);
 }

@@ -29,9 +29,18 @@ class MemoryAgent(BaseAgent):
             )
 
             messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": state.message}
+                {"role": "system", "content": system_prompt}
             ]
+
+            # Inject chat history for contextual awareness
+            for msg in state.chat_history:
+                if msg.get("content") != state.message:
+                    messages.append({
+                        "role": "assistant" if msg.get("role") == "assistant" else "user",
+                        "content": msg.get("content")
+                    })
+
+            messages.append({"role": "user", "content": state.message})
 
             response_content = await LLMProviderService.generate_response(messages)
             

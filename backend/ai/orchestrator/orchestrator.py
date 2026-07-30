@@ -22,7 +22,8 @@ class AIOrchestrator:
         user_profile: Optional[Dict[str, Any]] = None,
         bookings: Optional[List[Dict[str, Any]]] = None,
         user_memory: Optional[Dict[str, Any]] = None,
-        beauty_profile: Optional[Dict[str, Any]] = None
+        beauty_profile: Optional[Dict[str, Any]] = None,
+        chat_history: Optional[List[Dict[str, Any]]] = None
     ) -> SharedWorkflowState:
         start_time = time.time()
         request_id = str(uuid.uuid4())
@@ -33,6 +34,7 @@ class AIOrchestrator:
             user_id=user_id,
             session_id=session_id,
             message=message,
+            chat_history=chat_history or [],
             metadata={
                 "startTime": start_time,
                 "userProfile": user_profile or {},
@@ -247,9 +249,18 @@ class AIOrchestrator:
         )
 
         messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "system", "content": system_prompt}
         ]
+
+        # Inject chat history for contextual awareness
+        for msg in state.chat_history:
+            if msg.get("content") != state.message:
+                messages.append({
+                    "role": "assistant" if msg.get("role") == "assistant" else "user",
+                    "content": msg.get("content")
+                })
+
+        messages.append({"role": "user", "content": user_prompt})
 
         raw_narrative = await LLMProviderService.generate_chat_response(messages, max_tokens=1500)
         state.final_response = raw_narrative.strip()

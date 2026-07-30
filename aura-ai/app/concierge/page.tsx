@@ -90,6 +90,7 @@ export default function ConciergePage() {
         body: JSON.stringify({ 
           message: userMsg.text, 
           context: "concierge",
+          chatHistory: messages.slice(-4).map(m => ({ role: m.role, content: m.text })),
           userProfile,
           bookings,
           beautyProfile,

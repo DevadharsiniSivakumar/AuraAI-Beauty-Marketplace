@@ -21,6 +21,7 @@ class ChatRequest(BaseModel):
     bookings: Optional[List[Dict[str, Any]]] = None
     userMemory: Optional[UserMemory] = None
     beautyProfile: Optional[BeautyProfile] = None
+    chatHistory: Optional[List[Dict[str, Any]]] = None
 
 class ChatResponse(BaseModel):
     intent: str
@@ -57,7 +58,8 @@ async def chat_handler(
             user_profile=request.userProfile,
             bookings=request.bookings,
             user_memory=user_mem_data,
-            beauty_profile=bp_data
+            beauty_profile=bp_data,
+            chat_history=request.chatHistory
         )
 
         timestamp = datetime.now().strftime("%I:%M %p").lstrip("0")

@@ -6,7 +6,7 @@ import { buildUserMemoryContext } from '../../../lib/userMemory';
 
 export async function POST(request: Request) {
   try {
-    const { message, userProfile, bookings, userMemory, beautyProfile } = await request.json();
+    const { message, userProfile, bookings, userMemory, beautyProfile, chatHistory } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'User message query is required.' }, { status: 400 });
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         const response = await fetch(`${fastApiUrl}/api/concierge/chat`, {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify({ message, userProfile, bookings, userMemory, beautyProfile })
+          body: JSON.stringify({ message, userProfile, bookings, userMemory, beautyProfile, chatHistory })
         });
         if (response.ok) {
           const result = await response.json();
@@ -195,7 +195,8 @@ export async function POST(request: Request) {
           parsedQuery.intent,
           recommendations,
           memoryContext,
-          reviewAnalysis
+          reviewAnalysis,
+          chatHistory
         );
       } catch (apiError: any) {
         console.error('Groq API Error, falling back to simulated explanation:', apiError);

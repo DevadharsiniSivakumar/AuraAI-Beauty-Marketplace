@@ -8,6 +8,7 @@ class SharedWorkflowState(BaseModel):
     message: str
     intent: Optional[str] = None
     secondary_intents: List[str] = Field(default_factory=list)
+    chat_history: List[Dict[str, Any]] = Field(default_factory=list)
     entities: Dict[str, Any] = Field(default_factory=dict)
     memory: Dict[str, Any] = Field(default_factory=dict)
     selected_agents: List[str] = Field(default_factory=list)
