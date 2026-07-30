@@ -43,8 +43,6 @@ async def chat_handler(
         user_id = verified_user.uid
     else:
         user_id = request.userMemory.userId if request.userMemory else "guest_user"
-        if user_id != "guest_user" and not user_id.startswith("anonymous_"):
-            user_id = f"anonymous_{user_id}"
 
     try:
         user_mem_data = request.userMemory.model_dump() if request.userMemory else None
