@@ -761,6 +761,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Cancel Booking
   const cancelBooking = async (bookingId: string) => {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+
+    if (booking.date && booking.time) {
+      try {
+        const [timeStr, modifier] = booking.time.split(' ');
+        let [hoursStr, minutesStr] = timeStr.split(':');
+        let hours = parseInt(hoursStr, 10);
+        if (modifier === 'PM' && hours < 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+        
+        const bookingDate = new Date(`${booking.date}T${hours.toString().padStart(2, '0')}:${minutesStr}:00`);
+        const now = new Date();
+        const diffHours = (bookingDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+        if (diffHours <= 2 && diffHours > 0) {
+          alert('Appointments cannot be cancelled within 2 hours of the scheduled time.');
+          return;
+        } else if (diffHours <= 0) {
+          alert('This appointment has already passed and cannot be cancelled.');
+          return;
+        }
+      } catch (err) {
+        console.error('Error parsing booking date/time for cancellation validation', err);
+      }
+    }
+
     if (IS_MOCK) {
       const updated = bookings.map(b => 
         b.id === bookingId ? { ...b, status: 'Cancelled' as const } : b

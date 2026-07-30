@@ -30,7 +30,7 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { bookings, salons, userProfile, activeJourney, userMemory, saveJourney, deleteActiveJourney } = useApp();
+  const { bookings, salons, userProfile, activeJourney, userMemory, saveJourney, deleteActiveJourney, cancelBooking } = useApp();
 
   const [goalInput, setGoalInput] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -668,6 +668,14 @@ export default function DashboardPage() {
                             >
                               View Salon
                             </Link>
+                            {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                              <button
+                                onClick={() => cancelBooking(booking.id)}
+                                className="inline-flex items-center gap-1 text-rose text-xs font-bold border border-rose/20 px-2.5 py-1 rounded-lg bg-rose/10 hover:bg-rose/20 transition-colors cursor-pointer"
+                              >
+                                Cancel Visit
+                              </button>
+                            )}
                             {booking.status === 'Completed' && (
                               <Link 
                                 href={`/reviews?salon=${booking.salonId}`}
