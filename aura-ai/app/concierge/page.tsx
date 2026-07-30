@@ -44,7 +44,7 @@ export default function ConciergePage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedPrompts = [
-    "Plan a 4-week bridal prep schedule.",
+    "Book an appointment for a haircut today.",
     "Compare the top 3 luxury salons in Indiranagar.",
     "Help me choose a treatment for dry hair."
   ];
