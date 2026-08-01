@@ -26,47 +26,36 @@ class MemoryManager:
         if not should_use_mock() and user_id and not user_id.startswith("anonymous_"):
             db = get_firestore_client()
             try:
-                doc_ref = db.collection("users").document(user_id)
-                doc = doc_ref.get()
-                if doc.exists:
-                    data = doc.to_dict()
-                    ai_mem_data = data.get("aiMemory")
-                    if ai_mem_data:
-                        try:
-                            # Filter out interaction context subfield for compatibility
-                            cleaned_mem = ai_mem_data.copy()
-                            cleaned_mem.pop("interaction_context", None)
-                            user_mem_obj = UserMemory(**cleaned_mem)
-                            loaded_from_firestore = True
-                            logger.info(f"Loaded persistent AI memory from Firestore for user: {user_id}")
-                        except Exception as parse_err:
-                            logger.warning(f"Error parsing persistent AI memory: {parse_err}. Will recalculate.")
-                    
-                    db_beauty_profile = data.get("beautyProfile")
+                # 1. Fetch Beauty Profile from the users collection
+                user_doc_ref = db.collection("users").document(user_id)
+                user_doc = user_doc_ref.get()
+                if user_doc.exists:
+                    db_beauty_profile = user_doc.to_dict().get("beautyProfile")
                 
-                # Fetch bookings from top-level 'bookings' collection
-                try:
-                    from google.cloud.firestore_v1.base_query import FieldFilter
-                    bookings_ref = db.collection("bookings").where(filter=FieldFilter("userId", "==", user_id))
-                    bookings_docs = bookings_ref.stream()
-                    for b_doc in bookings_docs:
-                        b_data = b_doc.to_dict()
-                        b_data["id"] = b_doc.id
-                        db_bookings.append(b_data)
-                except Exception as e:
-                    logger.warning(f"Failed to fetch bookings from db: {e}")
-
-                # Fetch journeys from top-level 'beauty_journeys' collection
-                try:
-                    journey_ref = db.collection("beauty_journeys").document(user_id)
-                    journey_doc = journey_ref.get()
-                    if journey_doc.exists:
-                        j_data = journey_doc.to_dict()
-                        j_data["id"] = journey_doc.id
-                        db_journeys.append(j_data)
-                except Exception as e:
-                    logger.warning(f"Failed to fetch journeys from db: {e}")
-
+                # 2. Fetch all other memory from the user_memory collection
+                memory_doc_ref = db.collection("user_memory").document(user_id)
+                memory_doc = memory_doc_ref.get()
+                
+                if memory_doc.exists:
+                    mem_data = memory_doc.to_dict()
+                    
+                    # Map the precomputed frontend memory structure to UserMemory object
+                    try:
+                        user_mem_obj = UserMemory(
+                            userId=user_id,
+                            booking_history=mem_data.get("bookingHistory", []),
+                            beauty_context=mem_data.get("beautyJourneys", []),
+                            explicit_preferences=[f"Budget: {mem_data.get('averageBudget')}"] if mem_data.get("averageBudget") else []
+                        )
+                        loaded_from_firestore = True
+                        logger.info(f"Loaded persistent AI memory from user_memory collection for: {user_id}")
+                    except Exception as parse_err:
+                        logger.warning(f"Error parsing user_memory document: {parse_err}. Will recalculate.")
+                        
+                    # Also populate raw lists to pass to context string builder
+                    db_bookings = mem_data.get("bookingHistory", [])
+                    db_journeys = mem_data.get("beautyJourneys", [])
+                    
             except Exception as db_err:
                 logger.error(f"Failed to query Firestore user memory: {db_err}")
                 if os.getenv("ALLOW_MOCK_AI_DATA_FALLBACK", "false").lower() == "false":
